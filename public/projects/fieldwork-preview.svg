@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" role="img" aria-label="Fieldwork booking preview">
+  <rect width="720" height="450" fill="#0a0a0c"/>
+  <rect x="40" y="36" width="200" height="16" rx="4" fill="#f1f0ee"/>
+  <rect x="40" y="68" width="280" height="10" rx="3" fill="#94939b"/>
+  <rect x="40" y="110" width="70" height="40" rx="8" fill="#c47a4a"/>
+  <rect x="120" y="110" width="70" height="40" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="200" y="110" width="70" height="40" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="280" y="110" width="70" height="40" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="360" y="110" width="70" height="40" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="40" y="180" width="100" height="36" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="152" y="180" width="110" height="36" rx="8" fill="#28282e"/>
+  <rect x="274" y="180" width="100" height="36" rx="8" fill="#c47a4a"/>
+  <rect x="386" y="180" width="100" height="36" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="40" y="240" width="400" height="44" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="40" y="300" width="400" height="44" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="40" y="368" width="180" height="40" rx="8" fill="#c47a4a"/>
+</svg>

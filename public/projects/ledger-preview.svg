@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450" role="img" aria-label="Ledger dashboard preview">
+  <rect width="720" height="450" fill="#0a0a0c"/>
+  <rect x="0" y="0" width="160" height="450" fill="#131316"/>
+  <rect x="12" y="18" width="72" height="12" rx="3" fill="#c47a4a"/>
+  <rect x="20" y="56" width="96" height="8" rx="3" fill="#f1f0ee"/>
+  <rect x="20" y="80" width="80" height="8" rx="3" fill="#28282e"/>
+  <rect x="20" y="104" width="88" height="8" rx="3" fill="#28282e"/>
+  <rect x="180" y="24" width="140" height="14" rx="4" fill="#f1f0ee"/>
+  <rect x="180" y="56" width="120" height="52" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="312" y="56" width="120" height="52" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="444" y="56" width="120" height="52" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="576" y="56" width="120" height="52" rx="8" fill="#131316" stroke="#28282e"/>
+  <rect x="180" y="128" width="516" height="200" rx="10" fill="#131316" stroke="#28282e"/>
+  <polyline fill="none" stroke="#c47a4a" stroke-width="3" points="210,280 270,250 330,240 390,210 450,200 510,180 570,160"/>
+  <rect x="180" y="348" width="516" height="80" rx="10" fill="#131316" stroke="#28282e"/>
+</svg>
