@@ -11,6 +11,10 @@ import {
   syncRankFromXp,
 } from "@/lib/progression/achievements";
 import { getDetectiveStats } from "@/lib/progression/stats";
+import {
+  fictionalRequiresPremium,
+  getUserEntitlements,
+} from "@/lib/payments/entitlements";
 
 export type FictionalActionResult =
   | { ok: true; investigationId?: string; submissionId?: string }
@@ -37,9 +41,19 @@ export async function startOrContinueInvestigation(
 
   const caseFile = await getPrisma().fictionalCase.findFirst({
     where: { id: fictionalCaseId, published: true, isFictional: true },
-    select: { id: true, title: true, slug: true },
+    select: { id: true, title: true, slug: true, difficulty: true },
   });
   if (!caseFile) return { ok: false, error: "Fictional case not found" };
+
+  if (fictionalRequiresPremium(caseFile.difficulty)) {
+    const entitlements = await getUserEntitlements(gate.userId);
+    if (!entitlements?.isPremium) {
+      return {
+        ok: false,
+        error: "Investigator Pro required for this training file",
+      };
+    }
+  }
 
   const existing = await getPrisma().investigation.findFirst({
     where: {

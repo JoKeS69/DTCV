@@ -4,6 +4,10 @@ import { auth } from "@/auth";
 import { FictionalBanner } from "@/components/fictional/FictionalBanner";
 import { listPublishedFictionalCases } from "@/lib/fictional/queries";
 import { getPrisma } from "@/lib/db";
+import {
+  fictionalRequiresPremium,
+  getUserEntitlements,
+} from "@/lib/payments/entitlements";
 
 export const metadata: Metadata = {
   title: "Fictional ops",
@@ -12,6 +16,9 @@ export const metadata: Metadata = {
 export default async function FictionalListPage() {
   const session = await auth();
   const cases = await listPublishedFictionalCases();
+  const entitlements = session?.user?.id
+    ? await getUserEntitlements(session.user.id)
+    : null;
 
   const progress =
     session?.user?.id && cases.length
@@ -49,11 +56,24 @@ export default async function FictionalListPage() {
         <div className="mt-3">
           <FictionalBanner />
         </div>
+        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-text-dim">
+          <Link href="/fictional/challenges" className="hover:text-text">
+            Premium challenges
+          </Link>
+          {" · "}
+          <Link href="/pricing" className="hover:text-text">
+            Pricing
+          </Link>
+          {entitlements?.isPremium ? " · PRO CLEARANCE" : " · FREE CLEARANCE"}
+        </p>
       </div>
 
       <ul className="mt-4 space-y-3">
         {cases.map((item) => {
           const state = byCase.get(item.id);
+          const proLocked =
+            fictionalRequiresPremium(item.difficulty) &&
+            !entitlements?.isPremium;
           return (
             <li key={item.id}>
               <Link
@@ -64,6 +84,7 @@ export default async function FictionalListPage() {
                   <div>
                     <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
                       {item.caseCode} · FICTIONAL · {item.difficulty}
+                      {proLocked ? " · PRO LOCK" : ""}
                     </p>
                     <h2 className="mt-1 font-mono text-base font-semibold uppercase tracking-[0.08em] text-text">
                       {item.title}

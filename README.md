@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–9** (foundation through admin command deck).
+includes **Phase 0–10** (foundation through Visa payments).
 
 ## Stack
 
@@ -42,8 +42,29 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Deploy on Vercel
 
 1. Import the GitHub repo in Vercel (Next.js preset).
-2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
+2. Set `DATABASE_URL`, auth, and `PAYMENTS_*` / `VISA_GATEWAY_*` vars in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Payments — Visa (Phase 10)
+
+Provider abstraction (not Stripe-shaped):
+
+| Mode | Behavior |
+| --- | --- |
+| `PAYMENTS_MODE=test` (default) | Local Visa checkout via `dev_visa`; HMAC webhook applies entitlements |
+| `PAYMENTS_MODE=live` | Requires `VISA_GATEWAY_*` CyberSource-shaped credentials |
+
+| Route | Purpose |
+| --- | --- |
+| `/pricing` | FREE vs Investigator Pro (amounts from env) |
+| `/checkout/[sessionId]` | Visa card capture (test) / gateway handoff |
+| `/billing` | Manage / cancel subscription (customer portal) |
+| `/api/payments/webhook` | Signed webhook (`x-detective-signature`) |
+| `/fictional/challenges` | Premium challenges bay |
+
+Premium gates: ADVANCED/EXPERT fictional files, advanced stats, challenges. Free core (NOVICE/INTERMEDIATE, real cases, community) stays open.
+
+Test Visa PANs: `4111111111111111` (success), `4000000000000002` (decline).
 
 ## Admin command deck (Phase 9)
 
@@ -58,7 +79,7 @@ Server-side **ADMIN-only** gate on every `/admin/*` route (`requireAdmin` /
 | `/admin/fictional` | Create/edit/publish fictional training cases |
 | `/admin/sources` | Cross-case citation management |
 | `/admin/moderation` | Reports, discussion lock/hide, soft-delete comments |
-| `/admin/subscriptions` | Read-only plan counts (Stripe = Phase 10) |
+| `/admin/subscriptions` | Live plan/status + payment customer/subscription ids |
 | `/admin/analytics` | Light ops counters |
 
 Seeded admin: `admin_ops` / `detective-admin-2026` (role `ADMIN`).

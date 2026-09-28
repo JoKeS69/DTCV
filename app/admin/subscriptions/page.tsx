@@ -1,37 +1,52 @@
 import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { planLabel } from "@/lib/payments/entitlements";
 import { getPrisma } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Admin · Subscriptions" };
 
 export default async function AdminSubscriptionsPage() {
-  const [byPlan, recent] = await Promise.all([
+  const [byPlan, byStatus, recent, activePro] = await Promise.all([
     getPrisma().user.groupBy({
       by: ["subscriptionPlan"],
       _count: { _all: true },
     }),
+    getPrisma().user.groupBy({
+      by: ["subscriptionStatus"],
+      _count: { _all: true },
+    }),
     getPrisma().user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 25,
+      orderBy: { updatedAt: "desc" },
+      take: 40,
       select: {
         id: true,
         username: true,
         displayName: true,
         subscriptionPlan: true,
-        createdAt: true,
+        subscriptionStatus: true,
+        paymentCustomerId: true,
+        paymentSubscriptionId: true,
+        subscriptionCurrentPeriodEnd: true,
+        subscriptionCancelAtPeriodEnd: true,
       },
+    }),
+    getPrisma().user.count({
+      where: { subscriptionPlan: "PREMIUM", subscriptionStatus: "ACTIVE" },
     }),
   ]);
 
   const plans = ["FREE", "PREMIUM"] as const;
-  const counts = new Map(
+  const planCounts = new Map(
     byPlan.map((row) => [row.subscriptionPlan, row._count._all]),
+  );
+  const statusCounts = new Map(
+    byStatus.map((row) => [row.subscriptionStatus, row._count._all]),
   );
 
   return (
     <AdminShell
       title="Subscriptions"
-      subtitle="Read-only snapshot. Stripe billing lands in Phase 10 — no payment actions here."
+      subtitle="Live Visa billing fields — plan, status, customer/subscription ids, period end. No card data stored."
       current="/admin/subscriptions"
     >
       <div className="grid gap-2 sm:grid-cols-3">
@@ -41,41 +56,74 @@ export default async function AdminSubscriptionsPage() {
             className="border border-border bg-surface/50 px-4 py-3"
           >
             <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-dim">
-              {plan}
+              {plan === "PREMIUM" ? "Investigator Pro" : "Free"}
             </p>
             <p className="mt-2 font-mono text-2xl text-text">
-              {counts.get(plan) ?? 0}
+              {planCounts.get(plan) ?? 0}
             </p>
           </div>
         ))}
+        <div className="border border-border bg-surface/50 px-4 py-3">
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-dim">
+            Active Pro
+          </p>
+          <p className="mt-2 font-mono text-2xl text-text">{activePro}</p>
+        </div>
       </div>
 
-      <section className="mt-4 border border-border bg-surface/40">
-        <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
-          &gt; Recent accounts (plan field only)
-        </header>
-        <ul className="divide-y divide-border">
-          {recent.map((user) => (
-            <li
-              key={user.id}
-              className="flex justify-between gap-2 px-4 py-2 font-mono text-[11px]"
-            >
-              <span className="text-text">
-                {user.displayName ?? user.username}{" "}
-                <span className="text-text-dim">@{user.username}</span>
-              </span>
-              <span className="uppercase tracking-[0.12em] text-text-muted">
-                {user.subscriptionPlan}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="mt-3 flex flex-wrap gap-3 font-mono text-[10px] uppercase tracking-[0.12em] text-text-dim">
+        {(["FREE", "ACTIVE", "CANCELED", "PAST_DUE"] as const).map((s) => (
+          <span key={s}>
+            {s}: {statusCounts.get(s) ?? 0}
+          </span>
+        ))}
+      </div>
 
-      <p className="mt-3 font-mono text-[10px] text-text-dim">
-        Phase 10 will wire Stripe Customer / Subscription IDs. Do not collect
-        cards here.
-      </p>
+      <section className="mt-4 overflow-x-auto border border-border bg-surface/40">
+        <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
+          &gt; Accounts
+        </header>
+        <table className="w-full min-w-[720px] border-collapse text-left font-mono text-[11px]">
+          <thead className="border-b border-border text-[9px] uppercase tracking-[0.14em] text-text-dim">
+            <tr>
+              <th className="px-3 py-2">Detective</th>
+              <th className="px-3 py-2">Plan</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">Period end</th>
+              <th className="px-3 py-2">Provider ids</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {recent.map((user) => (
+              <tr key={user.id} className="bg-surface/30">
+                <td className="px-3 py-2 text-text">
+                  {user.displayName ?? user.username}
+                  <p className="text-[10px] text-text-dim">@{user.username}</p>
+                </td>
+                <td className="px-3 py-2 text-text-muted">
+                  {planLabel(user.subscriptionPlan)}
+                </td>
+                <td className="px-3 py-2 text-text-muted">
+                  {user.subscriptionStatus}
+                  {user.subscriptionCancelAtPeriodEnd ? " · canceling" : ""}
+                </td>
+                <td className="px-3 py-2 text-text-dim normal-case tracking-normal">
+                  {user.subscriptionCurrentPeriodEnd
+                    ? user.subscriptionCurrentPeriodEnd
+                        .toISOString()
+                        .slice(0, 10)
+                    : "—"}
+                </td>
+                <td className="px-3 py-2 text-[10px] text-text-dim normal-case tracking-normal break-all">
+                  {user.paymentCustomerId ?? "—"}
+                  <br />
+                  {user.paymentSubscriptionId ?? "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </AdminShell>
   );
 }

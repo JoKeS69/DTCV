@@ -683,10 +683,41 @@ async function main() {
     comments: await prisma.comment.count(),
   };
 
+  // Phase 10 — ADVANCED fictional stub for Investigator Pro gate demos (no solution).
+  await prisma.fictionalCase.upsert({
+    where: { caseCode: "FC-002" },
+    update: {
+      title: "SIGNAL CUT AT DOCK 9",
+      slug: "signal-cut-at-dock-9",
+      synopsis:
+        "[FICTIONAL · ADVANCED] A coastal relay loses telemetry during a storm drill. Investigator Pro training file — invented scenario, not a real crime.",
+      setting: "Dock 9 relay (fictional)",
+      difficulty: "ADVANCED",
+      estimatedMinutes: 60,
+      published: true,
+      publishedAt: new Date(),
+      isFictional: true,
+    },
+    create: {
+      caseCode: "FC-002",
+      title: "SIGNAL CUT AT DOCK 9",
+      slug: "signal-cut-at-dock-9",
+      synopsis:
+        "[FICTIONAL · ADVANCED] A coastal relay loses telemetry during a storm drill. Investigator Pro training file — invented scenario, not a real crime.",
+      setting: "Dock 9 relay (fictional)",
+      difficulty: "ADVANCED",
+      estimatedMinutes: 60,
+      published: true,
+      publishedAt: new Date(),
+      isFictional: true,
+    },
+  });
+
   console.log("Seed complete:", counts);
   console.log("Demo login: demo_detective / detective-demo-2026");
   console.log("Admin login: admin_ops / detective-admin-2026 (role ADMIN)");
-  console.log("FC-001 is FICTIONAL. Real Case rows are DEV stubs only — no crime claims.");
+  console.log("FC-001 is FICTIONAL (free). FC-002 ADVANCED requires Investigator Pro.");
+  console.log("Real Case rows are DEV stubs only — no crime claims.");
 }
 
 main()

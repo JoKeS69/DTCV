@@ -17,7 +17,10 @@ export const authConfig = {
       const isProtected =
         pathname === "/profile" ||
         pathname.startsWith("/profile/") ||
-        pathname.startsWith("/admin");
+        pathname.startsWith("/admin") ||
+        pathname === "/billing" ||
+        pathname.startsWith("/billing/") ||
+        pathname.startsWith("/checkout/");
       if (isProtected) return !!auth;
       return true;
     },

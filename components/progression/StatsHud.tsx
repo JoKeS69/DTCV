@@ -1,6 +1,13 @@
 import type { DetectiveStats } from "@/lib/progression/stats";
 
-export function StatsHud({ stats }: { stats: DetectiveStats }) {
+export function StatsHud({
+  stats,
+  advanced = true,
+}: {
+  stats: DetectiveStats;
+  /** Investigator Pro unlocks streak + perfect score cells. */
+  advanced?: boolean;
+}) {
   const cells = [
     { label: "Investigated", value: String(stats.casesInvestigated) },
     { label: "Completed", value: String(stats.casesCompleted) },
@@ -9,8 +16,14 @@ export function StatsHud({ stats }: { stats: DetectiveStats }) {
       value: stats.averageScore == null ? "—" : String(stats.averageScore),
     },
     { label: "Evidence", value: String(stats.evidenceAnalyzed) },
-    { label: "Streak", value: `${stats.streakDays}d` },
-    { label: "Perfect", value: String(stats.perfectScores) },
+    {
+      label: "Streak",
+      value: advanced ? `${stats.streakDays}d` : "PRO",
+    },
+    {
+      label: "Perfect",
+      value: advanced ? String(stats.perfectScores) : "PRO",
+    },
   ];
 
   return (

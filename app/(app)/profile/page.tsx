@@ -9,6 +9,7 @@ import { DetectiveIdentityCard } from "@/components/progression/DetectiveIdentit
 import { InvestigationHistory } from "@/components/progression/InvestigationHistory";
 import { StatsHud } from "@/components/progression/StatsHud";
 import { getDetectiveDossier } from "@/lib/progression/queries";
+import { getUserEntitlements } from "@/lib/payments/entitlements";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -20,6 +21,9 @@ export default async function ProfilePage() {
 
   const dossier = await getDetectiveDossier(session.user.username);
   if (!dossier) redirect("/login?callbackUrl=/profile");
+  const entitlements = session.user.id
+    ? await getUserEntitlements(session.user.id)
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-3 py-6 md:px-6 md:py-10">
@@ -38,6 +42,14 @@ export default async function ProfilePage() {
         <Link href="/fictional/rankings" className="text-cta hover:underline">
           Rankings
         </Link>
+        {" · "}
+        <Link href="/billing" className="text-cta hover:underline">
+          Billing
+        </Link>
+        {" · "}
+        <Link href="/pricing" className="text-cta hover:underline">
+          Pricing
+        </Link>
       </p>
 
       <div className="mt-4">
@@ -53,10 +65,42 @@ export default async function ProfilePage() {
 
       <section className="mt-4 border border-border bg-surface/40">
         <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
+          &gt; Clearance · {entitlements?.label ?? "Free"}
+        </header>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 font-mono text-[11px]">
+          <p className="text-text-muted normal-case tracking-normal">
+            Status {entitlements?.status ?? "FREE"}
+            {entitlements?.isPremium
+              ? " · Investigator Pro tools unlocked"
+              : " · Upgrade for advanced stats & full library"}
+          </p>
+          <Link
+            href={entitlements?.isPremium ? "/billing" : "/pricing"}
+            className="border border-border px-2 py-1 text-[9px] uppercase tracking-[0.14em] text-text"
+          >
+            {entitlements?.isPremium ? "Manage" : "Upgrade"}
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-4 border border-border bg-surface/40">
+        <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
           &gt; Statistics (fictional ops)
+          {entitlements?.isPremium ? " · advanced" : " · core"}
         </header>
         <div className="px-4 py-3">
-          <StatsHud stats={dossier.stats} />
+          <StatsHud
+            stats={dossier.stats}
+            advanced={!!entitlements?.isPremium}
+          />
+          {!entitlements?.isPremium ? (
+            <p className="mt-2 font-mono text-[10px] text-text-dim">
+              Perfect-score and streak analytics unlock with Investigator Pro.{" "}
+              <Link href="/pricing" className="text-text hover:underline">
+                View pricing
+              </Link>
+            </p>
+          ) : null}
         </div>
       </section>
 

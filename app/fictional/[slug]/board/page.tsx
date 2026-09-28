@@ -9,6 +9,10 @@ import {
   getFictionalCaseBySlug,
   getUserInvestigation,
 } from "@/lib/fictional/queries";
+import {
+  fictionalRequiresPremium,
+  getUserEntitlements,
+} from "@/lib/payments/entitlements";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,6 +32,13 @@ export default async function FictionalBoardPage({ params }: Props) {
 
   const caseFile = await getFictionalCaseBySlug(slug);
   if (!caseFile) notFound();
+
+  if (fictionalRequiresPremium(caseFile.difficulty)) {
+    const entitlements = await getUserEntitlements(session.user.id);
+    if (!entitlements?.isPremium) {
+      redirect(`/fictional/${slug}`);
+    }
+  }
 
   const investigation = await getUserInvestigation(session.user.id, caseFile.id);
   if (!investigation) {

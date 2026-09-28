@@ -151,6 +151,12 @@ model User {
   role               UserRole           @default(USER)
   subscriptionStatus SubscriptionStatus @default(FREE)
   subscriptionPlan   SubscriptionPlan   @default(FREE)
+  /// Provider customer id (Visa gateway / test mode).
+  paymentCustomerId  String?
+  /// Active provider subscription id.
+  paymentSubscriptionId String?         @unique
+  subscriptionCurrentPeriodEnd DateTime?
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
   /// When set, credentials login is rejected (admin suspend).
   suspendedAt        DateTime?
   /// Public badge id shown as DETECTIVE #NNNN
@@ -162,6 +168,7 @@ model User {
 
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  checkoutSessions        CheckoutSession[]
 
   discussions           Discussion[]
   comments              Comment[]
@@ -172,6 +179,40 @@ model User {
   achievements          UserAchievement[]
   commentReactions      CommentReaction[]
   followedDiscussions   FollowedDiscussion[]
+
+  @@index([paymentCustomerId])
+  @@index([subscriptionPlan, subscriptionStatus])
+}
+
+/// Local checkout session for Visa (test mode or gateway-hosted handoff).
+model CheckoutSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planKey         String
+  amountCents     Int
+  currency        String
+  status          String   @default("OPEN") // OPEN | COMPLETED | CANCELED | EXPIRED
+  provider        String
+  providerRef     String?
+  successUrl      String
+  cancelUrl       String
+  expiresAt       DateTime
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+/// Idempotent payment webhook / callback log.
+model PaymentWebhookEvent {
+  id          String   @id // provider event id
+  type        String
+  provider    String
+  payload     Json?
+  processedAt DateTime @default(now())
 }
 
 model PasswordResetToken {
