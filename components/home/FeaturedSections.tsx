@@ -13,14 +13,14 @@ const features = [
     index: "02",
     title: "Fictional ops",
     body: "Structured training cases where you gather evidence, form theories, and earn progression without harming real people.",
-    href: "#how-it-works",
+    href: "/fictional",
     meta: "XP · Challenges · Ranks",
   },
   {
     index: "03",
     title: "Community intel",
     body: "Discuss theories, share findings, and build case boards with other detectives — moderated for serious inquiry.",
-    href: "#how-it-works",
+    href: "/cases",
     meta: "Forum · Boards · Signals",
   },
 ] as const;

@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–5** (foundation, visual, auth, database, real-case UI, community).
+includes **Phase 0–6** (foundation through fictional case engine).
 
 ## Stack
 
@@ -44,6 +44,14 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Fictional ops (Phase 6)
+
+- `/fictional` — published training cases (FC-001 seeded)
+- `/fictional/[slug]` — brief, suspects, evidence, witnesses, timeline, notes, submit theory
+- `/fictional/[slug]/result` — scorecard after submit (solution debrief unlocked only then)
+- Server-side scoring only (40/20/15/15/10). `Solution` never sent to the client before submit.
+- Investigation start/continue + notes persistence. Clearly marked **FICTIONAL**.
 
 ## Community (Phase 5)
 
