@@ -1,5 +1,4 @@
-// DETECTIVE — Phase 0 stub schema.
-// Full entity models land in Phase 3. This placeholder proves Postgres + Prisma wiring.
+// DETECTIVE — Phase 2 auth models (domain entities land in Phase 3).
 
 generator client {
   provider = "prisma-client"
@@ -10,8 +9,41 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Connection-health placeholder. Replace with real domain models in Phase 3.
-model SchemaPlaceholder {
+/// Auth user. Passwords are stored as bcrypt hashes only.
+model User {
+  id               String    @id @default(cuid())
+  username         String    @unique
+  email            String    @unique
+  displayName      String?
+  passwordHash     String
+  emailVerifiedAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+}
+
+model PasswordResetToken {
   id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
   createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

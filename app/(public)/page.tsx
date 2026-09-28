@@ -1,7 +1,6 @@
 import { FeaturedSections } from "@/components/home/FeaturedSections";
 import { Hero } from "@/components/home/Hero";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { UiPreview } from "@/components/home/UiPreview";
 
 export default function HomePage() {
   return (
@@ -9,7 +8,6 @@ export default function HomePage() {
       <Hero />
       <FeaturedSections />
       <HowItWorks />
-      <UiPreview />
     </main>
   );
 }

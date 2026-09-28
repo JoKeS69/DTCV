@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
@@ -33,10 +31,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full`}>
-      <body className="flex min-h-full flex-col bg-bg text-text antialiased">
-        <SiteHeader />
-        <div className="flex-1">{children}</div>
-        <SiteFooter />
+      <body className="min-h-full bg-bg font-mono text-text antialiased">
+        {children}
       </body>
     </html>
   );
