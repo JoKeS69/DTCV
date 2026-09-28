@@ -21,6 +21,7 @@ async function main() {
   console.log("Seeding DETECTIVE (fictional demo only)…");
 
   const passwordHash = await bcrypt.hash("detective-demo-2026", 12);
+  const adminPasswordHash = await bcrypt.hash("detective-admin-2026", 12);
 
   const demoUser = await prisma.user.upsert({
     where: { username: "demo_detective" },
@@ -39,6 +40,29 @@ async function main() {
       detectiveXP: 120,
       detectiveRank: "JUNIOR",
       bio: "Seeded demo account for local development.",
+    },
+  });
+
+  // Phase 9 — admin operator (ADMIN role). Documented in README.
+  await prisma.user.upsert({
+    where: { username: "admin_ops" },
+    update: {
+      role: "ADMIN",
+      passwordHash: adminPasswordHash,
+      emailVerifiedAt: new Date(),
+      suspendedAt: null,
+      displayName: "Ops Admin",
+    },
+    create: {
+      username: "admin_ops",
+      email: "admin@detective.local",
+      displayName: "Ops Admin",
+      passwordHash: adminPasswordHash,
+      emailVerifiedAt: new Date(),
+      role: "ADMIN",
+      detectiveXP: 0,
+      detectiveRank: "NOVICE",
+      bio: "Seeded ADMIN account for command deck testing.",
     },
   });
 
@@ -661,6 +685,7 @@ async function main() {
 
   console.log("Seed complete:", counts);
   console.log("Demo login: demo_detective / detective-demo-2026");
+  console.log("Admin login: admin_ops / detective-admin-2026 (role ADMIN)");
   console.log("FC-001 is FICTIONAL. Real Case rows are DEV stubs only — no crime claims.");
 }
 

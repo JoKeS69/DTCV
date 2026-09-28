@@ -151,6 +151,8 @@ model User {
   role               UserRole           @default(USER)
   subscriptionStatus SubscriptionStatus @default(FREE)
   subscriptionPlan   SubscriptionPlan   @default(FREE)
+  /// When set, credentials login is rejected (admin suspend).
+  suspendedAt        DateTime?
   /// Public badge id shown as DETECTIVE #NNNN
   badgeNumber        Int                @unique @default(autoincrement())
   detectiveXP        Int                @default(0)
@@ -216,6 +218,8 @@ model Case {
   contentLabel ContentLabel @default(REPORTED)
   published    Boolean      @default(false)
   publishedAt  DateTime?
+  /// Featured in admin-curated surfaces (home/intel later).
+  featured     Boolean      @default(false)
   lastVerifiedAt DateTime?
   /// Development UI stubs only — never real-crime claims.
   isDevStub    Boolean      @default(false)

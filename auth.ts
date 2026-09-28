@@ -30,6 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const user = await getPrisma().user.findUnique({ where: { username } });
           if (!user) return null;
+          if (user.suspendedAt) return null;
 
           const valid = await verifyPassword(
             parsed.data.password,

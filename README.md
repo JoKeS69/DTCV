@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–8** (foundation through investigation board).
+includes **Phase 0–9** (foundation through admin command deck).
 
 ## Stack
 
@@ -45,6 +45,32 @@ Open [http://localhost:3000](http://localhost:3000).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
 
+## Admin command deck (Phase 9)
+
+Server-side **ADMIN-only** gate on every `/admin/*` route (`requireAdmin` /
+`requireAdminAction`). Never trust client role claims.
+
+| Route | Purpose |
+| --- | --- |
+| `/admin` | Overview counters + subscription snapshot |
+| `/admin/users` | List, suspend/unsuspend, promote roles |
+| `/admin/cases` | Create/edit real cases, publish, feature, sources |
+| `/admin/fictional` | Create/edit/publish fictional training cases |
+| `/admin/sources` | Cross-case citation management |
+| `/admin/moderation` | Reports, discussion lock/hide, soft-delete comments |
+| `/admin/subscriptions` | Read-only plan counts (Stripe = Phase 10) |
+| `/admin/analytics` | Light ops counters |
+
+Seeded admin: `admin_ops` / `detective-admin-2026` (role `ADMIN`).
+
+To promote an existing user manually:
+
+```bash
+npx prisma db execute --stdin <<< \
+  "UPDATE \"User\" SET role = 'ADMIN' WHERE username = 'demo_detective';"
+# or re-run: npm run db:seed
+```
+
 ## Investigation board (Phase 8)
 
 - `/fictional/[slug]/board` — pin suspects/evidence/events/notes/custom nodes
@@ -73,8 +99,8 @@ Open [http://localhost:3000](http://localhost:3000).
 - Case Discussion section: create/list threads (auth + rate limit)
 - `/discussions/[id]` — comments, replies, likes, follow, report, soft-delete
 - `/detectives/[username]` — public detective profile (linked from discussions)
-- `/admin/moderation` — minimal staff report/status queue (Phase 9 placeholder)
 - Posts labeled **USER THEORY** by default; reports create `Report` records
+- Full moderation queue lives under `/admin/moderation` (Phase 9, ADMIN only)
 
 ## Case database (Phase 4)
 
@@ -93,6 +119,7 @@ npm run db:spotcheck
 ```
 
 Demo user: `demo_detective` / `detective-demo-2026`  
+Admin user: `admin_ops` / `detective-admin-2026`  
 No real-crime cases are seeded. `Solution` is server-only — do not expose to clients.
 
 ## Auth (Phase 2)
