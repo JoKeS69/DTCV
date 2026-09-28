@@ -76,13 +76,23 @@ export default async function FictionalCasePage({ params }: Props) {
         </dl>
 
         <div className="border-t border-border px-4 py-3">
-          <StartInvestigationButton
-            fictionalCaseId={caseFile.id}
-            slug={caseFile.slug}
-            signedIn={!!session?.user}
-            hasInvestigation={!!investigation}
-            submitted={!!submitted}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <StartInvestigationButton
+              fictionalCaseId={caseFile.id}
+              slug={caseFile.slug}
+              signedIn={!!session?.user}
+              hasInvestigation={!!investigation}
+              submitted={!!submitted}
+            />
+            {investigation ? (
+              <Link
+                href={`/fictional/${caseFile.slug}/board`}
+                className="border border-online/40 bg-online/10 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text hover:bg-online/20"
+              >
+                Investigation board
+              </Link>
+            ) : null}
+          </div>
           {investigation ? (
             <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-text-dim">
               Status: {investigation.status}
@@ -93,6 +103,21 @@ export default async function FictionalCasePage({ params }: Props) {
           ) : null}
         </div>
       </header>
+
+      {investigation ? (
+        <Section title="Investigation board">
+          <p className="font-mono text-[12px] text-text-muted normal-case tracking-normal">
+            Pin evidence, suspects, events, and notes. Draw links between pins.
+            Progress saves automatically.
+          </p>
+          <Link
+            href={`/fictional/${caseFile.slug}/board`}
+            className="mt-3 inline-flex border border-cta/50 bg-cta/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text hover:bg-cta/20"
+          >
+            Open board →
+          </Link>
+        </Section>
+      ) : null}
 
       <Section id="case-brief" title="Case brief">
         <p className="font-mono text-[12px] leading-relaxed text-text-muted normal-case tracking-normal whitespace-pre-wrap">

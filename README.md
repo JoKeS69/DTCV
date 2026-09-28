@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–7** (foundation through detective profile / XP).
+includes **Phase 0–8** (foundation through investigation board).
 
 ## Stack
 
@@ -44,6 +44,14 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Investigation board (Phase 8)
+
+- `/fictional/[slug]/board` — pin suspects/evidence/events/notes/custom nodes
+- Drag to move (pointer events, no heavy canvas lib); Link mode to connect
+- Persist positions (`InvestigationBoardNode`) + connections (`InvestigationConnection`)
+- Desktop-first; mobile scroll + touch drag + Link-mode taps
+- Awards `BOARD_BUILDER` at 5+ connections
 
 ## Detective profile / XP (Phase 7)
 

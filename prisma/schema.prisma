@@ -496,12 +496,32 @@ model Investigation {
 
   notes       InvestigationNote[]
   connections InvestigationConnection[]
+  boardNodes  InvestigationBoardNode[]
   submission  TheorySubmission?
 
   @@index([userId])
   @@index([caseId])
   @@index([fictionalCaseId])
   @@index([userId, fictionalCaseId])
+}
+
+/// Placed node on an investigation board (position + catalog ref).
+model InvestigationBoardNode {
+  id              String        @id @default(cuid())
+  investigationId String
+  investigation   Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  type            BoardNodeType
+  /// Id of Suspect/Evidence/Event/Note/etc., or synthetic id for CUSTOM.
+  refId           String
+  /// Display override (required for CUSTOM; optional otherwise).
+  label           String?
+  x               Float         @default(40)
+  y               Float         @default(40)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([investigationId, type, refId])
+  @@index([investigationId])
 }
 
 /// Player theory for a fictional case — scored server-side against Solution.
