@@ -1,7 +1,6 @@
 import { getPrisma } from "@/lib/db";
 import {
   getPlanByKey,
-  getSiteUrl,
   getWebhookSecret,
 } from "@/lib/payments/config";
 import type {
@@ -64,7 +63,8 @@ export const devVisaProvider: PaymentProvider = {
 
     return {
       sessionId: session.id,
-      checkoutUrl: `${getSiteUrl()}/checkout/${session.id}`,
+      // Relative URL keeps the auth cookie host (localhost vs 127.0.0.1).
+      checkoutUrl: `/checkout/${session.id}`,
       provider: "dev_visa",
     };
   },
@@ -156,7 +156,7 @@ export const devVisaProvider: PaymentProvider = {
   },
 
   async createPortal(): Promise<PortalResult> {
-    return { url: `${getSiteUrl()}/billing` };
+    return { url: `/billing` };
   },
 
   async cancelSubscription(input) {

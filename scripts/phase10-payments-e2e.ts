@@ -74,7 +74,15 @@ async function main() {
   await page.getByRole("heading", { name: /^DETECTIVE$/i }).waitFor();
   await page.getByRole("button", { name: /Pay with Visa/i }).click();
   await page.waitForURL(/\/checkout\//, { timeout: 15000 });
-  await page.getByRole("heading", { name: /^Checkout$/i }).waitFor();
+  // If host flipped to localhost and dropped cookies, recover once.
+  if (page.url().includes("/login")) {
+    await login(page, "demo_detective", "detective-demo-2026");
+    const callback = new URL(page.url(), BASE).searchParams.get("callbackUrl");
+    await page.goto(`${BASE}${callback || "/pricing"}`);
+  }
+  await page.getByRole("heading", { name: /^Checkout$/i }).waitFor({
+    timeout: 15000,
+  });
 
   await page.getByLabel(/Visa number/i).fill("4111 1111 1111 1111");
   await page.getByLabel(/^MM$/i).fill("12");

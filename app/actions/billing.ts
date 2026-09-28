@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getSiteUrl } from "@/lib/payments/config";
 import { getPaymentProvider } from "@/lib/payments";
 import { getPrisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
@@ -36,13 +35,13 @@ export async function startInvestigatorProCheckout(): Promise<BillingActionResul
 
   try {
     const provider = getPaymentProvider();
-    const site = getSiteUrl();
     const session = await provider.createCheckout({
       userId: user.id,
       email: user.email,
       planKey: "investigator_pro",
-      successUrl: `${site}/billing?checkout=success`,
-      cancelUrl: `${site}/pricing?checkout=canceled`,
+      // Prefer relative paths so auth cookies survive localhost ↔ 127.0.0.1.
+      successUrl: `/billing?checkout=success`,
+      cancelUrl: `/pricing?checkout=canceled`,
     });
     redirect(session.checkoutUrl);
   } catch (error) {
@@ -108,7 +107,7 @@ export async function openBillingPortal(): Promise<BillingActionResult> {
   const portal = await provider.createPortal({
     userId: user.id,
     customerId: row?.paymentCustomerId ?? null,
-    returnUrl: `${getSiteUrl()}/billing`,
+    returnUrl: `/billing`,
   });
   redirect(portal.url);
 }
