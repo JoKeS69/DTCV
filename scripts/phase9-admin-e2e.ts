@@ -105,11 +105,15 @@ async function main() {
   // ── Admin manages case + report ────────────────────────────────────────────
   await login(page, "admin_ops", "detective-admin-2026");
   await page.goto(`${BASE}/admin`);
-  await page.getByText(/Command overview/i).waitFor({ timeout: 15000 });
+  await page.getByRole("heading", { name: /Command overview/i }).waitFor({
+    timeout: 15000,
+  });
   await page.getByText(/Command deck · ADMIN/i).waitFor();
 
   await page.goto(`${BASE}/admin/cases`);
-  await page.getByText(/Real cases/i).waitFor({ timeout: 10000 });
+  await page.getByRole("heading", { name: /^Real cases$/i }).waitFor({
+    timeout: 10000,
+  });
 
   const before = await prisma.case.findUniqueOrThrow({
     where: { id: caseRow.id },
@@ -148,7 +152,9 @@ async function main() {
   await page.waitForTimeout(800);
 
   await page.goto(`${BASE}/admin/moderation`);
-  await page.getByText(/^Moderation$/i).waitFor({ timeout: 10000 });
+  await page.getByRole("heading", { name: /^Moderation$/i }).waitFor({
+    timeout: 10000,
+  });
   await page.getByRole("button", { name: /^Resolve$/i }).first().click();
   await page.waitForTimeout(1200);
 

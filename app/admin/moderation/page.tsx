@@ -91,33 +91,41 @@ export default async function AdminModerationPage() {
                     {report.status === "OPEN" ? (
                       <AdminActionButton
                         label="Reviewing"
-                        onAction={() =>
-                          adminSetReportStatus(report.id, "REVIEWING")
-                        }
+                        onAction={adminSetReportStatus.bind(
+                          null,
+                          report.id,
+                          "REVIEWING",
+                        )}
                       />
                     ) : null}
                     {report.status !== "RESOLVED" ? (
                       <AdminActionButton
                         label="Resolve"
-                        onAction={() =>
-                          adminSetReportStatus(report.id, "RESOLVED")
-                        }
+                        onAction={adminSetReportStatus.bind(
+                          null,
+                          report.id,
+                          "RESOLVED",
+                        )}
                       />
                     ) : null}
                     {report.status !== "DISMISSED" ? (
                       <AdminActionButton
                         label="Dismiss"
-                        onAction={() =>
-                          adminSetReportStatus(report.id, "DISMISSED")
-                        }
+                        onAction={adminSetReportStatus.bind(
+                          null,
+                          report.id,
+                          "DISMISSED",
+                        )}
                       />
                     ) : null}
                     {report.status !== "OPEN" ? (
                       <AdminActionButton
                         label="Reopen"
-                        onAction={() =>
-                          adminSetReportStatus(report.id, "OPEN")
-                        }
+                        onAction={adminSetReportStatus.bind(
+                          null,
+                          report.id,
+                          "OPEN",
+                        )}
                       />
                     ) : null}
                   </div>
@@ -169,20 +177,32 @@ export default async function AdminModerationPage() {
                   {d.status !== "OPEN" ? (
                     <AdminActionButton
                       label="Open"
-                      onAction={() => adminSetDiscussionStatus(d.id, "OPEN")}
+                      onAction={adminSetDiscussionStatus.bind(
+                        null,
+                        d.id,
+                        "OPEN",
+                      )}
                     />
                   ) : null}
                   {d.status !== "LOCKED" ? (
                     <AdminActionButton
                       label="Lock"
-                      onAction={() => adminSetDiscussionStatus(d.id, "LOCKED")}
+                      onAction={adminSetDiscussionStatus.bind(
+                        null,
+                        d.id,
+                        "LOCKED",
+                      )}
                     />
                   ) : null}
                   {d.status !== "HIDDEN" ? (
                     <AdminActionButton
                       label="Hide"
                       danger
-                      onAction={() => adminSetDiscussionStatus(d.id, "HIDDEN")}
+                      onAction={adminSetDiscussionStatus.bind(
+                        null,
+                        d.id,
+                        "HIDDEN",
+                      )}
                     />
                   ) : null}
                 </div>
@@ -225,7 +245,7 @@ export default async function AdminModerationPage() {
                 <AdminActionButton
                   label="Remove"
                   danger
-                  onAction={() => adminSoftDeleteComment(comment.id)}
+                  onAction={adminSoftDeleteComment.bind(null, comment.id)}
                 />
               </li>
             ))

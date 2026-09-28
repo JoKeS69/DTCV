@@ -35,11 +35,19 @@ export default async function AdminCaseEditPage({ params }: Props) {
       <div className="mb-3 flex flex-wrap gap-2">
         <AdminActionButton
           label={caseFile.published ? "Unpublish" : "Publish"}
-          onAction={() => setCasePublished(caseFile.id, !caseFile.published)}
+          onAction={setCasePublished.bind(
+            null,
+            caseFile.id,
+            !caseFile.published,
+          )}
         />
         <AdminActionButton
           label={caseFile.featured ? "Unfeature" : "Feature"}
-          onAction={() => setCaseFeatured(caseFile.id, !caseFile.featured)}
+          onAction={setCaseFeatured.bind(
+            null,
+            caseFile.id,
+            !caseFile.featured,
+          )}
         />
         {caseFile.published ? (
           <Link
@@ -89,7 +97,7 @@ export default async function AdminCaseEditPage({ params }: Props) {
                   <AdminActionButton
                     label="Delete source"
                     danger
-                    onAction={() => deleteCaseSource(source.id)}
+                    onAction={deleteCaseSource.bind(null, source.id)}
                   />
                 </div>
               </li>

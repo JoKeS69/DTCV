@@ -38,9 +38,11 @@ export default async function AdminFictionalEditPage({ params }: Props) {
       <div className="mb-3 flex flex-wrap gap-2">
         <AdminActionButton
           label={caseFile.published ? "Unpublish" : "Publish"}
-          onAction={() =>
-            setFictionalPublished(caseFile.id, !caseFile.published)
-          }
+          onAction={setFictionalPublished.bind(
+            null,
+            caseFile.id,
+            !caseFile.published,
+          )}
         />
         {caseFile.published ? (
           <Link

@@ -3,13 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
+type ActionResult = { ok: boolean; error?: string };
+
+/**
+ * Client button that invokes a bound server action passed from an RSC.
+ * Pass `action.bind(null, …args)` — never an inline arrow from a Server Component.
+ */
 export function AdminActionButton({
   label,
   onAction,
   danger,
 }: {
   label: string;
-  onAction: () => Promise<{ ok: boolean; error?: string }>;
+  onAction: () => Promise<ActionResult>;
   danger?: boolean;
 }) {
   const router = useRouter();

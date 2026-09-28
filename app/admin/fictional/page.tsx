@@ -64,7 +64,7 @@ export default async function AdminFictionalPage() {
             <div className="flex flex-wrap gap-1">
               <AdminActionButton
                 label={c.published ? "Unpublish" : "Publish"}
-                onAction={() => setFictionalPublished(c.id, !c.published)}
+                onAction={setFictionalPublished.bind(null, c.id, !c.published)}
               />
               <Link
                 href={`/admin/fictional/${c.id}`}

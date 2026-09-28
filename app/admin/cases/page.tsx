@@ -77,11 +77,11 @@ export default async function AdminCasesPage() {
                   <div className="flex flex-wrap gap-1">
                     <AdminActionButton
                       label={c.published ? "Unpublish" : "Publish"}
-                      onAction={() => setCasePublished(c.id, !c.published)}
+                      onAction={setCasePublished.bind(null, c.id, !c.published)}
                     />
                     <AdminActionButton
                       label={c.featured ? "Unfeature" : "Feature"}
-                      onAction={() => setCaseFeatured(c.id, !c.featured)}
+                      onAction={setCaseFeatured.bind(null, c.id, !c.featured)}
                     />
                     <Link
                       href={`/admin/cases/${c.id}`}

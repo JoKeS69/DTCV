@@ -74,20 +74,22 @@ export default async function AdminUsersPage() {
                     <AdminActionButton
                       label={user.suspendedAt ? "Unsuspend" : "Suspend"}
                       danger={!user.suspendedAt}
-                      onAction={() =>
-                        setUserSuspended(user.id, !user.suspendedAt)
-                      }
+                      onAction={setUserSuspended.bind(
+                        null,
+                        user.id,
+                        !user.suspendedAt,
+                      )}
                     />
                     {user.role !== "ADMIN" ? (
                       <AdminActionButton
                         label="Make admin"
-                        onAction={() => setUserRole(user.id, "ADMIN")}
+                        onAction={setUserRole.bind(null, user.id, "ADMIN")}
                       />
                     ) : null}
                     {user.role === "USER" ? (
                       <AdminActionButton
                         label="Moderator"
-                        onAction={() => setUserRole(user.id, "MODERATOR")}
+                        onAction={setUserRole.bind(null, user.id, "MODERATOR")}
                       />
                     ) : null}
                   </div>

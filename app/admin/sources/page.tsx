@@ -83,7 +83,7 @@ export default async function AdminSourcesPage() {
                 <AdminActionButton
                   label="Remove"
                   danger
-                  onAction={() => deleteCaseSource(source.id)}
+                  onAction={deleteCaseSource.bind(null, source.id)}
                 />
               </li>
             ))

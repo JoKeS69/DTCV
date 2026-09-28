@@ -18,35 +18,37 @@ async function main() {
   ]);
 
   await page.goto(`${BASE}/admin`);
-  await page.getByText(/Command overview/i).waitFor({ timeout: 15000 });
+  await page.getByRole("heading", { name: /Command overview/i }).waitFor({
+    timeout: 15000,
+  });
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-overview.png"),
     fullPage: false,
   });
 
   await page.goto(`${BASE}/admin/users`);
-  await page.getByText(/^Users$/i).waitFor();
+  await page.getByRole("heading", { name: /^Users$/i }).waitFor();
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-users.png"),
     fullPage: false,
   });
 
   await page.goto(`${BASE}/admin/cases`);
-  await page.getByText(/Real cases/i).waitFor();
+  await page.getByRole("heading", { name: /^Real cases$/i }).waitFor();
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-cases.png"),
     fullPage: false,
   });
 
   await page.goto(`${BASE}/admin/moderation`);
-  await page.getByText(/^Moderation$/i).waitFor();
+  await page.getByRole("heading", { name: /^Moderation$/i }).waitFor();
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-moderation.png"),
     fullPage: false,
   });
 
   await page.goto(`${BASE}/admin/subscriptions`);
-  await page.getByText(/^Subscriptions$/i).waitFor();
+  await page.getByRole("heading", { name: /^Subscriptions$/i }).waitFor();
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-subscriptions.png"),
     fullPage: false,
@@ -54,7 +56,7 @@ async function main() {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${BASE}/admin`);
-  await page.getByText(/Command overview/i).waitFor();
+  await page.getByRole("heading", { name: /Command overview/i }).waitFor();
   await page.screenshot({
     path: path.join(OUT, "phase9-admin-mobile.png"),
     fullPage: false,
