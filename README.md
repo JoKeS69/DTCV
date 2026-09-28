@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–2** (foundation, visual system, authentication).
+includes **Phase 0–3** (foundation, visual, auth, database schema/seed).
 
 ## Stack
 
@@ -45,9 +45,38 @@ Open [http://localhost:3000](http://localhost:3000).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
 
+## Database (Phase 3)
+
+Full Prisma domain schema + fictional seed only:
+
+```bash
+npx prisma migrate dev
+npm run db:seed        # FC-001 THE HOUSE AT 11:47 (fictional)
+npm run db:spotcheck
+```
+
+Demo user: `demo_detective` / `detective-demo-2026`  
+No real-crime cases are seeded. `Solution` is server-only — do not expose to clients.
+
+## Auth (Phase 2)
+
+Auth.js (NextAuth v5) credentials provider + Prisma `User` model.
+Passwords hashed with bcrypt. JWT sessions. Protected route: `/profile`.
+
+```bash
+cp .env.example .env.local
+# set DATABASE_URL, AUTH_SECRET, AUTH_URL
+npx prisma migrate dev
+npm run dev
+```
+
+Routes: `/login`, `/register`, `/reset-password`, `/verify-email`, `/profile`.
+Email delivery is a **placeholder** when no provider is configured — reset/verify
+links are shown in the UI for development.
+
 ## Design
 
 Brand: **DETECTIVE** — dark cinematic investigative HUD (not CASE//NET).
 Tokens and theme: `app/globals.css`, `lib/design-tokens.ts`.
 Shared UI: `components/ui/*`. Layout chrome: `components/layout/*`.
-Homepage sections: `components/home/*`.
+Homepage sections: `components/home/*`. Auth HUD: `components/auth/*`.

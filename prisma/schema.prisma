@@ -1,4 +1,6 @@
-// DETECTIVE — Phase 2 auth models (domain entities land in Phase 3).
+// DETECTIVE — Phase 3 domain schema.
+// Auth models from Phase 2 are retained and extended.
+// Full product UI for these entities lands in later phases.
 
 generator client {
   provider = "prisma-client"
@@ -9,41 +11,494 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Auth user. Passwords are stored as bcrypt hashes only.
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum DetectiveRank {
+  NOVICE
+  JUNIOR
+  DETECTIVE
+  SENIOR
+  ELITE
+  CHIEF
+}
+
+/// Real-case safety labels — never declare guilt in product UI.
+enum ContentLabel {
+  VERIFIED
+  REPORTED
+  USER_THEORY
+}
+
+enum CaseStatus {
+  OPEN
+  COLD
+  UNSOLVED
+  CLOSED
+}
+
+enum CaseType {
+  DISAPPEARANCE
+  HOMICIDE
+  MISSING
+  UNKNOWN
+  OTHER
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CasePersonRole {
+  VICTIM
+  WITNESS
+  PERSON_OF_INTEREST
+  RELATIVE
+  OTHER
+}
+
+enum DiscussionStatus {
+  OPEN
+  LOCKED
+  HIDDEN
+}
+
+enum ReportTargetType {
+  COMMENT
+  DISCUSSION
+  USER
+  CASE
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum FictionalDifficulty {
+  NOVICE
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum EvidenceType {
+  PHYSICAL
+  DOCUMENT
+  PHOTO
+  AUDIO
+  DIGITAL
+  FORENSIC
+  OTHER
+}
+
+enum InvestigationTarget {
+  REAL_CASE
+  FICTIONAL_CASE
+}
+
+enum BoardNodeType {
+  EVIDENCE
+  SUSPECT
+  EVENT
+  WITNESS_STATEMENT
+  NOTE
+  PERSON
+  CUSTOM
+}
+
+// ─── Auth / User ─────────────────────────────────────────────────────────────
+
+/// Platform user. Passwords are bcrypt hashes only.
 model User {
-  id               String    @id @default(cuid())
-  username         String    @unique
-  email            String    @unique
-  displayName      String?
-  passwordHash     String
-  emailVerifiedAt  DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  username        String    @unique
+  email           String    @unique
+  displayName     String?
+  passwordHash    String
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Detective progression (XP only from fictional / challenges — enforced in app)
+  role               UserRole           @default(USER)
+  subscriptionStatus SubscriptionStatus @default(FREE)
+  subscriptionPlan   SubscriptionPlan   @default(FREE)
+  detectiveXP        Int                @default(0)
+  detectiveRank      DetectiveRank      @default(NOVICE)
+  bio                String?
+  avatarUrl          String?
 
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+
+  discussions     Discussion[]
+  comments        Comment[]
+  reportsFiled    Report[]          @relation("ReportsFiled")
+  investigations  Investigation[]
+  followedCases   FollowedCase[]
+  achievements    UserAchievement[]
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  tokenHash String   @unique
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
 }
 
 model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  tokenHash String   @unique
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+// ─── Real cases (sourced; no fabricated seed in Phase 3) ─────────────────────
+
+model Case {
+  id           String       @id @default(cuid())
+  caseCode     String       @unique
+  title        String
+  slug         String       @unique
+  summary      String
+  location     String?
+  countryCode  String?
+  type         CaseType     @default(UNKNOWN)
+  status       CaseStatus   @default(OPEN)
+  priority     CasePriority @default(MEDIUM)
+  /// Aggregate safety label for the case file as published.
+  contentLabel ContentLabel @default(REPORTED)
+  published    Boolean      @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  sources       CaseSource[]
+  events        CaseEvent[]
+  persons       CasePerson[]
+  discussions   Discussion[]
+  followedBy    FollowedCase[]
+  investigations Investigation[]
+}
+
+model CaseSource {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title       String
+  url         String
+  publisher   String?
+  accessedAt  DateTime?
+  citationNote String?
+  createdAt   DateTime @default(now())
+
+  @@index([caseId])
+}
+
+model CaseEvent {
+  id           String       @id @default(cuid())
+  caseId       String
+  case         Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  occurredAt   DateTime?
+  title        String
+  description  String
+  contentLabel ContentLabel @default(REPORTED)
+  sortOrder    Int          @default(0)
+  createdAt    DateTime     @default(now())
+
+  @@index([caseId])
+}
+
+model CasePerson {
+  id           String         @id @default(cuid())
+  caseId       String
+  case         Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name         String
+  role         CasePersonRole @default(OTHER)
+  notes        String?
+  contentLabel ContentLabel   @default(REPORTED)
+  createdAt    DateTime       @default(now())
+
+  @@index([caseId])
+}
+
+// ─── Community ───────────────────────────────────────────────────────────────
+
+model Discussion {
+  id        String            @id @default(cuid())
+  caseId    String
+  case      Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  body      String?
+  status    DiscussionStatus  @default(OPEN)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  comments Comment[]
+
+  @@index([caseId])
+  @@index([authorId])
+}
+
+model Comment {
+  id             String       @id @default(cuid())
+  discussionId   String
+  discussion     Discussion   @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId       String?
+  parent         Comment?     @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies        Comment[]    @relation("CommentReplies")
+  body           String
+  /// Theories must be labeled USER_THEORY in later product rules.
+  contentLabel   ContentLabel @default(USER_THEORY)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([discussionId])
+  @@index([authorId])
+}
+
+model Report {
+  id          String           @id @default(cuid())
+  reporterId  String
+  reporter    User             @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType  ReportTargetType
+  targetId    String
+  reason      String
+  details     String?
+  status      ReportStatus     @default(OPEN)
+  createdAt   DateTime         @default(now())
+  resolvedAt  DateTime?
+
+  @@index([reporterId])
+  @@index([targetType, targetId])
+}
+
+// ─── Fictional investigation engine ──────────────────────────────────────────
+
+/// Clearly marked fictional training case — never presented as a real crime.
+model FictionalCase {
+  id          String              @id @default(cuid())
+  caseCode    String              @unique
+  title       String
+  slug        String              @unique
+  synopsis    String
+  setting     String?
+  difficulty  FictionalDifficulty @default(NOVICE)
+  /// Always true for this model — safety marker for queries/UI.
+  isFictional Boolean             @default(true)
+  published   Boolean             @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  suspects          Suspect[]
+  evidence          Evidence[]
+  events            FictionalEvent[]
+  witnessStatements WitnessStatement[]
+  /// Server-only relation — do not expose Solution fields to the client.
+  solution          Solution?
+  investigations    Investigation[]
+}
+
+model Suspect {
+  id              String        @id @default(cuid())
+  fictionalCaseId String
+  fictionalCase   FictionalCase @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  code            String
+  name            String
+  age             Int?
+  occupation      String?
+  bio             String
+  publicAlibi     String?
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  culpritOf Solution?
+
+  @@unique([fictionalCaseId, code])
+  @@index([fictionalCaseId])
+}
+
+model Evidence {
+  id              String        @id @default(cuid())
+  fictionalCaseId String
+  fictionalCase   FictionalCase @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  code            String
+  title           String
+  description     String
+  type            EvidenceType  @default(OTHER)
+  foundLocation   String?
+  foundAt         DateTime?
+  isRedHerring    Boolean       @default(false)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@unique([fictionalCaseId, code])
+  @@index([fictionalCaseId])
+}
+
+model FictionalEvent {
+  id              String        @id @default(cuid())
+  fictionalCaseId String
+  fictionalCase   FictionalCase @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  occurredAt      DateTime
+  title           String
+  description     String
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@index([fictionalCaseId])
+}
+
+model WitnessStatement {
+  id              String        @id @default(cuid())
+  fictionalCaseId String
+  fictionalCase   FictionalCase @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  code            String
+  witnessName     String
+  statement       String
+  recordedAt      DateTime?
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@unique([fictionalCaseId, code])
+  @@index([fictionalCaseId])
+}
+
+/// SERVER-ONLY: correct solution for a fictional case.
+/// Never select/return this model from client-facing routes or RSC props.
+model Solution {
+  id                String        @id @default(cuid())
+  fictionalCaseId   String        @unique
+  fictionalCase     FictionalCase @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  culpritSuspectId  String        @unique
+  culprit           Suspect       @relation(fields: [culpritSuspectId], references: [id], onDelete: Restrict)
+  summary           String
+  explanation       String
+  keyEvidenceCodes  String[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+// ─── Player investigations / board ───────────────────────────────────────────
+
+model Investigation {
+  id              String              @id @default(cuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  target          InvestigationTarget
+  caseId          String?
+  case            Case?               @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fictionalCaseId String?
+  fictionalCase   FictionalCase?      @relation(fields: [fictionalCaseId], references: [id], onDelete: Cascade)
+  title           String?
+  status          String              @default("ACTIVE")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  notes       InvestigationNote[]
+  connections InvestigationConnection[]
+
+  @@index([userId])
+  @@index([caseId])
+  @@index([fictionalCaseId])
+}
+
+model InvestigationNote {
+  id              String        @id @default(cuid())
+  investigationId String
+  investigation   Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  body            String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([investigationId])
+}
+
+model InvestigationConnection {
+  id              String        @id @default(cuid())
+  investigationId String
+  investigation   Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  fromType        BoardNodeType
+  fromId          String
+  toType          BoardNodeType
+  toId            String
+  label           String?
+  note            String?
+  createdAt       DateTime      @default(now())
+
+  @@index([investigationId])
+}
+
+model FollowedCase {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, caseId])
+  @@index([caseId])
+}
+
+// ─── Achievements ────────────────────────────────────────────────────────────
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  users UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([achievementId])
 }
