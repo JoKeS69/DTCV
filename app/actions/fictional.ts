@@ -6,6 +6,11 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { scoreTheory, xpForScore } from "@/lib/fictional/scoring";
+import {
+  awardAchievement,
+  syncRankFromXp,
+} from "@/lib/progression/achievements";
+import { getDetectiveStats } from "@/lib/progression/stats";
 
 export type FictionalActionResult =
   | { ok: true; investigationId?: string; submissionId?: string }
@@ -62,26 +67,14 @@ export async function startOrContinueInvestigation(
     select: { id: true },
   });
 
-  // Minimal FIRST_BRIEFING achievement if present
-  const achievement = await getPrisma().achievement.findUnique({
-    where: { code: "FIRST_BRIEFING" },
-    select: { id: true },
+  await getPrisma().$transaction(async (tx) => {
+    await awardAchievement(tx, gate.userId, "FIRST_BRIEFING");
   });
-  if (achievement) {
-    await getPrisma().userAchievement.upsert({
-      where: {
-        userId_achievementId: {
-          userId: gate.userId,
-          achievementId: achievement.id,
-        },
-      },
-      update: {},
-      create: { userId: gate.userId, achievementId: achievement.id },
-    });
-  }
 
   revalidatePath(`/fictional/${slug}`);
   revalidatePath("/fictional");
+  revalidatePath("/profile");
+  revalidatePath(`/detectives`);
   return { ok: true, investigationId: created.id };
 }
 
@@ -232,33 +225,43 @@ export async function submitTheory(input: {
       data: { status: "SUBMITTED", submittedAt: new Date() },
     });
 
+    // Score XP only from fictional completion — never real-case accusations.
     await tx.user.update({
       where: { id: gate.userId },
       data: { detectiveXP: { increment: xp } },
     });
+    await syncRankFromXp(tx, gate.userId);
 
-    const house = await tx.achievement.findUnique({
-      where: { code: "HOUSE_1147" },
-      select: { id: true },
-    });
-    if (house && scores.total >= 50) {
-      await tx.userAchievement.upsert({
-        where: {
-          userId_achievementId: {
-            userId: gate.userId,
-            achievementId: house.id,
-          },
-        },
-        update: {},
-        create: { userId: gate.userId, achievementId: house.id },
-      });
+    if (scores.total >= 50) {
+      await awardAchievement(tx, gate.userId, "HOUSE_1147");
     }
+    if (scores.total >= 90) {
+      await awardAchievement(tx, gate.userId, "SHARP_EYE");
+    }
+    if (scores.total >= 100) {
+      await awardAchievement(tx, gate.userId, "PERFECT_CASE");
+    }
+  });
+
+  // Streak achievement after transaction (needs aggregated stats)
+  const stats = await getDetectiveStats(gate.userId);
+  if (stats.streakDays >= 3) {
+    await getPrisma().$transaction(async (tx) => {
+      await awardAchievement(tx, gate.userId, "STREAK_3");
+    });
+  }
+
+  const user = await getPrisma().user.findUnique({
+    where: { id: gate.userId },
+    select: { username: true },
   });
 
   revalidatePath(`/fictional/${parsed.data.slug}`);
   revalidatePath(`/fictional/${parsed.data.slug}/result`);
   revalidatePath("/fictional");
   revalidatePath("/profile");
+  if (user?.username) revalidatePath(`/detectives/${user.username}`);
+  revalidatePath("/fictional/rankings");
 
   redirect(`/fictional/${parsed.data.slug}/result`);
 }

@@ -24,7 +24,11 @@ async function main() {
 
   const demoUser = await prisma.user.upsert({
     where: { username: "demo_detective" },
-    update: {},
+    update: {
+      detectiveXP: 120,
+      detectiveRank: "JUNIOR",
+      bio: "Seeded demo account for local development.",
+    },
     create: {
       username: "demo_detective",
       email: "demo@detective.local",
@@ -54,8 +58,26 @@ async function main() {
     {
       code: "HOUSE_1147",
       title: "The House at 11:47",
-      description: "Complete fictional case FC-001.",
-      xpReward: 150,
+      description: "Complete fictional case FC-001 with a passing score.",
+      xpReward: 75,
+    },
+    {
+      code: "SHARP_EYE",
+      title: "Sharp Eye",
+      description: "Score 90+ on a fictional case.",
+      xpReward: 40,
+    },
+    {
+      code: "PERFECT_CASE",
+      title: "Perfect Case",
+      description: "Score a perfect 100 on a fictional case.",
+      xpReward: 60,
+    },
+    {
+      code: "STREAK_3",
+      title: "Three-Day Watch",
+      description: "Maintain a 3-day fictional investigation streak.",
+      xpReward: 35,
     },
   ];
 

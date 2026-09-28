@@ -12,6 +12,7 @@ import {
   listCommentsForDiscussion,
 } from "@/lib/community/queries";
 import { getPrisma } from "@/lib/db";
+import { rankLabel } from "@/lib/progression/ranks";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -77,7 +78,7 @@ export default async function DiscussionDetailPage({ params }: Props) {
                 {discussion.author.displayName ?? discussion.author.username}
               </Link>
               {" · "}
-              {discussion.author.detectiveRank}
+              {rankLabel(discussion.author.detectiveRank)}
               {discussion.status === "LOCKED" ? " · Locked" : null}
             </p>
           </div>

@@ -31,6 +31,8 @@ enum SubscriptionPlan {
   PREMIUM
 }
 
+/// Internal rank keys — UI labels: Recruit → Observer → Investigator →
+/// Detective → Senior Detective → Master Detective (see lib/progression/ranks.ts).
 enum DetectiveRank {
   NOVICE
   JUNIOR
@@ -149,6 +151,8 @@ model User {
   role               UserRole           @default(USER)
   subscriptionStatus SubscriptionStatus @default(FREE)
   subscriptionPlan   SubscriptionPlan   @default(FREE)
+  /// Public badge id shown as DETECTIVE #NNNN
+  badgeNumber        Int                @unique @default(autoincrement())
   detectiveXP        Int                @default(0)
   detectiveRank      DetectiveRank      @default(NOVICE)
   bio                String?

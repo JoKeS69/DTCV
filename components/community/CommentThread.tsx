@@ -11,6 +11,7 @@ import {
 import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
 import { ReportDialog } from "@/components/community/ReportDialog";
 import type { ContentLabel } from "@/lib/generated/prisma/client";
+import { rankLabel } from "@/lib/progression/ranks";
 
 type Reaction = { userId: string; type: string };
 
@@ -127,7 +128,7 @@ function CommentCard({
           </Link>
           <span className="text-text-dim">
             {" "}
-            · {comment.author.detectiveRank}
+            · {rankLabel(comment.author.detectiveRank)}
           </span>
         </p>
         <ContentLabelBadge label={comment.contentLabel} />

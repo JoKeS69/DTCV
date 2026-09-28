@@ -11,6 +11,7 @@ export const primaryNav = [
 export const footerNav = [
   { href: "/cases", label: "Case database" },
   { href: "/fictional", label: "Fictional ops" },
+  { href: "/fictional/rankings", label: "Rankings" },
   { href: "/login", label: "Login" },
   { href: "/register", label: "Sign up" },
   { href: "/#how-it-works", label: "How it works" },

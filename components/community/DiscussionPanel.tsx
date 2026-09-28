@@ -3,6 +3,7 @@ import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
 import { CreateDiscussionForm } from "@/components/community/CreateDiscussionForm";
 import { TheorySafetyBanner } from "@/components/community/TheorySafetyBanner";
 import type { ContentLabel, DiscussionStatus } from "@/lib/generated/prisma/client";
+import { rankLabel } from "@/lib/progression/ranks";
 
 type DiscussionListItem = {
   id: string;
@@ -63,6 +64,7 @@ export function DiscussionPanel({
                       {discussion.author.displayName ?? discussion.author.username}
                     </Link>
                     {" · "}
+                    {rankLabel(discussion.author.detectiveRank)} ·{" "}
                     {discussion._count.comments} comments ·{" "}
                     {discussion._count.followers} following
                     {discussion.status === "LOCKED" ? " · Locked" : null}

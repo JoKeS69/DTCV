@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–6** (foundation through fictional case engine).
+includes **Phase 0–7** (foundation through detective profile / XP).
 
 ## Stack
 
@@ -44,6 +44,13 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Detective profile / XP (Phase 7)
+
+- Ranks: Recruit → Observer → Investigator → Detective → Senior Detective → Master Detective
+- XP from fictional completions + achievements only (never real-case accusations)
+- `/profile` + `/detectives/[username]` — DETECTIVE # badge, XP bar, stats HUD, achievements, history
+- `/fictional/rankings` — minimal fictional XP leaderboard
 
 ## Fictional ops (Phase 6)
 
