@@ -114,7 +114,8 @@ async function main() {
 
   // Debrief unlocked
   await page.getByText(/debrief/i).waitFor();
-  await page.getByText(/Jonah Vale/i).waitFor();
+  await page.getByText(/S2 — Jonah Vale/i).waitFor();
+  await page.getByText(/\[FICTIONAL\] Jonah Vale staged/i).waitFor();
 
   const dbSub = await prisma.theorySubmission.findFirst({
     where: {
