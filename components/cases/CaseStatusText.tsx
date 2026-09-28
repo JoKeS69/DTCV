@@ -1,5 +1,5 @@
 import type { CaseStatus } from "@/lib/generated/prisma/client";
-import { statusClass } from "@/lib/cases/queries";
+import { statusClass } from "@/lib/cases/labels";
 
 export function CaseStatusText({ status }: { status: CaseStatus }) {
   return (

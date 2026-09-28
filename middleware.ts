@@ -8,7 +8,9 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   if (
-    (pathname === "/profile" || pathname.startsWith("/profile/")) &&
+    (pathname === "/profile" ||
+      pathname.startsWith("/profile/") ||
+      pathname.startsWith("/admin")) &&
     !req.auth
   ) {
     const url = new URL("/login", req.nextUrl.origin);
@@ -24,5 +26,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/profile/:path*", "/login", "/register"],
+  matcher: ["/profile/:path*", "/admin/:path*", "/login", "/register"],
 };

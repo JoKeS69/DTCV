@@ -553,6 +553,41 @@ async function main() {
     });
   }
 
+  // Phase 5 — sample USER THEORY discussion on DEV stub (idempotent by title+case)
+  const wiringStub = await prisma.case.findUnique({
+    where: { caseCode: "DEV-00001" },
+    select: { id: true },
+  });
+  if (wiringStub) {
+    const existingDiscussion = await prisma.discussion.findFirst({
+      where: {
+        caseId: wiringStub.id,
+        title: "[DEV] Timeline cross-check theory",
+      },
+      select: { id: true },
+    });
+    if (!existingDiscussion) {
+      const discussion = await prisma.discussion.create({
+        data: {
+          caseId: wiringStub.id,
+          authorId: demoUser.id,
+          title: "[DEV] Timeline cross-check theory",
+          body: "Development-only theory thread. Comparing stub timeline entries for UI wiring — not a real accusation.",
+          contentLabel: "USER_THEORY",
+          status: "OPEN",
+        },
+      });
+      await prisma.comment.create({
+        data: {
+          discussionId: discussion.id,
+          authorId: demoUser.id,
+          body: "Seed comment: labels must stay USER THEORY on community posts.",
+          contentLabel: "USER_THEORY",
+        },
+      });
+    }
+  }
+
   const counts = {
     users: await prisma.user.count(),
     fictionalCases: await prisma.fictionalCase.count(),
@@ -566,6 +601,8 @@ async function main() {
     achievements: await prisma.achievement.count(),
     realCases: await prisma.case.count(),
     devStubs: await prisma.case.count({ where: { isDevStub: true } }),
+    discussions: await prisma.discussion.count(),
+    comments: await prisma.comment.count(),
   };
 
   console.log("Seed complete:", counts);

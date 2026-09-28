@@ -1,5 +1,7 @@
-import type { CaseStatus, CaseType, ContentLabel, Prisma } from "@/lib/generated/prisma/client";
+import type { CaseStatus, CaseType, Prisma } from "@/lib/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
+
+export { labelClass, statusClass } from "@/lib/cases/labels";
 
 export const CASE_PAGE_SIZE = 20;
 
@@ -91,15 +93,29 @@ export async function getCaseBySlug(slug: string) {
       events: { orderBy: [{ sortOrder: "asc" }, { occurredAt: "asc" }] },
       persons: { orderBy: { createdAt: "asc" } },
       discussions: {
-        where: { status: { not: "HIDDEN" } },
+        where: { status: { not: "HIDDEN" }, deletedAt: null },
         orderBy: { updatedAt: "desc" },
-        take: 5,
+        take: 20,
         select: {
           id: true,
           title: true,
+          body: true,
+          contentLabel: true,
+          status: true,
           createdAt: true,
-          author: { select: { username: true, displayName: true } },
-          _count: { select: { comments: true } },
+          author: {
+            select: {
+              username: true,
+              displayName: true,
+              detectiveRank: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              followers: true,
+            },
+          },
         },
       },
       _count: { select: { followedBy: true, savedBy: true } },
@@ -120,32 +136,4 @@ export async function getCaseEngagement(userId: string | undefined, caseId: stri
     }),
   ]);
   return { followed: !!followed, saved: !!saved };
-}
-
-export function labelClass(label: ContentLabel): string {
-  switch (label) {
-    case "VERIFIED":
-      return "text-online border-online/40";
-    case "REPORTED":
-      return "text-amber border-amber/40";
-    case "USER_THEORY":
-      return "text-text-muted border-border-strong";
-    default:
-      return "text-text-muted border-border";
-  }
-}
-
-export function statusClass(status: CaseStatus): string {
-  switch (status) {
-    case "OPEN":
-      return "text-online";
-    case "COLD":
-      return "text-amber";
-    case "UNSOLVED":
-      return "text-text-muted";
-    case "CLOSED":
-      return "text-text";
-    default:
-      return "text-text-muted";
-  }
 }

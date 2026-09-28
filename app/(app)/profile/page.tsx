@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { logoutAction, updateProfileAction } from "@/app/actions/auth";
@@ -20,6 +21,15 @@ export default async function ProfilePage() {
       <h1 className="mt-2 font-mono text-2xl font-semibold uppercase tracking-[0.12em] text-text">
         Profile
       </h1>
+      <p className="mt-2 font-mono text-[11px] text-text-dim">
+        Public dossier:{" "}
+        <Link
+          href={`/detectives/${session.user.username}`}
+          className="text-cta hover:underline"
+        >
+          /detectives/{session.user.username}
+        </Link>
+      </p>
 
       <section className="mt-8 border border-border bg-surface">
         <header className="border-b border-border px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { CaseEngagement } from "@/components/cases/CaseEngagement";
 import { CaseStatusText } from "@/components/cases/CaseStatusText";
 import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
+import { DiscussionPanel } from "@/components/community/DiscussionPanel";
 import { getCaseBySlug, getCaseEngagement } from "@/lib/cases/queries";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -200,28 +201,12 @@ export default async function CaseDetailPage({ params }: Props) {
       </Section>
 
       <Section title="Discussion">
-        {caseFile.discussions.length === 0 ? (
-          <Empty>
-            Community discussion arrives in Phase 5.{" "}
-            <Link href="/cases" className="text-cta hover:underline">
-              Return to database
-            </Link>
-          </Empty>
-        ) : (
-          <ul className="space-y-2">
-            {caseFile.discussions.map((discussion) => (
-              <li key={discussion.id} className="border border-border/80 px-3 py-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-text">
-                  {discussion.title}
-                </p>
-                <p className="mt-1 font-mono text-[10px] text-text-dim">
-                  {discussion.author.displayName ?? discussion.author.username} ·{" "}
-                  {discussion._count.comments} comments
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <DiscussionPanel
+          caseId={caseFile.id}
+          caseSlug={caseFile.slug}
+          discussions={caseFile.discussions}
+          signedIn={!!session?.user}
+        />
       </Section>
 
       <Section title="Updates">

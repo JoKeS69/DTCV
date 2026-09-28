@@ -1,5 +1,5 @@
 import type { ContentLabel } from "@/lib/generated/prisma/client";
-import { labelClass } from "@/lib/cases/queries";
+import { labelClass } from "@/lib/cases/labels";
 
 const copy: Record<ContentLabel, string> = {
   VERIFIED: "Verified",

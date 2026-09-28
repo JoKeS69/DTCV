@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–4** (foundation, visual, auth, database, real-case UI).
+includes **Phase 0–5** (foundation, visual, auth, database, real-case UI, community).
 
 ## Stack
 
@@ -44,6 +44,20 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL` (and later auth/Stripe vars) in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Community (Phase 5)
+
+- Case Discussion section: create/list threads (auth + rate limit)
+- `/discussions/[id]` — comments, replies, likes, follow, report, soft-delete
+- `/detectives/[username]` — public detective profile (linked from discussions)
+- `/admin/moderation` — minimal staff report/status queue (Phase 9 placeholder)
+- Posts labeled **USER THEORY** by default; reports create `Report` records
+
+## Case database (Phase 4)
+
+- `/cases` — paginated HUD list, search, type/status/country/year filters
+- `/cases/[slug]` — detail with safety labels, sources, follow/save/share
+- Seeded **DEV-*** stubs only for real-case rows (not real crimes). Fictional FC-001 remains separate.
 
 ## Database (Phase 3)
 
