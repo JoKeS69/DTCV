@@ -64,8 +64,9 @@ async function main() {
     throw new Error("expected 5 witness statements");
   }
   if (!solutionExists) throw new Error("expected 1 solution");
-  if (summary.totals.realCases !== 0) {
-    throw new Error("Phase 3 must not seed real cases");
+  const crimeCases = await prisma.case.count({ where: { isDevStub: false } });
+  if (crimeCases !== 0) {
+    throw new Error("Must not seed non-dev real-crime case rows");
   }
 
   console.log("spotcheck OK");

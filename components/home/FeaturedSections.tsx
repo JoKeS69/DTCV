@@ -6,7 +6,7 @@ const features = [
     index: "01",
     title: "Real cases",
     body: "Sourced unsolved investigations with citations, verified labels, and no guilt declarations — evidence first.",
-    href: "#how-it-works",
+    href: "/cases",
     meta: "Open · Cold · Unsolved",
   },
   {

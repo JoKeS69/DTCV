@@ -381,6 +381,178 @@ async function main() {
     },
   });
 
+  // Development placeholders for Case Database UI — NOT real crimes.
+  const devStubs = [
+    {
+      caseCode: "DEV-00001",
+      title: "[DEV] Case database wiring stub",
+      slug: "dev-case-database-wiring-stub",
+      summary:
+        "DEVELOPMENT ONLY. This record exists so the Case Database UI can be tested. It is not a real investigation and invents no crime facts.",
+      publicNotes:
+        "Public info placeholder: platform QA checklist for list/detail/filter routes.",
+      location: "Development lab",
+      countryCode: "XX",
+      year: 2026,
+      type: "OTHER" as const,
+      status: "OPEN" as const,
+      priority: "LOW" as const,
+      contentLabel: "VERIFIED" as const,
+      lastVerifiedAt: new Date("2026-09-28T12:00:00.000Z"),
+      events: [
+        {
+          title: "Stub created",
+          description: "Seed inserted this development placeholder.",
+          contentLabel: "VERIFIED" as const,
+        },
+      ],
+      persons: [
+        {
+          name: "N/A — Development",
+          role: "OTHER" as const,
+          notes: "No real persons. Development stub only.",
+          contentLabel: "VERIFIED" as const,
+        },
+      ],
+      sources: [
+        {
+          title: "DETECTIVE internal seed documentation",
+          url: "https://github.com/JoKeS69/detectives",
+          publisher: "DETECTIVE",
+          citationNote: "Points at the product repo — not a crime source.",
+        },
+      ],
+    },
+    {
+      caseCode: "DEV-00002",
+      title: "[DEV] Filter / status badge stub",
+      slug: "dev-filter-status-badge-stub",
+      summary:
+        "DEVELOPMENT ONLY. Used to exercise COLD status styling and REPORTED labels. Contains no real-world allegations.",
+      publicNotes: "Sample public field for UI review. Not evidentiary.",
+      location: "Staging environment",
+      countryCode: "XX",
+      year: 2025,
+      type: "UNKNOWN" as const,
+      status: "COLD" as const,
+      priority: "MEDIUM" as const,
+      contentLabel: "REPORTED" as const,
+      lastVerifiedAt: new Date("2026-09-01T08:00:00.000Z"),
+      events: [
+        {
+          title: "UI review note",
+          description: "Reported-label styling check (development).",
+          contentLabel: "REPORTED" as const,
+        },
+        {
+          title: "Theory sandbox",
+          description: "Example USER THEORY row for badge contrast — fictional UI copy only.",
+          contentLabel: "USER_THEORY" as const,
+        },
+      ],
+      persons: [],
+      sources: [
+        {
+          title: "Phase 4 development notes",
+          url: "https://github.com/JoKeS69/detectives",
+          publisher: "DETECTIVE",
+          citationNote: "Development citation stub.",
+        },
+      ],
+    },
+    {
+      caseCode: "DEV-00003",
+      title: "[DEV] Closed pipeline stub",
+      slug: "dev-closed-pipeline-stub",
+      summary:
+        "DEVELOPMENT ONLY. Represents a closed workflow state for filters. No crime narrative.",
+      publicNotes: "Closed-state public notes for QA.",
+      location: "QA cluster",
+      countryCode: "US",
+      year: 2024,
+      type: "OTHER" as const,
+      status: "CLOSED" as const,
+      priority: "LOW" as const,
+      contentLabel: "VERIFIED" as const,
+      lastVerifiedAt: new Date("2026-08-15T18:00:00.000Z"),
+      events: [
+        {
+          title: "Marked closed in seed",
+          description: "Pipeline status test only.",
+          contentLabel: "VERIFIED" as const,
+        },
+      ],
+      persons: [],
+      sources: [],
+    },
+    {
+      caseCode: "DEV-00004",
+      title: "[DEV] Unsolved label stub",
+      slug: "dev-unsolved-label-stub",
+      summary:
+        "DEVELOPMENT ONLY. Exercises UNSOLVED status and MISSING type filters without inventing a real missing-person case.",
+      publicNotes: "Unsolved-status UI fixture.",
+      location: "Mock region",
+      countryCode: "GB",
+      year: 2026,
+      type: "MISSING" as const,
+      status: "UNSOLVED" as const,
+      priority: "HIGH" as const,
+      contentLabel: "REPORTED" as const,
+      lastVerifiedAt: null,
+      events: [],
+      persons: [
+        {
+          name: "Placeholder subject (development)",
+          role: "OTHER" as const,
+          notes: "Not a real person.",
+          contentLabel: "REPORTED" as const,
+        },
+      ],
+      sources: [
+        {
+          title: "UI fixture source",
+          url: "https://example.com/dev-stub",
+          publisher: "example.com",
+          citationNote: "Synthetic URL for citation layout tests.",
+        },
+      ],
+    },
+  ];
+
+  for (const stub of devStubs) {
+    const { events, persons, sources, ...caseFields } = stub;
+    await prisma.case.upsert({
+      where: { caseCode: stub.caseCode },
+      update: {
+        ...caseFields,
+        isDevStub: true,
+        published: true,
+        publishedAt: new Date(),
+      },
+      create: {
+        ...caseFields,
+        isDevStub: true,
+        published: true,
+        publishedAt: new Date(),
+        events: {
+          create: events.map((event, index) => ({
+            ...event,
+            sortOrder: index + 1,
+            occurredAt: new Date("2026-09-28T10:00:00.000Z"),
+          })),
+        },
+        persons: { create: persons },
+        sources: {
+          create: sources.map((source) => ({
+            ...source,
+            accessedAt: new Date("2026-09-28T10:00:00.000Z"),
+          })),
+        },
+      },
+    });
+  }
+
   const counts = {
     users: await prisma.user.count(),
     fictionalCases: await prisma.fictionalCase.count(),
@@ -393,11 +565,12 @@ async function main() {
     solutions: await prisma.solution.count({ where: { fictionalCaseId: fictionalCase.id } }),
     achievements: await prisma.achievement.count(),
     realCases: await prisma.case.count(),
+    devStubs: await prisma.case.count({ where: { isDevStub: true } }),
   };
 
-  console.log("Seed complete (fictional demo only):", counts);
+  console.log("Seed complete:", counts);
   console.log("Demo login: demo_detective / detective-demo-2026");
-  console.log("FC-001 is FICTIONAL — no real cases seeded.");
+  console.log("FC-001 is FICTIONAL. Real Case rows are DEV stubs only — no crime claims.");
 }
 
 main()

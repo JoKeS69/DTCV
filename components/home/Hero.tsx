@@ -26,11 +26,11 @@ export function Hero() {
         </p>
 
         <div className="motion-fade-up motion-fade-up-delay-3 mt-8 flex flex-wrap gap-2">
-          <Link href="/login" className="auth-btn-primary !w-auto px-6">
+          <Link href="/cases" className="auth-btn-primary !w-auto px-6">
             Enter platform →
           </Link>
-          <Link href="/register" className="auth-btn-ghost !w-auto px-6">
-            Sign up
+          <Link href="/login" className="auth-btn-ghost !w-auto px-6">
+            Login
           </Link>
         </div>
       </div>

@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–3** (foundation, visual, auth, database schema/seed).
+includes **Phase 0–4** (foundation, visual, auth, database, real-case UI).
 
 ## Stack
 
