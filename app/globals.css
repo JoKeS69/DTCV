@@ -1,33 +1,39 @@
 @import "tailwindcss";
 
-/* DETECTIVE — Phase 0 token placeholders (full visual system: Phase 1) */
+/* DETECTIVE — cinematic HUD theme (Phase 1) */
 @theme inline {
-  --color-bg: #07080a;
-  --color-surface: #0e1014;
-  --color-surface-elevated: #151820;
-  --color-border: #1e232c;
+  --color-bg: #050607;
+  --color-surface: #0a0c0f;
+  --color-surface-elevated: #101319;
+  --color-border: #1c1f26;
+  --color-border-strong: #2a303a;
   --color-text: #e8eaed;
   --color-text-muted: #8b929e;
-  --color-accent: #c9a227;
-  --color-accent-dim: #8a7020;
+  --color-text-dim: #5a6170;
+  --color-cta: #8a99ad;
+  --color-cta-text: #08090a;
+  --color-online: #22c55e;
+  --color-amber: #f59e0b;
   --color-danger: #b33a3a;
-  --color-success: #2f6f4e;
   --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
   --font-mono: var(--font-mono);
+  --radius-none: 0px;
 }
 
 :root {
-  --bg: #07080a;
-  --surface: #0e1014;
-  --surface-elevated: #151820;
-  --border: #1e232c;
+  --bg: #050607;
+  --surface: #0a0c0f;
+  --surface-elevated: #101319;
+  --border: #1c1f26;
+  --border-strong: #2a303a;
   --text: #e8eaed;
   --text-muted: #8b929e;
-  --accent: #c9a227;
-  --accent-dim: #8a7020;
+  --text-dim: #5a6170;
+  --cta: #8a99ad;
+  --cta-text: #08090a;
+  --online: #22c55e;
+  --amber: #f59e0b;
   --danger: #b33a3a;
-  --success: #2f6f4e;
 }
 
 * {
@@ -38,18 +44,123 @@
 
 html {
   height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-mono), ui-monospace, monospace;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+  overflow-x: clip;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--cta) 55%, transparent);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 1px solid var(--cta);
+  outline-offset: 2px;
+}
+
+/* —— Motions —— */
+@keyframes detective-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes detective-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--online) 45%, transparent);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+@keyframes detective-grid-drift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+  to {
+    background-position: 48px 32px, 48px 32px;
+  }
+}
+
+.motion-fade-up {
+  animation: detective-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-fade-up-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.motion-fade-up-delay-2 {
+  animation-delay: 0.24s;
+}
+
+.motion-fade-up-delay-3 {
+  animation-delay: 0.36s;
+}
+
+.motion-pulse-online {
+  animation: detective-pulse 2.4s ease-in-out infinite;
+}
+
+.motion-grid-drift {
+  animation: detective-grid-drift 48s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-fade-up,
+  .motion-fade-up-delay-1,
+  .motion-fade-up-delay-2,
+  .motion-fade-up-delay-3,
+  .motion-pulse-online,
+  .motion-grid-drift {
+    animation: none !important;
+  }
+}
+
+/* HUD map / grid atmosphere */
+.hud-map {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 55% at 50% 45%, #12161e 0%, transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, #0a1018 0%, transparent 55%);
+  background-size:
+    48px 48px,
+    48px 48px,
+    100% 100%,
+    100% 100%;
+}
+
+.hud-vignette::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 55%, transparent), transparent 28%, transparent 62%, var(--bg)),
+    radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, var(--bg) 75%, transparent) 100%);
 }

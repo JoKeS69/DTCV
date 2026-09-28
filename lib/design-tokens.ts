@@ -1,27 +1,28 @@
 /**
- * DETECTIVE design token placeholders (Phase 0).
- * Visual system is applied in Phase 1 — these document the target aesthetic:
- * dark, sophisticated, minimal, cinematic, serious, premium.
- *
- * Design references: /cursor/stores/.../media/design-refs/{dashboard,login,mobile}.jpg
+ * DETECTIVE design tokens — cinematic investigative HUD.
+ * Brand: DETECTIVE (not CASE//NET). Refs: media/design-refs/*.jpg
  */
 
 export const designTokens = {
   brand: "DETECTIVE",
+  tagline: "GLOBAL INVESTIGATION PLATFORM",
+  manifesto: ["REAL CASES.", "REAL PEOPLE.", "REAL IMPACT."] as const,
   colors: {
-    bg: "#07080a",
-    surface: "#0e1014",
-    surfaceElevated: "#151820",
-    border: "#1e232c",
+    bg: "#050607",
+    surface: "#0a0c0f",
+    surfaceElevated: "#101319",
+    border: "#1c1f26",
+    borderStrong: "#2a303a",
     text: "#e8eaed",
     textMuted: "#8b929e",
-    accent: "#c9a227",
-    accentDim: "#8a7020",
+    textDim: "#5a6170",
+    cta: "#8a99ad",
+    ctaText: "#08090a",
+    online: "#22c55e",
+    amber: "#f59e0b",
     danger: "#b33a3a",
-    success: "#2f6f4e",
   },
   fonts: {
-    display: "var(--font-display)",
     sans: "var(--font-sans)",
     mono: "var(--font-mono)",
   },

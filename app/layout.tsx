@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
-const sans = Geist({
+const sans = IBM_Plex_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
-const display = Instrument_Serif({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const mono = Geist_Mono({
+const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
-  title: "DETECTIVE",
+  title: {
+    default: "DETECTIVE",
+    template: "%s · DETECTIVE",
+  },
   description:
     "Global detective investigation platform — real cases, community, and fictional investigations.",
   robots: { index: false, follow: false },
@@ -32,11 +32,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${sans.variable} ${display.variable} ${mono.variable} h-full`}
-    >
-      <body className="min-h-full bg-bg text-text antialiased">{children}</body>
+    <html lang="en" className={`${sans.variable} ${mono.variable} h-full`}>
+      <body className="flex min-h-full flex-col bg-bg text-text antialiased">
+        <SiteHeader />
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-contains **Phase 0: Project Foundation** only.
+includes **Phase 0 (foundation)** and **Phase 1 (visual foundation)**.
 
 ## Stack
 
@@ -47,5 +47,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Design
 
-Brand: **DETECTIVE** — dark, cinematic, minimal, premium. Token placeholders live
-in `app/globals.css` and `lib/design-tokens.ts`. Full visual system is Phase 1.
+Brand: **DETECTIVE** — dark cinematic investigative HUD (not CASE//NET).
+Tokens and theme: `app/globals.css`, `lib/design-tokens.ts`.
+Shared UI: `components/ui/*`. Layout chrome: `components/layout/*`.
+Homepage sections: `components/home/*`.
