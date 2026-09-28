@@ -27,11 +27,11 @@
 # debug
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — never commit secrets
+.env
+.env.*
 !.env.example
 
 # vercel
@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma generated client (regenerated via postinstall / build)
+/lib/generated/prisma

@@ -1,0 +1,17 @@
+// DETECTIVE — Phase 0 stub schema.
+// Full entity models land in Phase 3. This placeholder proves Postgres + Prisma wiring.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Connection-health placeholder. Replace with real domain models in Phase 3.
+model SchemaPlaceholder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}

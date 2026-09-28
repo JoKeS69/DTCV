@@ -1,47 +1,42 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
-import { siteConfig } from "@/lib/site-config";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const sans = Geist({
+  variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const space = Space_Grotesk({
-  variable: "--font-space",
+const display = Instrument_Serif({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400",
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const mono = Geist_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: siteConfig.title,
-  description: siteConfig.description,
-  authors: [{ name: siteConfig.name, url: `mailto:${siteConfig.email}` }],
-  creator: siteConfig.name,
-  openGraph: {
-    title: siteConfig.title,
-    description: siteConfig.ogDescription,
-    type: "website",
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.ogDescription,
-  },
-  robots: { index: true, follow: true },
+  metadataBase: new URL(getSiteUrl()),
+  title: "DETECTIVE",
+  description:
+    "Global detective investigation platform — real cases, community, and fictional investigations.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${space.variable} h-full`}>
-      <body className="min-h-full">{children}</body>
+    <html
+      lang="en"
+      className={`${sans.variable} ${display.variable} ${mono.variable} h-full`}
+    >
+      <body className="min-h-full bg-bg text-text antialiased">{children}</body>
     </html>
   );
 }
