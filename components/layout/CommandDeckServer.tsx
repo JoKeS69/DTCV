@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { CommandDeckShell } from "@/components/layout/CommandDeckShell";
 import type { DeckUser } from "@/components/layout/CommandDeckSidebar";
+import { getCaseStatsCached } from "@/lib/cases/dashboard";
 import { getPrisma } from "@/lib/db";
 
 export async function CommandDeckServer({
@@ -43,8 +44,18 @@ export async function CommandDeckServer({
     }
   }
 
+  let caseCount = activeCaseFiles;
+  if (typeof caseCount !== "number") {
+    try {
+      const { counts } = await getCaseStatsCached();
+      caseCount = counts.total;
+    } catch {
+      caseCount = 0;
+    }
+  }
+
   return (
-    <CommandDeckShell user={user} activeCaseFiles={activeCaseFiles}>
+    <CommandDeckShell user={user} activeCaseFiles={caseCount}>
       {children}
     </CommandDeckShell>
   );

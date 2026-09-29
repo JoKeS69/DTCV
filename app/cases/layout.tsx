@@ -1,13 +1,14 @@
 import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
-import { HUD_STATS } from "@/lib/cases/hud-data";
+import { getCaseStatsCached } from "@/lib/cases/dashboard";
 
-export default function CasesLayout({
+export default async function CasesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { counts } = await getCaseStatsCached();
   return (
-    <CommandDeckServer activeCaseFiles={HUD_STATS.total}>
+    <CommandDeckServer activeCaseFiles={counts.total}>
       {children}
     </CommandDeckServer>
   );

@@ -17,10 +17,10 @@ export function CheckoutForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState(testMode ? "4111 1111 1111 1111" : "");
-  const [expMonth, setExpMonth] = useState("12");
-  const [expYear, setExpYear] = useState("2030");
-  const [cvc, setCvc] = useState("123");
-  const [name, setName] = useState("Demo Detective");
+  const [expMonth, setExpMonth] = useState(testMode ? "12" : "");
+  const [expYear, setExpYear] = useState(testMode ? "2030" : "");
+  const [cvc, setCvc] = useState(testMode ? "123" : "");
+  const [name, setName] = useState(testMode ? "Test Cardholder" : "");
 
   return (
     <form

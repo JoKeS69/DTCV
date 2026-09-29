@@ -1,4 +1,4 @@
-import type { HudCaseStatus } from "@/lib/cases/hud-data";
+import type { HudCaseStatus } from "@/lib/cases/hud-types";
 import type { CaseStatus } from "@/lib/generated/prisma/client";
 
 type Status = HudCaseStatus | CaseStatus;

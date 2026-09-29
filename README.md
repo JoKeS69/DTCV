@@ -127,14 +127,13 @@ Server-side **ADMIN-only** gate on every `/admin/*` route (`requireAdmin` /
 | `/admin/subscriptions` | Live plan/status + payment customer/subscription ids |
 | `/admin/analytics` | Light ops counters |
 
-Seeded admin: `admin_ops` / `detective-admin-2026` (role `ADMIN`).
+Local/CI admin (from `npm run db:seed:dev` only): `admin_ops` / `detective-admin-2026` (role `ADMIN`).
 
 To promote an existing user manually:
 
 ```bash
 npx prisma db execute --stdin <<< \
-  "UPDATE \"User\" SET role = 'ADMIN' WHERE username = 'demo_detective';"
-# or re-run: npm run db:seed
+  "UPDATE \"User\" SET role = 'ADMIN' WHERE username = 'YOUR_USERNAME';"
 ```
 
 ## Investigation board (Phase 8)
@@ -149,7 +148,7 @@ npx prisma db execute --stdin <<< \
 
 - Ranks: Recruit → Observer → Investigator → Detective → Senior Detective → Master Detective
 - XP from fictional completions + achievements only (never real-case accusations)
-- `/profile` + `/detectives/[username]` — DETECTIVE # badge, XP bar, stats HUD, achievements, history
+- `/profile` + `/detectives/[username]` — opaque DET-* badge, XP bar, stats HUD, achievements, history
 - `/fictional/rankings` — minimal fictional XP leaderboard
 
 ## Fictional ops (Phase 6)
@@ -170,28 +169,30 @@ npx prisma db execute --stdin <<< \
 
 ## Case database (Phase 4)
 
-- `/cases` — paginated HUD list, search, type/status/country/year filters
+- `/cases` — command-deck HUD list from published Prisma cases (empty until a real source is connected)
 - `/cases/[slug]` — detail with safety labels, sources, follow/save/share
-- Seeded **DEV-*** stubs only for real-case rows (not real crimes). Fictional FC-001 remains separate.
+- **No fabricated real crimes** in production seed. Dev-only `DEV-*` stubs via `npm run db:seed:dev` (hidden from public list).
+- Fictional FC-001 remains a separate training product surface.
 
 ## Database (Phase 3)
 
-Full Prisma domain schema + fictional seed only:
+Full Prisma domain schema:
 
 ```bash
 npx prisma migrate dev
-npm run db:seed        # FC-001 THE HOUSE AT 11:47 (fictional)
-npm run db:spotcheck
+npm run db:seed          # production-safe: achievements only
+npm run db:seed:dev      # LOCAL/CI: demo users + FC-001/FC-002 + DEV stubs
+npm run db:spotcheck     # expects db:seed:dev
 ```
 
-Demo user: `demo_detective` / `detective-demo-2026`  
-Admin user: `admin_ops` / `detective-admin-2026`  
-No real-crime cases are seeded. `Solution` is server-only — do not expose to clients.
+Local demo user (`db:seed:dev`): `demo_detective` / `detective-demo-2026`  
+Local admin (`db:seed:dev`): `admin_ops` / `detective-admin-2026`  
+Production seed never fabricates real crimes. `Solution` is server-only.
 
 ## Auth (Phase 2)
 
 Auth.js (NextAuth v5) credentials provider + Prisma `User` model.
-Passwords hashed with bcrypt. JWT sessions. Protected route: `/profile`.
+Passwords hashed with Argon2id (legacy bcrypt verified + rehashed). Short JWT sessions. Protected route: `/profile`.
 
 ```bash
 cp .env.example .env.local

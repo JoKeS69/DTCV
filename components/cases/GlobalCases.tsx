@@ -1,4 +1,4 @@
-import type { HudStats } from "@/lib/cases/hud-data";
+import type { HudStats } from "@/lib/cases/hud-types";
 import { WorldMap } from "@/components/cases/WorldMap";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 import { StatCard } from "@/components/ui/StatCard";
@@ -48,14 +48,22 @@ export function GlobalCases({ stats }: { stats: HudStats }) {
               Top Locations
             </p>
             <ol className="mt-3 space-y-2.5 font-mono text-[13px] uppercase tracking-[0.06em] text-text-muted">
-              {stats.topLocations.map((loc, i) => (
-                <li key={loc.country} className="flex justify-between gap-4">
-                  <span className="min-w-0 truncate">
-                    {i + 1}. {loc.country}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-text">{loc.count}</span>
+              {stats.topLocations.length === 0 ? (
+                <li className="text-text-dim normal-case tracking-normal">
+                  No locations yet
                 </li>
-              ))}
+              ) : (
+                stats.topLocations.map((loc, i) => (
+                  <li key={loc.country} className="flex justify-between gap-4">
+                    <span className="min-w-0 truncate">
+                      {i + 1}. {loc.country}
+                    </span>
+                    <span className="shrink-0 tabular-nums text-text">
+                      {loc.count}
+                    </span>
+                  </li>
+                ))
+              )}
             </ol>
           </div>
         </div>

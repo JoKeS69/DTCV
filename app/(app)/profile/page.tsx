@@ -142,7 +142,7 @@ export default async function ProfilePage() {
             <dd className="mt-1 text-online">
               {session.user.emailVerifiedAt
                 ? "Verified"
-                : "Unverified (placeholder flow)"}
+                : "Unverified"}
             </dd>
           </div>
           <div>

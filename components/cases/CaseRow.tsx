@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { HudCase } from "@/lib/cases/hud-data";
+import type { HudCase } from "@/lib/cases/hud-types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
 export function CaseRow({

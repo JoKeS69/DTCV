@@ -1,5 +1,5 @@
 import { MessageSquare } from "lucide-react";
-import type { HudDiscussion } from "@/lib/cases/hud-data";
+import type { HudDiscussion } from "@/lib/cases/hud-types";
 
 export function DiscussionItem({ item }: { item: HudDiscussion }) {
   return (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { HudDiscussion } from "@/lib/cases/hud-data";
+import type { HudDiscussion } from "@/lib/cases/hud-types";
 import { DiscussionItem } from "@/components/ui/DiscussionItem";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 

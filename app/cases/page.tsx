@@ -9,17 +9,22 @@ import { GlobalCases } from "@/components/cases/GlobalCases";
 import { RecentActivity } from "@/components/cases/RecentActivity";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 import {
-  filterHudCases,
-  HUD_ACTIVITY,
-  HUD_DISCUSSIONS,
-  HUD_STATS,
-} from "@/lib/cases/hud-data";
+  toHudActivity,
+  toHudCase,
+  toHudDiscussions,
+  toHudStats,
+} from "@/lib/cases/hud-adapters";
+import type { HudCase } from "@/lib/cases/hud-types";
+import { getCaseStatsCached, getRecentActivityCached } from "@/lib/cases/dashboard";
+import { listPublishedCasesCached } from "@/lib/cases/public-cache";
+import { getPrisma } from "@/lib/db";
+import type { CaseStatus, CaseType } from "@/lib/generated/prisma/client";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Case database",
   description:
-    "CASE//NET command deck — browse case files with dense investigation HUD. No guilt declarations.",
+    "CASE//NET command deck — browse published case files. No guilt declarations.",
   path: "/cases",
 });
 
@@ -34,26 +39,64 @@ type SearchParams = Promise<{
   focus?: string;
 }>;
 
+async function loadDiscussionsForCase(caseId: string | undefined) {
+  if (!caseId) return [];
+  const rows = await getPrisma().discussion.findMany({
+    where: {
+      caseId,
+      deletedAt: null,
+      status: { not: "HIDDEN" },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 12,
+    select: {
+      id: true,
+      body: true,
+      createdAt: true,
+      author: { select: { username: true } },
+      _count: { select: { comments: true } },
+    },
+  });
+  return toHudDiscussions(rows);
+}
+
 export default async function CasesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
-  const { items, selected } = filterHudCases({
-    q: sp.q,
-    type: sp.type,
-    status: sp.status,
-    sort: sp.sort,
-    select: sp.select,
-  });
+  const sort =
+    sp.sort === "year" || sp.sort === "code" || sp.sort === "updated"
+      ? sp.sort
+      : "updated";
 
-  const discussions = HUD_DISCUSSIONS[selected.caseCode] ?? [];
+  const [list, statsBundle, activityRaw] = await Promise.all([
+    listPublishedCasesCached({
+      q: sp.q,
+      type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
+      status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
+      sort,
+      page: 1,
+    }),
+    getCaseStatsCached(),
+    getRecentActivityCached(),
+  ]);
+
+  const items: HudCase[] = list.items.map(toHudCase);
+  const selected =
+    items.find(
+      (c) => c.caseCode === sp.select || c.slug === sp.select,
+    ) ?? null;
+
+  const discussions = await loadDiscussionsForCase(selected?.id);
+  const stats = toHudStats(statsBundle.counts, statsBundle.topLocations);
+  const activity = toHudActivity(activityRaw);
+
   const showMobileDetail =
-    Boolean(sp.select) && sp.focus !== "discussions";
-  const showMobileDiscussion = sp.focus === "discussions";
-  /** Tablet drawer when select present (md–xl) */
-  const showTabletDrawer = Boolean(sp.select);
+    Boolean(sp.select) && Boolean(selected) && sp.focus !== "discussions";
+  const showMobileDiscussion = sp.focus === "discussions" && Boolean(selected);
+  const showTabletDrawer = Boolean(sp.select) && Boolean(selected);
 
   const buildSelectHref = (caseCode: string) => {
     const params = new URLSearchParams();
@@ -76,9 +119,10 @@ export default async function CasesPage({
     return q ? `/cases?${q}` : "/cases";
   })();
 
+  const emptyDatabase = items.length === 0 && !sp.q && (!sp.type || sp.type === "ALL") && (!sp.status || sp.status === "ALL");
+
   return (
     <main className="flex h-full min-h-0 flex-col gap-4 p-4 md:gap-5 md:p-5 xl:gap-6 xl:p-6">
-      {/* Desktop ≥1280: DB+detail | map+activity+discussion */}
       <div className="grid min-h-0 flex-1 gap-4 md:gap-5 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-6">
         <div className="grid min-h-0 gap-4 md:gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-6">
           <Panel id="case-database" className="min-h-[420px] xl:min-h-0">
@@ -97,44 +141,51 @@ export default async function CasesPage({
             />
 
             {items.length === 0 ? (
-              <div className="flex flex-1 items-center justify-center px-6 py-16 font-mono text-[14px] text-text-muted">
-                No case files match these filters.
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-16 text-center font-mono">
+                <p className="text-[14px] text-text-muted">
+                  {emptyDatabase
+                    ? "No cases available yet."
+                    : "No case files match these filters."}
+                </p>
+                <p className="max-w-md text-[12px] text-text-dim">
+                  {emptyDatabase
+                    ? "Published case files will appear here when a data source is connected."
+                    : "Adjust search or filters to broaden results."}
+                </p>
               </div>
             ) : (
               <CaseTable
                 items={items}
-                selectedCode={selected.caseCode}
+                selectedCode={selected?.caseCode ?? null}
                 buildSelectHref={buildSelectHref}
               />
             )}
           </Panel>
 
-          {/* Desktop detail column */}
           <div className="hidden min-h-0 xl:block">
             <CaseDetail item={selected} />
           </div>
         </div>
 
         <div className="grid min-h-0 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-6">
-          <GlobalCases stats={HUD_STATS} />
-          <RecentActivity items={HUD_ACTIVITY} />
+          <GlobalCases stats={stats} />
+          <RecentActivity items={activity} />
           <div className="hidden min-h-0 xl:block">
             <DiscussionPanel
-              caseCode={selected.caseCode}
+              caseCode={selected?.caseCode ?? null}
               discussions={discussions}
             />
           </div>
           <div className="hidden md:col-span-2 md:block xl:hidden">
             <DiscussionPanel
-              caseCode={selected.caseCode}
+              caseCode={selected?.caseCode ?? null}
               discussions={discussions}
             />
           </div>
         </div>
       </div>
 
-      {/* Tablet detail drawer (768–1279) */}
-      {showTabletDrawer ? (
+      {showTabletDrawer && selected ? (
         <div className="fixed inset-y-0 right-0 z-40 hidden w-[min(420px,46vw)] border-l border-border bg-bg shadow-2xl md:block xl:hidden">
           <div className="flex h-14 items-center justify-between border-b border-border px-4">
             <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
@@ -154,8 +205,7 @@ export default async function CasesPage({
         </div>
       ) : null}
 
-      {/* Mobile full-screen sheets */}
-      {showMobileDetail ? (
+      {showMobileDetail && selected ? (
         <div className="fixed inset-0 z-50 bg-bg/95 p-4 pt-4 backdrop-blur-sm md:hidden">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
@@ -175,7 +225,7 @@ export default async function CasesPage({
         </div>
       ) : null}
 
-      {showMobileDiscussion ? (
+      {showMobileDiscussion && selected ? (
         <div className="fixed inset-0 z-50 bg-bg/95 p-4 backdrop-blur-sm md:hidden">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">

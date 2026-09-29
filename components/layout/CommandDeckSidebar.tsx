@@ -58,7 +58,7 @@ export function CommandDeckSidebar({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname() ?? "";
-  const demoUser = user ?? {
+  const guestUser = user ?? {
     displayName: "DETECTIVE",
     publicId: "DET-GUEST000",
     rankLabel: "NOVICE",
@@ -111,30 +111,30 @@ export function CommandDeckSidebar({
         User
       </p>
       <div className="mt-0 space-y-1.5 font-mono text-[12px] uppercase tracking-[0.08em] xl:mt-3 xl:text-[13px]">
-        <p className="hidden text-text xl:block">{demoUser.displayName}</p>
+        <p className="hidden text-text xl:block">{guestUser.displayName}</p>
           <p className="hidden text-text-muted xl:block">
             <span className="text-text-dim">ID: </span>
-            {demoUser.publicId}
+            {guestUser.publicId}
           </p>
         <p className="hidden text-text-muted xl:block">
           <span className="text-text-dim">RANK: </span>
-          {demoUser.rankLabel}
+          {guestUser.rankLabel}
         </p>
         <p className="hidden xl:block">
           <span className="text-text-dim">STATUS: </span>
           <span
             className={
-              demoUser.status === "ACTIVE" ? "text-online" : "text-text-muted"
+              guestUser.status === "ACTIVE" ? "text-online" : "text-text-muted"
             }
           >
-            {demoUser.status}
+            {guestUser.status}
           </span>
         </p>
         {/* Compact rail avatar */}
         <div className="flex justify-center xl:hidden">
           <span
             className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface-elevated text-[12px] text-online"
-            title={`${demoUser.displayName} · ${demoUser.status}`}
+            title={`${guestUser.displayName} · ${guestUser.status}`}
           >
             D
           </span>
@@ -215,12 +215,12 @@ export function CommandDeckSidebar({
                 User
               </p>
               <div className="mt-3 space-y-1.5 font-mono text-[13px] uppercase tracking-[0.08em]">
-                <p className="text-text">{demoUser.displayName}</p>
-                <p className="text-text-muted">ID: {demoUser.publicId}</p>
-                <p className="text-text-muted">RANK: {demoUser.rankLabel}</p>
+                <p className="text-text">{guestUser.displayName}</p>
+                <p className="text-text-muted">ID: {guestUser.publicId}</p>
+                <p className="text-text-muted">RANK: {guestUser.rankLabel}</p>
                 <p>
                   STATUS:{" "}
-                  <span className="text-online">{demoUser.status}</span>
+                  <span className="text-online">{guestUser.status}</span>
                 </p>
               </div>
               <p className="mt-5 font-mono text-[12px] uppercase leading-relaxed tracking-[0.12em] text-text-dim">

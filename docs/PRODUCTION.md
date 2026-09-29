@@ -52,8 +52,8 @@ Migrations live under `prisma/migrations/`. Production apply:
 ```bash
 npm ci
 npx prisma migrate deploy
-npm run db:seed          # optional — fictional FC-001/FC-002 only; NEVER real-crime seed
-npm run db:spotcheck
+npm run db:seed          # production-safe — achievements only; NEVER real-crime or demo users
+# Do NOT run db:seed:dev against production
 ```
 
 Vercel `buildCommand` in `vercel.json` runs `prisma migrate deploy` before `next build`.

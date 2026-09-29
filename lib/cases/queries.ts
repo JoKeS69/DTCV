@@ -22,6 +22,8 @@ export async function listPublishedCases(query: CaseListQuery) {
 
   const where: Prisma.CaseWhereInput = {
     published: true,
+    // Dev UI fixtures must never appear as public “real” cases.
+    isDevStub: false,
   };
 
   if (query.q?.trim()) {
@@ -62,6 +64,8 @@ export async function listPublishedCases(query: CaseListQuery) {
         caseCode: true,
         title: true,
         slug: true,
+        summary: true,
+        publicNotes: true,
         location: true,
         countryCode: true,
         year: true,
@@ -87,7 +91,7 @@ export async function listPublishedCases(query: CaseListQuery) {
 
 export async function getCaseBySlug(slug: string) {
   return getPrisma().case.findFirst({
-    where: { slug, published: true },
+    where: { slug, published: true, isDevStub: false },
     include: {
       sources: { orderBy: { createdAt: "asc" } },
       events: { orderBy: [{ sortOrder: "asc" }, { occurredAt: "asc" }] },

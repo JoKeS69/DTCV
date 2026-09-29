@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const [cases, fictional] = await Promise.all([
       getPrisma().case.findMany({
-        where: { published: true },
+        where: { published: true, isDevStub: false },
         select: { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 5000,

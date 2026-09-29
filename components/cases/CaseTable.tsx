@@ -1,4 +1,4 @@
-import type { HudCase } from "@/lib/cases/hud-data";
+import type { HudCase } from "@/lib/cases/hud-types";
 import { CaseCard } from "@/components/ui/CaseCard";
 import { CaseRow } from "@/components/cases/CaseRow";
 
@@ -8,7 +8,7 @@ export function CaseTable({
   buildSelectHref,
 }: {
   items: HudCase[];
-  selectedCode: string;
+  selectedCode: string | null;
   buildSelectHref: (caseCode: string) => string;
 }) {
   return (

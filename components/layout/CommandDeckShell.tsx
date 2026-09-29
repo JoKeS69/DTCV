@@ -8,7 +8,6 @@ import {
   type DeckUser,
 } from "@/components/layout/CommandDeckSidebar";
 import { MobileHeader } from "@/components/layout/MobileHeader";
-import { HUD_STATS } from "@/lib/cases/hud-data";
 
 export function CommandDeckShell({
   children,
@@ -20,8 +19,11 @@ export function CommandDeckShell({
   activeCaseFiles?: number;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const count = activeCaseFiles ?? HUD_STATS.total;
-  const countLabel = `${count.toLocaleString("en-US")} ACTIVE CASE FILES`;
+  const count = activeCaseFiles ?? 0;
+  const countLabel =
+    count === 0
+      ? "NO CASE FILES PUBLISHED"
+      : `${count.toLocaleString("en-US")} ACTIVE CASE FILES`;
 
   return (
     <div className="flex h-svh flex-col overflow-hidden bg-bg">

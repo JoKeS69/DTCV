@@ -24,15 +24,19 @@ async function loadCaseStats(): Promise<{
 }> {
   const prisma = getPrisma();
   const [total, byStatus, byCountry] = await Promise.all([
-    prisma.case.count({ where: { published: true } }),
+    prisma.case.count({ where: { published: true, isDevStub: false } }),
     prisma.case.groupBy({
       by: ["status"],
-      where: { published: true },
+      where: { published: true, isDevStub: false },
       _count: { _all: true },
     }),
     prisma.case.groupBy({
       by: ["countryCode"],
-      where: { published: true, countryCode: { not: null } },
+      where: {
+        published: true,
+        isDevStub: false,
+        countryCode: { not: null },
+      },
       _count: { _all: true },
       orderBy: { _count: { countryCode: "desc" } },
       take: 5,
@@ -62,13 +66,16 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
   const prisma = getPrisma();
   const [cases, comments, discussions] = await Promise.all([
     prisma.case.findMany({
-      where: { published: true },
+      where: { published: true, isDevStub: false },
       orderBy: { updatedAt: "desc" },
       take: 4,
       select: { id: true, caseCode: true, slug: true, updatedAt: true, title: true },
     }),
     prisma.comment.findMany({
-      where: { deletedAt: null, discussion: { case: { published: true } } },
+      where: {
+        deletedAt: null,
+        discussion: { case: { published: true, isDevStub: false } },
+      },
       orderBy: { createdAt: "desc" },
       take: 4,
       select: {
@@ -84,7 +91,10 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
       },
     }),
     prisma.discussion.findMany({
-      where: { deletedAt: null, case: { published: true } },
+      where: {
+        deletedAt: null,
+        case: { published: true, isDevStub: false },
+      },
       orderBy: { createdAt: "desc" },
       take: 3,
       select: {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { HudActivity } from "@/lib/cases/hud-data";
+import type { HudActivity } from "@/lib/cases/hud-types";
 
 export function ActivityItem({ item }: { item: HudActivity }) {
   const body = (

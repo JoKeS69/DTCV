@@ -2,37 +2,42 @@ import { expect, test } from "@playwright/test";
 import { loginAs, sql } from "./helpers";
 
 test.describe("Cases", () => {
-  test("browses CASE//NET HUD and selects a case", async ({ page }) => {
+  test("shows professional empty case database when no published cases", async ({
+    page,
+  }) => {
     await page.goto("/cases");
     await expect(page.getByText(/CASE DATABASE|> CASES/i).first()).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByText("CASE//NET").first()).toBeVisible();
-
-    await page.getByRole("link", { name: "25-00217" }).first().click();
-    await expect(page).toHaveURL(/select=25-00217/);
-    await expect(page.getByText(/Disappearance - Yuki Tanaka/i).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /view full case/i })).toBeVisible();
+    await expect(
+      page.getByText(/No cases available yet\.|No case files match these filters\./i).first(),
+    ).toBeVisible({ timeout: 15_000 });
+    // Must not serve fabricated mock crimes
+    await expect(page.getByText(/Emily Carter|Yuki Tanaka/i)).toHaveCount(0);
   });
 
-  test("filters HUD case table by status", async ({ page }) => {
+  test("filters empty table without error", async ({ page }) => {
     await page.goto("/cases");
     await page.locator('select[name="status"]').selectOption("COLD");
     await expect(page).toHaveURL(/status=COLD/);
-    await expect(page.getByText("23-10441").first()).toBeVisible();
-    await expect(page.getByText("25-00217")).toHaveCount(0);
+    await expect(
+      page.getByText(/No cases available yet\.|No case files match these filters\./i).first(),
+    ).toBeVisible();
   });
 
-  test("follows a published case when signed in", async ({ page }) => {
+  test("follows a published non-stub case when signed in", async ({ page }) => {
     const { rows: cases } = await sql<{ id: string; slug: string }>(
-      `SELECT id, slug FROM "Case" WHERE published = true ORDER BY "updatedAt" DESC LIMIT 1`,
+      `SELECT id, slug FROM "Case" WHERE published = true AND "isDevStub" = false ORDER BY "updatedAt" DESC LIMIT 1`,
     );
-    expect(cases[0]).toBeTruthy();
+    test.skip(!cases[0], "No published real cases in DB yet — skip follow flow");
+
     const published = cases[0]!;
 
     const { rows: users } = await sql<{ id: string }>(
       `SELECT id FROM "User" WHERE username = 'demo_detective'`,
     );
+    test.skip(!users[0], "demo_detective missing — run npm run db:seed:dev");
     const demoId = users[0]!.id;
 
     await sql(`DELETE FROM "FollowedCase" WHERE "userId" = $1 AND "caseId" = $2`, [

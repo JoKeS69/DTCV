@@ -24,7 +24,7 @@ export default async function VerifyEmailPage({
         {result.ok ? result.message : result.error}
       </p>
       <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim">
-        Email delivery is a Phase 2 placeholder when no provider is configured.
+        Email delivery requires a configured mail provider.
       </p>
       <Link href="/login" className="auth-btn-ghost mt-6 inline-flex w-full">
         LOGIN
