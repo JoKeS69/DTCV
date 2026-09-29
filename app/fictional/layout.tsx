@@ -1,9 +1,9 @@
-import { AppShell } from "@/components/layout/AppShell";
+import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
 
 export default function FictionalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  return <CommandDeckServer>{children}</CommandDeckServer>;
 }

@@ -4,18 +4,25 @@ import type { CaseStatus, CaseType } from "@/lib/generated/prisma/client";
 import { CaseFilters } from "@/components/cases/CaseFilters";
 import { CasePreviewPanel } from "@/components/cases/CasePreviewPanel";
 import { CaseStatusText } from "@/components/cases/CaseStatusText";
-import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
+import { DiscussionHudPanel } from "@/components/cases/DiscussionHudPanel";
+import { GlobalCasesPanel } from "@/components/cases/GlobalCasesPanel";
+import { RecentActivityPanel } from "@/components/cases/RecentActivityPanel";
+import {
+  getCaseStatsCached,
+  getRecentActivityCached,
+} from "@/lib/cases/dashboard";
 import {
   getCaseBySlugCached,
   listPublishedCasesCached,
 } from "@/lib/cases/public-cache";
 import { formatDateOnly } from "@/lib/format-date";
+import { getPrisma } from "@/lib/db";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Case database",
   description:
-    "Browse published DETECTIVE case files with safety labels, sources, and filters. No guilt declarations.",
+    "DETECTIVE command deck — browse published case files with safety labels. No guilt declarations.",
   path: "/cases",
 });
 
@@ -30,6 +37,7 @@ type SearchParams = Promise<{
   sort?: string;
   page?: string;
   select?: string;
+  focus?: string;
 }>;
 
 function buildQuery(sp: Awaited<SearchParams>, page: number) {
@@ -44,6 +52,18 @@ function buildQuery(sp: Awaited<SearchParams>, page: number) {
   return params;
 }
 
+function relativeUpdated(value: Date | string) {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  const ms = Date.now() - d.getTime();
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 60) return `${Math.max(1, mins)} MIN AGO`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 48) return `${hrs} HRS AGO`;
+  const days = Math.floor(hrs / 24);
+  return `${days} DAYS AGO`;
+}
+
 export default async function CasesPage({
   searchParams,
 }: {
@@ -51,15 +71,19 @@ export default async function CasesPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
-  const result = await listPublishedCasesCached({
-    q: sp.q,
-    type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
-    status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
-    country: sp.country,
-    year: sp.year,
-    sort: (sp.sort as "updated" | "year" | "code" | undefined) ?? "updated",
-    page,
-  });
+  const [result, stats, activity] = await Promise.all([
+    listPublishedCasesCached({
+      q: sp.q,
+      type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
+      status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
+      country: sp.country,
+      year: sp.year,
+      sort: (sp.sort as "updated" | "year" | "code" | undefined) ?? "updated",
+      page,
+    }),
+    getCaseStatsCached(),
+    getRecentActivityCached(),
+  ]);
 
   const selectedSlug = sp.select ?? result.items[0]?.slug;
   const selected =
@@ -70,6 +94,43 @@ export default async function CasesPage({
     ? await getCaseBySlugCached(selectedSlug)
     : null;
 
+  let discussions: {
+    id: string;
+    title: string;
+    createdAt: Date;
+    authorUsername: string;
+    commentCount: number;
+  }[] = [];
+  if (selected?.id) {
+    try {
+      const rows = await getPrisma().discussion.findMany({
+        where: {
+          caseId: selected.id,
+          deletedAt: null,
+          status: { not: "HIDDEN" },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          createdAt: true,
+          author: { select: { username: true } },
+          _count: { select: { comments: { where: { deletedAt: null } } } },
+        },
+      });
+      discussions = rows.map((d) => ({
+        id: d.id,
+        title: d.title,
+        createdAt: d.createdAt,
+        authorUsername: d.author.username,
+        commentCount: d._count.comments,
+      }));
+    } catch {
+      discussions = [];
+    }
+  }
+
   const prevQuery = buildQuery(sp, page - 1);
   const nextQuery = buildQuery(sp, page + 1);
   if (sp.select) {
@@ -78,137 +139,180 @@ export default async function CasesPage({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-3 px-3 py-4 md:px-4">
-      <div className="flex flex-wrap items-end justify-between gap-3 border border-border bg-surface/50 px-3 py-2">
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
-            &gt; Case database
-          </p>
-          <h1 className="mt-1 font-mono text-lg font-semibold uppercase tracking-[0.12em] text-text">
-            Global case files
-          </h1>
-        </div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">
-          {result.total} published · page {result.page}/{result.totalPages}
-        </p>
-      </div>
+    <main className="flex h-full min-h-0 flex-col gap-2 p-2 md:p-2.5">
+      {/* Desktop: mockup 5-panel grid · Mobile: stacked sections */}
+      <div className="grid min-h-0 flex-1 gap-2 lg:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <div className="grid min-h-0 gap-2 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,0.9fr)]">
+          {/* CASE DATABASE */}
+          <section
+            id="case-database"
+            className="flex min-h-[320px] flex-col border border-border bg-bg lg:min-h-0"
+          >
+            <header className="border-b border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim">
+              &gt; Case database
+            </header>
+            <CaseFilters
+              compact
+              q={sp.q ?? ""}
+              type={sp.type ?? "ALL"}
+              status={sp.status ?? "ALL"}
+              country={sp.country ?? ""}
+              year={sp.year ?? ""}
+              sort={sp.sort ?? "updated"}
+            />
 
-      <p className="border border-border px-3 py-2 font-mono text-[10px] leading-relaxed text-text-muted">
-        Safety: files use{" "}
-        <span className="text-online">Verified</span> /{" "}
-        <span className="text-amber">Reported</span> /{" "}
-        <span className="text-text-dim">User theory</span> labels. No guilt
-        declarations. Development stubs are marked explicitly and are not real
-        crimes.
-      </p>
+            {result.items.length === 0 ? (
+              <div className="flex flex-1 items-center justify-center px-4 py-10 font-mono text-xs text-text-muted">
+                No published case files match these filters.
+              </div>
+            ) : (
+              <>
+                {/* Desktop table */}
+                <div className="hidden min-h-0 flex-1 overflow-auto md:block">
+                  <table className="w-full min-w-[640px] border-collapse text-left">
+                    <thead className="sticky top-0 border-b border-border bg-bg">
+                      <tr className="font-mono text-[9px] uppercase tracking-[0.14em] text-text-dim">
+                        <th className="px-2 py-1.5">Case ID</th>
+                        <th className="px-2 py-1.5">Title</th>
+                        <th className="px-2 py-1.5">Location</th>
+                        <th className="px-2 py-1.5">Type</th>
+                        <th className="px-2 py-1.5">Status</th>
+                        <th className="px-2 py-1.5">Last updated</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.items.map((item) => {
+                        const params = buildQuery(sp, page);
+                        params.set("select", item.slug);
+                        const href = `/cases?${params.toString()}`;
+                        const active = item.slug === selectedSlug;
+                        return (
+                          <tr
+                            key={item.id}
+                            className={[
+                              "border-b border-border/70 font-mono text-[11px]",
+                              active
+                                ? "bg-surface-elevated"
+                                : "hover:bg-surface/80",
+                            ].join(" ")}
+                          >
+                            <td className="px-2 py-1.5">
+                              <Link href={href} className="text-text">
+                                {item.caseCode}
+                              </Link>
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <Link href={href} className="text-text">
+                                {item.title}
+                              </Link>
+                            </td>
+                            <td className="px-2 py-1.5 text-text-muted">
+                              {item.location ?? item.countryCode ?? "—"}
+                            </td>
+                            <td className="px-2 py-1.5 text-text-muted">
+                              {item.type}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <CaseStatusText status={item.status} />
+                            </td>
+                            <td className="px-2 py-1.5 text-text-dim">
+                              {formatDateOnly(item.updatedAt)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-      <CaseFilters
-        q={sp.q ?? ""}
-        type={sp.type ?? "ALL"}
-        status={sp.status ?? "ALL"}
-        country={sp.country ?? ""}
-        year={sp.year ?? ""}
-        sort={sp.sort ?? "updated"}
-      />
-
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
-        <section className="border border-border bg-surface/40">
-          {result.items.length === 0 ? (
-            <div className="px-4 py-16 text-center font-mono text-xs text-text-muted">
-              No published case files match these filters.
-              <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-text-dim">
-                Empty database or filters too narrow
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] border-collapse text-left">
-                <thead className="border-b border-border bg-bg/80">
-                  <tr className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-dim">
-                    <th className="px-2 py-2">Case ID</th>
-                    <th className="px-2 py-2">Title</th>
-                    <th className="px-2 py-2">Location</th>
-                    <th className="px-2 py-2">Type</th>
-                    <th className="px-2 py-2">Status</th>
-                    <th className="px-2 py-2">Label</th>
-                    <th className="px-2 py-2">Updated</th>
-                  </tr>
-                </thead>
-                <tbody>
+                {/* Mobile compact rows — mockup columns */}
+                <ul className="divide-y divide-border/80 md:hidden">
                   {result.items.map((item) => {
                     const params = buildQuery(sp, page);
                     params.set("select", item.slug);
-                    const href = `/cases?${params.toString()}`;
-                    const active = item.slug === selectedSlug;
                     return (
-                      <tr
-                        key={item.id}
-                        className={[
-                          "border-b border-border/80 font-mono text-[11px]",
-                          active ? "bg-surface-elevated" : "hover:bg-surface",
-                        ].join(" ")}
-                      >
-                        <td className="px-2 py-2">
-                          <Link href={href} className="text-text">
+                      <li key={item.id}>
+                        <Link
+                          href={`/cases?${params.toString()}`}
+                          className="flex items-center gap-2 px-2 py-2 font-mono text-[10px] uppercase tracking-[0.08em]"
+                        >
+                          <span className="w-[72px] shrink-0 text-text">
                             {item.caseCode}
-                          </Link>
-                        </td>
-                        <td className="px-2 py-2">
-                          <Link href={href} className="text-text">
-                            {item.title}
-                            {item.isDevStub ? (
-                              <span className="ml-2 text-[9px] uppercase tracking-[0.12em] text-amber">
-                                Dev
-                              </span>
-                            ) : null}
-                          </Link>
-                        </td>
-                        <td className="px-2 py-2 text-text-muted">
-                          {item.location ?? "—"}
-                        </td>
-                        <td className="px-2 py-2 text-text-muted">{item.type}</td>
-                        <td className="px-2 py-2">
-                          <CaseStatusText status={item.status} />
-                        </td>
-                        <td className="px-2 py-2">
-                          <ContentLabelBadge label={item.contentLabel} />
-                        </td>
-                        <td className="px-2 py-2 text-text-dim">
-                          {formatDateOnly(item.updatedAt)}
-                        </td>
-                      </tr>
+                          </span>
+                          <span className="w-14 shrink-0 text-text-muted">
+                            {item.countryCode ?? "—"}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-text-muted">
+                            {item.type}
+                          </span>
+                          <span className="shrink-0">
+                            <CaseStatusText status={item.status} />
+                          </span>
+                          <span className="w-[72px] shrink-0 text-right text-text-dim">
+                            {relativeUpdated(item.updatedAt)}
+                          </span>
+                          <span className="text-text-dim">&gt;</span>
+                        </Link>
+                      </li>
                     );
                   })}
-                </tbody>
-              </table>
+                </ul>
+              </>
+            )}
+
+            <div className="mt-auto flex items-center justify-between border-t border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em]">
+              {page > 1 ? (
+                <Link
+                  href={`/cases?${prevQuery.toString()}`}
+                  className="text-text-muted hover:text-text"
+                >
+                  ← Prev
+                </Link>
+              ) : (
+                <span className="text-text-dim">← Prev</span>
+              )}
+              <span className="text-text-dim">
+                {result.total} files · {result.page}/{result.totalPages}
+              </span>
+              {page < result.totalPages ? (
+                <Link
+                  href={`/cases?${nextQuery.toString()}`}
+                  className="text-text-muted hover:text-text"
+                >
+                  Next →
+                </Link>
+              ) : (
+                <span className="text-text-dim">Next →</span>
+              )}
             </div>
-          )}
+          </section>
 
-          <div className="flex items-center justify-between border-t border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em]">
-            {page > 1 ? (
-              <Link href={`/cases?${prevQuery.toString()}`} className="text-text-muted hover:text-text">
-                ← Prev
-              </Link>
-            ) : (
-              <span className="text-text-dim">← Prev</span>
-            )}
-            <span className="text-text-dim">
-              Page {result.page} / {result.totalPages}
-            </span>
-            {page < result.totalPages ? (
-              <Link href={`/cases?${nextQuery.toString()}`} className="text-text-muted hover:text-text">
-                Next →
-              </Link>
-            ) : (
-              <span className="text-text-dim">Next →</span>
-            )}
+          {/* CASE DETAIL */}
+          <div className="min-h-[280px] lg:min-h-0">
+            <CasePreviewPanel
+              item={selected}
+              summary={selectedFull?.summary}
+            />
           </div>
-        </section>
+        </div>
 
-        <CasePreviewPanel
-          item={selected}
-          summary={selectedFull?.summary}
-        />
+        <div className="grid min-h-0 gap-2 lg:grid-cols-3">
+          <section className="lg:min-h-0">
+            <p className="mb-0 border border-b-0 border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim md:hidden">
+              &gt; Global overview
+            </p>
+            <GlobalCasesPanel
+              counts={stats.counts}
+              topLocations={stats.topLocations}
+            />
+          </section>
+          <RecentActivityPanel items={activity} />
+          <DiscussionHudPanel
+            caseCode={selected?.caseCode ?? null}
+            caseSlug={selected?.slug ?? null}
+            discussions={discussions}
+          />
+        </div>
       </div>
     </main>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppShell } from "@/components/layout/AppShell";
+import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
 import { requireAdmin } from "@/lib/admin/auth";
 import { privatePageMetadata } from "@/lib/seo/metadata";
 
@@ -10,8 +10,6 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Server-side ADMIN gate for every /admin route (never trust client).
   await requireAdmin();
-
-  return <AppShell>{children}</AppShell>;
+  return <CommandDeckServer>{children}</CommandDeckServer>;
 }

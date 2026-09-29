@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CaseStatus, CaseType, ContentLabel, CasePriority } from "@/lib/generated/prisma/client";
 import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
 import { CaseStatusText } from "@/components/cases/CaseStatusText";
+import { formatDateOnly } from "@/lib/format-date";
 
 export type PreviewCase = {
   caseCode: string;
@@ -70,11 +71,11 @@ export function CasePreviewPanel({
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-text-dim">Last verified</dt>
-          <dd className="text-text">
-            {item.lastVerifiedAt
-              ? item.lastVerifiedAt.toISOString().slice(0, 10)
-              : "—"}
-          </dd>
+          <dd className="text-text">{formatDateOnly(item.lastVerifiedAt)}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-text-dim">Last updated</dt>
+          <dd className="text-text">{formatDateOnly(item.updatedAt)}</dd>
         </div>
       </dl>
 

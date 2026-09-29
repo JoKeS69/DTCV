@@ -1,5 +1,5 @@
-import { AppShell } from "@/components/layout/AppShell";
+import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return <CommandDeckServer>{children}</CommandDeckServer>;
 }

@@ -1,22 +1,22 @@
-# Design lock — Phase 14
+# Design lock — Phase 14 (FINAL)
 
-## Blocker
+## Sources (pixel/layout authority)
 
-User-final mockups were **not present** in the cloud agent checkout:
+| Viewport | Path |
+| --- | --- |
+| Desktop | `/cursor/stores/self/media/desktop.jpeg` → `design-refs/desktop-final.jpeg` |
+| Mobile | `/cursor/stores/self/media/mobileversion.jpeg` → `design-refs/mobile-final.jpeg` |
 
-- Expected: `desktop.jpeg`, `mobileversion.jpeg` (user paths under `C:\Users\abded\detectives\`)
-- Searched: repo root, `public/`, `/cursor/stores/self/media/**`
+Brand in product UI: **DETECTIVE** (mockup text CASE//NET replaced).
 
-## Interim lock (applied)
+## Implemented
 
-Hardened shell/home/auth/cases chrome toward existing design-refs with brand **DETECTIVE** (not CASE//NET):
+- Command deck shell: header `DETECTIVE | GLOBAL INVESTIGATION PLATFORM`, SYSTEM: ONLINE, clock
+- Left **Main terminal** sidebar (01–07) + USER block + manifesto
+- Cases HUD: Case database + detail + Global cases + Recent activity + Discussion
+- Mobile: stacked sections + bottom nav (Cases / Search / Evidence / Discussions / Profile)
+- `/` redirects into the command deck (`/cases`) — mockup homepage IS the HUD
 
-- `design-refs/dashboard.jpg`
-- `design-refs/login.jpg`
-- `design-refs/mobile.jpg`
+## Status
 
-## To complete pixel-exact match
-
-1. Add `desktop.jpeg` + `mobileversion.jpeg` to the repo root **or** agent store media.
-2. Copy to `/cursor/stores/self/media/design-refs/desktop-final.jpeg` and `mobile-final.jpeg`.
-3. Re-run a design pass against those images (homepage, shell, cases HUD, auth).
+Final mockups **present**. MISSING markers removed.

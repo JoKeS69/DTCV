@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/layout/AppShell";
+import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
 import { getPrisma } from "@/lib/db";
 
 export default async function CasesLayout({
@@ -15,5 +15,9 @@ export default async function CasesLayout({
     activeCaseFiles = undefined;
   }
 
-  return <AppShell activeCaseFiles={activeCaseFiles}>{children}</AppShell>;
+  return (
+    <CommandDeckServer activeCaseFiles={activeCaseFiles}>
+      {children}
+    </CommandDeckServer>
+  );
 }
