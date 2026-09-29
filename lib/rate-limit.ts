@@ -21,6 +21,14 @@ export function rateLimit(
     windowMs: number;
   },
 ): RateLimitResult {
+  // Local/e2e suites would otherwise trip auth budgets mid-run.
+  if (
+    process.env.E2E_TEST === "1" ||
+    process.env.DISABLE_RATE_LIMIT === "1"
+  ) {
+    return { ok: true };
+  }
+
   const now = Date.now();
   const bucket = buckets.get(key) ?? { timestamps: [] };
   bucket.timestamps = bucket.timestamps.filter((t) => now - t < windowMs);

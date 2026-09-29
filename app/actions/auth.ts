@@ -8,11 +8,11 @@ import { signIn, signOut } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { AUTH_LIMITS, rateLimit } from "@/lib/rate-limit";
+import { requireActiveUser } from "@/lib/server/authz";
 import {
   allowDevAuthLinks,
-  requireActiveUser,
   safeCallbackPath,
-} from "@/lib/server/authz";
+} from "@/lib/security/callback";
 import { createRawToken, hashToken } from "@/lib/tokens";
 
 const registerSchema = z.object({

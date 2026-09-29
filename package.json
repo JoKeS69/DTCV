@@ -12,7 +12,13 @@
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:spotcheck": "tsx prisma/spotcheck.ts"
+    "db:spotcheck": "tsx prisma/spotcheck.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:legacy": "tsx scripts/run-legacy-e2e.ts",
+    "test:all": "npm run test:unit && npm run test:e2e"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -43,6 +49,7 @@
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

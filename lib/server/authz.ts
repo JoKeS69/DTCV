@@ -1,5 +1,9 @@
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
+import {
+  allowDevAuthLinks,
+  safeCallbackPath,
+} from "@/lib/security/callback";
 import type { UserRole } from "@/lib/generated/prisma/client";
 
 export type ActiveUser = {
@@ -8,6 +12,8 @@ export type ActiveUser = {
   email: string | null;
   role: UserRole;
 };
+
+export { allowDevAuthLinks, safeCallbackPath };
 
 /**
  * Session + DB gate: rejects missing session and suspended accounts.
@@ -46,28 +52,4 @@ export async function requireActiveUser(): Promise<
       role: row.role,
     },
   };
-}
-
-/** Safe same-origin relative redirect path (blocks //evil open redirects). */
-export function safeCallbackPath(
-  raw: string | null | undefined,
-  fallback = "/profile",
-): string {
-  if (!raw) return fallback;
-  const value = raw.trim();
-  // Must be a single-root relative path: /foo — not //host, /\, or protocol-relative.
-  if (!value.startsWith("/")) return fallback;
-  if (value.startsWith("//") || value.startsWith("/\\")) return fallback;
-  if (value.includes("://") || value.includes("\\")) return fallback;
-  if (!/^\/[A-Za-z0-9/_\-.?=&%]*$/.test(value)) return fallback;
-  return value;
-}
-
-/** Dev-only: expose reset/verify links when email provider is a placeholder. */
-export function allowDevAuthLinks(): boolean {
-  const placeholder = process.env.AUTH_EMAIL_PLACEHOLDER?.trim() === "true";
-  const prod =
-    process.env.NODE_ENV === "production" ||
-    process.env.VERCEL_ENV === "production";
-  return placeholder && !prod;
 }

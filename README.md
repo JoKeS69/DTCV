@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–12** (foundation through security audit).
+includes **Phase 0–13** (foundation through testing).
 
 ## Stack
 
@@ -44,6 +44,17 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL`, auth, and `PAYMENTS_*` / `VISA_GATEWAY_*` vars in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Testing (Phase 13)
+
+```bash
+npm run test:unit    # Vitest — authz, Visa, scoring, webhooks, labels
+npm run test:e2e     # Playwright — auth, cases, community, fictional, Visa
+npm run test:all     # unit + e2e (dev server on :3000 or auto-started)
+npm run test:e2e:legacy  # prior phase smoke scripts
+```
+
+Set `E2E_TEST=1` in `.env.local` so auth rate limits do not trip during e2e.
 
 ## Security (Phase 12)
 

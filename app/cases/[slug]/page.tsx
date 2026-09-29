@@ -10,6 +10,7 @@ import { DiscussionPanel } from "@/components/community/DiscussionPanel";
 import { getCaseEngagement } from "@/lib/cases/queries";
 import { getCaseBySlugCached } from "@/lib/cases/public-cache";
 import { JsonLd, realCaseJsonLd } from "@/lib/seo/json-ld";
+import { formatDateOnly, formatDateTime } from "@/lib/format-date";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { metaDescription } from "@/lib/seo/site";
 
@@ -102,9 +103,7 @@ export default async function CaseDetailPage({ params }: Props) {
           <div>
             <dt className="text-text-dim">Last verified</dt>
             <dd className="mt-1 text-text">
-              {caseFile.lastVerifiedAt
-                ? caseFile.lastVerifiedAt.toISOString().slice(0, 10)
-                : "—"}
+              {formatDateOnly(caseFile.lastVerifiedAt)}
             </dd>
           </div>
         </dl>
@@ -151,7 +150,7 @@ export default async function CaseDetailPage({ params }: Props) {
                 </div>
                 {event.occurredAt ? (
                   <p className="mt-1 font-mono text-[10px] text-text-dim">
-                    {event.occurredAt.toISOString()}
+                    {formatDateTime(event.occurredAt)}
                   </p>
                 ) : null}
                 <p className="mt-2 font-mono text-[11px] leading-relaxed text-text-muted normal-case tracking-normal">
@@ -254,16 +253,14 @@ export default async function CaseDetailPage({ params }: Props) {
 
       <Section title="Updates">
         <ul className="space-y-2 font-mono text-[11px] text-text-muted">
-          <li>
-            File updated: {caseFile.updatedAt.toISOString()}
-          </li>
+          <li>File updated: {formatDateTime(caseFile.updatedAt)}</li>
           <li>
             Last verified:{" "}
             {caseFile.lastVerifiedAt
-              ? caseFile.lastVerifiedAt.toISOString()
+              ? formatDateTime(caseFile.lastVerifiedAt)
               : "Not verified"}
           </li>
-          <li>Published: {caseFile.publishedAt?.toISOString() ?? "—"}</li>
+          <li>Published: {formatDateTime(caseFile.publishedAt)}</li>
         </ul>
       </Section>
     </main>

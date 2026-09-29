@@ -9,6 +9,7 @@ import {
   getCaseBySlugCached,
   listPublishedCasesCached,
 } from "@/lib/cases/public-cache";
+import { formatDateOnly } from "@/lib/format-date";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -173,7 +174,7 @@ export default async function CasesPage({
                           <ContentLabelBadge label={item.contentLabel} />
                         </td>
                         <td className="px-2 py-2 text-text-dim">
-                          {item.updatedAt.toISOString().slice(0, 10)}
+                          {formatDateOnly(item.updatedAt)}
                         </td>
                       </tr>
                     );
