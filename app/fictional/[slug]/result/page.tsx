@@ -38,8 +38,8 @@ export default async function FictionalResultPage({ params }: Props) {
   }
 
   const submission = investigation.submission;
-  // Safe to reveal after submit only
-  const reveal = await getSolutionReveal(caseFile.id);
+  // Helper re-checks submission ownership before loading Solution.
+  const reveal = await getSolutionReveal(caseFile.id, session.user.id);
 
   const rows = [
     {

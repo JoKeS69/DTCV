@@ -107,8 +107,14 @@ export const devVisaProvider: PaymentProvider = {
       return { ok: false, error: "Cardholder name required" };
     }
 
-    // Prefer documented success PANs; any valid Visa Luhn OK in test mode.
-    void isDevVisaSuccessPan;
+    // Test mode: only documented success PANs grant Pro (not any Luhn-valid Visa).
+    if (!isDevVisaSuccessPan(pan)) {
+      return {
+        ok: false,
+        error:
+          "Use a documented test Visa PAN (e.g. 4111111111111111). Arbitrary cards are rejected.",
+      };
+    }
 
     const user = await prisma.user.findUnique({ where: { id: input.userId } });
     if (!user) return { ok: false, error: "User not found" };

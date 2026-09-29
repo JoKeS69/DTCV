@@ -1,30 +1,28 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
-
-async function requireUserId() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { ok: false as const, error: "Sign in required", userId: null };
-  }
-  return { ok: true as const, userId: session.user.id };
-}
+import { requireActiveUser } from "@/lib/server/authz";
 
 export async function toggleFollowCase(caseId: string, slug: string) {
-  const gate = await requireUserId();
-  if (!gate.ok || !gate.userId) return { ok: false, error: gate.error };
+  const gate = await requireActiveUser();
+  if (!gate.ok) return { ok: false, error: gate.error };
+
+  const published = await getPrisma().case.findFirst({
+    where: { id: caseId, published: true },
+    select: { id: true },
+  });
+  if (!published) return { ok: false, error: "Case not found" };
 
   const existing = await getPrisma().followedCase.findUnique({
-    where: { userId_caseId: { userId: gate.userId, caseId } },
+    where: { userId_caseId: { userId: gate.user.id, caseId } },
   });
 
   if (existing) {
     await getPrisma().followedCase.delete({ where: { id: existing.id } });
   } else {
     await getPrisma().followedCase.create({
-      data: { userId: gate.userId, caseId },
+      data: { userId: gate.user.id, caseId },
     });
   }
 
@@ -34,18 +32,24 @@ export async function toggleFollowCase(caseId: string, slug: string) {
 }
 
 export async function toggleSaveCase(caseId: string, slug: string) {
-  const gate = await requireUserId();
-  if (!gate.ok || !gate.userId) return { ok: false, error: gate.error };
+  const gate = await requireActiveUser();
+  if (!gate.ok) return { ok: false, error: gate.error };
+
+  const published = await getPrisma().case.findFirst({
+    where: { id: caseId, published: true },
+    select: { id: true },
+  });
+  if (!published) return { ok: false, error: "Case not found" };
 
   const existing = await getPrisma().savedCase.findUnique({
-    where: { userId_caseId: { userId: gate.userId, caseId } },
+    where: { userId_caseId: { userId: gate.user.id, caseId } },
   });
 
   if (existing) {
     await getPrisma().savedCase.delete({ where: { id: existing.id } });
   } else {
     await getPrisma().savedCase.create({
-      data: { userId: gate.userId, caseId },
+      data: { userId: gate.user.id, caseId },
     });
   }
 

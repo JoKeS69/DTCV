@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { defaultPosition } from "@/lib/board/queries";
 import { BOARD_H, BOARD_W } from "@/lib/board/types";
 import { getPrisma } from "@/lib/db";
 import { awardAchievement } from "@/lib/progression/achievements";
+import { requireActiveUser } from "@/lib/server/authz";
 import type { BoardNodeType } from "@/lib/generated/prisma/client";
 
 export type BoardActionResult =
@@ -24,14 +24,14 @@ const nodeTypeSchema = z.enum([
 ]);
 
 async function requireOwner(investigationId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { ok: false as const, error: "Sign in required", investigation: null };
+  const gate = await requireActiveUser();
+  if (!gate.ok) {
+    return { ok: false as const, error: gate.error, investigation: null };
   }
   const investigation = await getPrisma().investigation.findFirst({
     where: {
       id: investigationId,
-      userId: session.user.id,
+      userId: gate.user.id,
       target: "FICTIONAL_CASE",
     },
     select: {
@@ -47,7 +47,7 @@ async function requireOwner(investigationId: string) {
   return {
     ok: true as const,
     investigation,
-    userId: session.user.id,
+    userId: gate.user.id,
   };
 }
 

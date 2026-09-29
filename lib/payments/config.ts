@@ -31,11 +31,30 @@ export function getPaymentsMode(): PaymentsMode {
   return mode === "live" ? "live" : "test";
 }
 
+/**
+ * HMAC secret for payment webhooks. Fail closed — never use a hard-coded default.
+ * Local: set PAYMENTS_WEBHOOK_SECRET in `.env.local` (see `.env.example`).
+ */
 export function getWebhookSecret(): string {
-  return (
-    process.env.PAYMENTS_WEBHOOK_SECRET?.trim() ||
-    "dev-only-webhook-secret-change-me"
-  );
+  const secret = process.env.PAYMENTS_WEBHOOK_SECRET?.trim();
+  if (!secret) {
+    throw new Error(
+      "PAYMENTS_WEBHOOK_SECRET is required (no default). Set it in the environment.",
+    );
+  }
+  const placeholders = new Set([
+    "dev-only-webhook-secret-change-me",
+    "replace-with-a-long-random-webhook-secret",
+  ]);
+  if (placeholders.has(secret)) {
+    throw new Error(
+      "PAYMENTS_WEBHOOK_SECRET must not use the documented placeholder value.",
+    );
+  }
+  if (secret.length < 16) {
+    throw new Error("PAYMENTS_WEBHOOK_SECRET must be at least 16 characters.");
+  }
+  return secret;
 }
 
 export function getSiteUrl(): string {
@@ -54,13 +73,26 @@ export function visaGatewayConfigured(): boolean {
   );
 }
 
-/** Resolve active provider: live Visa gateway when configured, else test Visa. */
+/**
+ * Resolve active provider.
+ * Live mode never falls back to `dev_visa` (would allow free Pro via test checkout).
+ */
 export function getActiveProviderId(): PaymentsProviderId {
+  const mode = getPaymentsMode();
   const forced = process.env.PAYMENTS_PROVIDER?.trim().toLowerCase();
-  if (forced === "visa_gateway" || forced === "dev_visa") {
-    return forced;
+
+  if (forced === "dev_visa") {
+    if (mode === "live") {
+      throw new Error(
+        "PAYMENTS_PROVIDER=dev_visa is forbidden when PAYMENTS_MODE=live",
+      );
+    }
+    return "dev_visa";
   }
-  if (getPaymentsMode() === "live" && visaGatewayConfigured()) {
+  if (forced === "visa_gateway") {
+    return "visa_gateway";
+  }
+  if (mode === "live") {
     return "visa_gateway";
   }
   return "dev_visa";

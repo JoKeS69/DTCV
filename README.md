@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–11** (foundation through SEO + performance).
+includes **Phase 0–12** (foundation through security audit).
 
 ## Stack
 
@@ -44,6 +44,15 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL`, auth, and `PAYMENTS_*` / `VISA_GATEWAY_*` vars in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## Security (Phase 12)
+
+- Server-side RBAC / premium / suspend checks (`lib/server/authz.ts`, admin DB role)
+- Auth rate limits; reset/verify tokens never returned outside local email placeholder
+- Visa webhook: required HMAC secret (no default), transactional idempotency, IP rate limit
+- `dev_visa` forbidden when `PAYMENTS_MODE=live`; test PANs only for Pro grant
+- Security headers (CSP, frame deny, nosniff, referrer, permissions)
+- Fictional `Solution` reveal gated on submission; JSON-LD escaped
 
 ## SEO + performance (Phase 11)
 

@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { scoreTheory, xpForScore } from "@/lib/fictional/scoring";
 import {
@@ -15,6 +14,7 @@ import {
   fictionalRequiresPremium,
   getUserEntitlements,
 } from "@/lib/payments/entitlements";
+import { requireActiveUser } from "@/lib/server/authz";
 
 export type FictionalActionResult =
   | { ok: true; investigationId?: string; submissionId?: string }
@@ -24,12 +24,11 @@ async function requireUser(): Promise<
   | { ok: true; userId: string; error?: undefined }
   | { ok: false; userId?: undefined; error: string }
 > {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) {
-    return { ok: false, error: "Sign in required" };
+  const gate = await requireActiveUser();
+  if (!gate.ok) {
+    return { ok: false, error: gate.error };
   }
-  return { ok: true, userId };
+  return { ok: true, userId: gate.user.id };
 }
 
 export async function startOrContinueInvestigation(

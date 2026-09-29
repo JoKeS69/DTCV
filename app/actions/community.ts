@@ -2,15 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { COMMUNITY_LIMITS, rateLimit } from "@/lib/rate-limit";
 import { forceUserTheoryLabel } from "@/lib/community/queries";
 import { getPrisma } from "@/lib/db";
+import { requireActiveUser } from "@/lib/server/authz";
 import type {
   ContentLabel,
   DiscussionStatus,
   ReportTargetType,
-  UserRole,
 } from "@/lib/generated/prisma/client";
 
 export type CommunityActionResult =
@@ -18,15 +17,15 @@ export type CommunityActionResult =
   | { ok: false; error: string };
 
 async function requireUser() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { ok: false as const, error: "Sign in required", user: null };
+  const gate = await requireActiveUser();
+  if (!gate.ok) {
+    return { ok: false as const, error: gate.error, user: null };
   }
   return {
     ok: true as const,
     user: {
-      id: session.user.id,
-      username: session.user.username,
+      id: gate.user.id,
+      username: gate.user.username,
     },
   };
 }
@@ -36,10 +35,12 @@ async function requireStaff() {
   if (!gate.ok || !gate.user) return gate;
   const dbUser = await getPrisma().user.findUnique({
     where: { id: gate.user.id },
-    select: { role: true },
+    select: { role: true, suspendedAt: true },
   });
-  const role = dbUser?.role as UserRole | undefined;
-  if (role !== "ADMIN" && role !== "MODERATOR") {
+  if (!dbUser || dbUser.suspendedAt) {
+    return { ok: false as const, error: "Sign in required", user: null };
+  }
+  if (dbUser.role !== "ADMIN" && dbUser.role !== "MODERATOR") {
     return { ok: false as const, error: "Moderator access required", user: null };
   }
   return gate;
@@ -289,20 +290,31 @@ export async function createReport(input: {
     return { ok: false, error: `Slow down — retry in ${limited.retryAfterSec}s` };
   }
 
-  // Verify target exists for discussion/comment
+  // Verify target exists (prevents orphan / oracle spam reports).
   if (parsed.data.targetType === "DISCUSSION") {
     const d = await getPrisma().discussion.findUnique({
       where: { id: parsed.data.targetId },
       select: { id: true },
     });
     if (!d) return { ok: false, error: "Discussion not found" };
-  }
-  if (parsed.data.targetType === "COMMENT") {
+  } else if (parsed.data.targetType === "COMMENT") {
     const c = await getPrisma().comment.findUnique({
       where: { id: parsed.data.targetId },
       select: { id: true },
     });
     if (!c) return { ok: false, error: "Comment not found" };
+  } else if (parsed.data.targetType === "USER") {
+    const u = await getPrisma().user.findUnique({
+      where: { id: parsed.data.targetId },
+      select: { id: true },
+    });
+    if (!u) return { ok: false, error: "User not found" };
+  } else if (parsed.data.targetType === "CASE") {
+    const c = await getPrisma().case.findFirst({
+      where: { id: parsed.data.targetId, published: true },
+      select: { id: true },
+    });
+    if (!c) return { ok: false, error: "Case not found" };
   }
 
   const report = await getPrisma().report.create({

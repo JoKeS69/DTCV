@@ -140,8 +140,25 @@ export async function getUserInvestigation(
   });
 }
 
-/** Post-submit reveal — only call after TheorySubmission exists. */
-export async function getSolutionReveal(fictionalCaseId: string) {
+/**
+ * Post-submit reveal. Requires a TheorySubmission for `userId` on this case
+ * so Solution is never loaded for an active / unsubmitted investigation.
+ */
+export async function getSolutionReveal(
+  fictionalCaseId: string,
+  userId: string,
+) {
+  const submitted = await getPrisma().investigation.findFirst({
+    where: {
+      userId,
+      fictionalCaseId,
+      target: "FICTIONAL_CASE",
+      submission: { isNot: null },
+    },
+    select: { id: true },
+  });
+  if (!submitted) return null;
+
   return getPrisma().solution.findUnique({
     where: { fictionalCaseId },
     select: {

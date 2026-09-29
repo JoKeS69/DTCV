@@ -1,11 +1,18 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { AUTH_LIMITS, rateLimit } from "@/lib/rate-limit";
+import {
+  allowDevAuthLinks,
+  requireActiveUser,
+  safeCallbackPath,
+} from "@/lib/server/authz";
 import { createRawToken, hashToken } from "@/lib/tokens";
 
 const registerSchema = z.object({
@@ -32,10 +39,25 @@ export type AuthActionState = {
   verifyUrl?: string;
 };
 
+async function clientKey(prefix: string, extra = "") {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const ip = forwarded || h.get("x-real-ip") || "unknown";
+  return `${prefix}:${ip}:${extra}`;
+}
+
 export async function registerAction(
   _prev: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  const rl = rateLimit(await clientKey("auth:register"), AUTH_LIMITS.register);
+  if (!rl.ok) {
+    return {
+      ok: false,
+      error: `Too many registrations. Retry in ${rl.retryAfterSec}s.`,
+    };
+  }
+
   const parsed = registerSchema.safeParse({
     username: formData.get("username"),
     email: formData.get("email"),
@@ -79,6 +101,12 @@ export async function registerAction(
 
   const site = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const verifyUrl = `${site}/verify-email?token=${rawVerify}`;
+  // Never return raw tokens outside local email-placeholder mode.
+  if (allowDevAuthLinks()) {
+    console.info("[auth] verify placeholder link", verifyUrl);
+  } else {
+    console.info("[auth] verification token issued (email not configured)");
+  }
 
   try {
     await signIn("credentials", {
@@ -91,7 +119,7 @@ export async function registerAction(
       return {
         ok: true,
         message: "Account created. Sign in to continue.",
-        verifyUrl,
+        ...(allowDevAuthLinks() ? { verifyUrl } : {}),
       };
     }
     throw error;
@@ -109,11 +137,24 @@ export async function loginAction(
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
+  const rl = rateLimit(
+    await clientKey("auth:login", username || "anon"),
+    AUTH_LIMITS.login,
+  );
+  if (!rl.ok) {
+    return {
+      ok: false,
+      error: `Too many login attempts. Retry in ${rl.retryAfterSec}s.`,
+    };
+  }
+
   if (username.length < 3 || password.length < 8) {
     return { ok: false, error: "Invalid credentials" };
   }
 
-  const callbackUrl = String(formData.get("callbackUrl") || "/profile");
+  const callbackUrl = safeCallbackPath(
+    String(formData.get("callbackUrl") || "/profile"),
+  );
 
   try {
     const result = await signIn("credentials", {
@@ -131,7 +172,7 @@ export async function loginAction(
     throw error;
   }
 
-  redirect(callbackUrl.startsWith("/") ? callbackUrl : "/profile");
+  redirect(callbackUrl);
 }
 
 export async function logoutAction(): Promise<void> {
@@ -145,6 +186,18 @@ export async function requestPasswordResetAction(
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
+
+  const rl = rateLimit(
+    await clientKey("auth:reset", email || "anon"),
+    AUTH_LIMITS.passwordReset,
+  );
+  if (!rl.ok) {
+    return {
+      ok: false,
+      error: `Too many reset requests. Retry in ${rl.retryAfterSec}s.`,
+    };
+  }
+
   if (!z.string().email().safeParse(email).success) {
     return { ok: false, error: "Enter a valid email" };
   }
@@ -153,12 +206,12 @@ export async function requestPasswordResetAction(
   const user = await prisma.user.findUnique({ where: { email } });
 
   // Always return success-shaped response to avoid email enumeration.
+  const genericMessage = allowDevAuthLinks()
+    ? "If that email is registered, a reset link was issued. Development email placeholder is on — use the reset link below when shown."
+    : "If that email is registered, a password reset was requested. Check your email when delivery is configured.";
+
   if (!user) {
-    return {
-      ok: true,
-      message:
-        "If that email is registered, a reset link was issued. Email delivery is a Phase 2 placeholder — check the reset URL below when shown in development.",
-    };
+    return { ok: true, message: genericMessage };
   }
 
   const raw = createRawToken();
@@ -173,12 +226,18 @@ export async function requestPasswordResetAction(
   const site = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const resetUrl = `${site}/reset-password?token=${raw}`;
 
-  return {
-    ok: true,
-    message:
-      "Password reset token created. Email provider is not configured — use the development reset link below.",
-    resetUrl,
-  };
+  if (allowDevAuthLinks()) {
+    console.info("[auth] reset placeholder link", resetUrl);
+    return {
+      ok: true,
+      message: genericMessage,
+      resetUrl,
+    };
+  }
+
+  // Production / non-placeholder: never echo the token to the client.
+  console.info("[auth] password reset token issued (email not configured)");
+  return { ok: true, message: genericMessage };
 }
 
 export async function resetPasswordAction(
@@ -201,14 +260,16 @@ export async function resetPasswordAction(
   }
 
   const passwordHash = await hashPassword(password);
+  const now = new Date();
   await prisma.$transaction([
     prisma.user.update({
       where: { id: record.userId },
       data: { passwordHash },
     }),
-    prisma.passwordResetToken.update({
-      where: { id: record.id },
-      data: { usedAt: new Date() },
+    // Invalidate all outstanding reset tokens for this user.
+    prisma.passwordResetToken.updateMany({
+      where: { userId: record.userId, usedAt: null },
+      data: { usedAt: now },
     }),
   ]);
 
@@ -250,16 +311,19 @@ export async function updateProfileAction(
     return { ok: false, error: "Display name required (max 64)" };
   }
 
-  const { auth } = await import("@/auth");
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { ok: false, error: "Not authenticated" };
+  const gate = await requireActiveUser();
+  if (!gate.ok) {
+    return { ok: false, error: gate.error };
   }
 
   await getPrisma().user.update({
-    where: { id: session.user.id },
+    where: { id: gate.user.id },
     data: { displayName },
   });
 
-  return { ok: true, message: "Profile updated. Sign in again to refresh session display name." };
+  return {
+    ok: true,
+    message:
+      "Profile updated. Sign in again to refresh session display name.",
+  };
 }

@@ -7,12 +7,15 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  if (
-    (pathname === "/profile" ||
-      pathname.startsWith("/profile/") ||
-      pathname.startsWith("/admin")) &&
-    !req.auth
-  ) {
+  const isProtectedDesk =
+    pathname === "/profile" ||
+    pathname.startsWith("/profile/") ||
+    pathname.startsWith("/admin") ||
+    pathname === "/billing" ||
+    pathname.startsWith("/billing/") ||
+    pathname.startsWith("/checkout/");
+
+  if (isProtectedDesk && !req.auth) {
     const url = new URL("/login", req.nextUrl.origin);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
@@ -26,5 +29,14 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/profile/:path*", "/admin/:path*", "/login", "/register"],
+  matcher: [
+    "/profile",
+    "/profile/:path*",
+    "/admin/:path*",
+    "/billing",
+    "/billing/:path*",
+    "/checkout/:path*",
+    "/login",
+    "/register",
+  ],
 };

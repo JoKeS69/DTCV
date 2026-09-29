@@ -44,3 +44,14 @@ export const COMMUNITY_LIMITS = {
   report: { limit: 10, windowMs: 10 * 60 * 1000 },
   reaction: { limit: 60, windowMs: 10 * 60 * 1000 },
 } as const;
+
+/** Auth / payment abuse budgets (process-local). */
+export const AUTH_LIMITS = {
+  login: { limit: 10, windowMs: 15 * 60 * 1000 },
+  register: { limit: 5, windowMs: 60 * 60 * 1000 },
+  passwordReset: { limit: 5, windowMs: 60 * 60 * 1000 },
+} as const;
+
+export const WEBHOOK_LIMITS = {
+  ip: { limit: 120, windowMs: 60 * 1000 },
+} as const;

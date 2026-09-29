@@ -1,29 +1,23 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
 import { getPaymentProvider } from "@/lib/payments";
 import { getPrisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { requireActiveUser } from "@/lib/server/authz";
 
 export type BillingActionResult =
   | { ok: true; url?: string }
   | { ok: false; error: string };
 
-async function requireUser() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-  return session.user;
-}
-
 export async function startInvestigatorProCheckout(): Promise<BillingActionResult> {
-  const user = await requireUser();
-  if (!user?.id || !user.email) {
+  const gate = await requireActiveUser();
+  if (!gate.ok || !gate.user.email) {
     return { ok: false, error: "Sign in required" };
   }
 
   const entitlements = await getPrisma().user.findUnique({
-    where: { id: user.id },
+    where: { id: gate.user.id },
     select: { subscriptionPlan: true, subscriptionStatus: true },
   });
   if (
@@ -36,8 +30,8 @@ export async function startInvestigatorProCheckout(): Promise<BillingActionResul
   try {
     const provider = getPaymentProvider();
     const session = await provider.createCheckout({
-      userId: user.id,
-      email: user.email,
+      userId: gate.user.id,
+      email: gate.user.email,
       planKey: "investigator_pro",
       // Prefer relative paths so auth cookies survive localhost ↔ 127.0.0.1.
       successUrl: `/billing?checkout=success`,
@@ -69,13 +63,13 @@ export async function confirmVisaCheckout(input: {
   cvc: string;
   cardholderName: string;
 }): Promise<BillingActionResult> {
-  const user = await requireUser();
-  if (!user?.id) return { ok: false, error: "Sign in required" };
+  const gate = await requireActiveUser();
+  if (!gate.ok) return { ok: false, error: gate.error };
 
   const provider = getPaymentProvider();
   const result = await provider.confirmCheckout({
     sessionId: input.sessionId,
-    userId: user.id,
+    userId: gate.user.id,
     card: {
       pan: input.pan,
       expMonth: input.expMonth,
@@ -96,16 +90,16 @@ export async function confirmVisaCheckout(input: {
 }
 
 export async function openBillingPortal(): Promise<BillingActionResult> {
-  const user = await requireUser();
-  if (!user?.id) return { ok: false, error: "Sign in required" };
+  const gate = await requireActiveUser();
+  if (!gate.ok) return { ok: false, error: gate.error };
 
   const row = await getPrisma().user.findUnique({
-    where: { id: user.id },
+    where: { id: gate.user.id },
     select: { paymentCustomerId: true },
   });
   const provider = getPaymentProvider();
   const portal = await provider.createPortal({
-    userId: user.id,
+    userId: gate.user.id,
     customerId: row?.paymentCustomerId ?? null,
     returnUrl: `/billing`,
   });
@@ -115,11 +109,11 @@ export async function openBillingPortal(): Promise<BillingActionResult> {
 export async function cancelSubscriptionAction(
   immediate = false,
 ): Promise<BillingActionResult> {
-  const user = await requireUser();
-  if (!user?.id) return { ok: false, error: "Sign in required" };
+  const gate = await requireActiveUser();
+  if (!gate.ok) return { ok: false, error: gate.error };
 
   const row = await getPrisma().user.findUnique({
-    where: { id: user.id },
+    where: { id: gate.user.id },
     select: { paymentSubscriptionId: true },
   });
   if (!row?.paymentSubscriptionId) {
@@ -128,7 +122,7 @@ export async function cancelSubscriptionAction(
 
   const provider = getPaymentProvider();
   const result = await provider.cancelSubscription({
-    userId: user.id,
+    userId: gate.user.id,
     subscriptionId: row.paymentSubscriptionId,
     atPeriodEnd: !immediate,
   });
