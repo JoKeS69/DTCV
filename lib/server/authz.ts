@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { openEmail } from "@/lib/crypto/email";
 import { getPrisma } from "@/lib/db";
 import {
   allowDevAuthLinks,
@@ -9,8 +10,10 @@ import type { UserRole } from "@/lib/generated/prisma/client";
 export type ActiveUser = {
   id: string;
   username: string;
+  /** Decrypted email for owner/staff server use only — never send to public APIs. */
   email: string | null;
   role: UserRole;
+  publicId: string;
 };
 
 export { allowDevAuthLinks, safeCallbackPath };
@@ -34,8 +37,11 @@ export async function requireActiveUser(): Promise<
       id: true,
       username: true,
       email: true,
+      emailEncrypted: true,
       role: true,
       suspendedAt: true,
+      publicId: true,
+      sessionVersion: true,
     },
   });
 
@@ -43,13 +49,33 @@ export async function requireActiveUser(): Promise<
     return { ok: false, error: "Account suspended or unavailable" };
   }
 
+  // JWT sessionVersion mismatch → treat as signed out
+  if (
+    typeof session.user.sessionVersion === "number" &&
+    session.user.sessionVersion !== row.sessionVersion
+  ) {
+    return { ok: false, error: "Session expired — sign in again" };
+  }
+
+  let email: string | null = null;
+  if (row.emailEncrypted) {
+    try {
+      email = openEmail(row.emailEncrypted);
+    } catch {
+      email = null;
+    }
+  } else if (row.email) {
+    email = row.email;
+  }
+
   return {
     ok: true,
     user: {
       id: row.id,
       username: row.username,
-      email: row.email,
+      email,
       role: row.role,
+      publicId: row.publicId,
     },
   };
 }

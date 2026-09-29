@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { CommandDeckShell } from "@/components/layout/CommandDeckShell";
 import type { DeckUser } from "@/components/layout/CommandDeckSidebar";
 import { getPrisma } from "@/lib/db";
+
 export async function CommandDeckServer({
   children,
   activeCaseFiles,
@@ -19,24 +20,23 @@ export async function CommandDeckServer({
         select: {
           displayName: true,
           username: true,
-          badgeNumber: true,
+          publicId: true,
           detectiveRank: true,
           suspendedAt: true,
         },
       });
-      if (row) {
+      if (row && !row.suspendedAt) {
         user = {
-          // Mockup USER block: DETECTIVE / ID / RANK / STATUS
           displayName: "DETECTIVE",
-          badgeNumber: row.badgeNumber ?? 8421,
+          publicId: row.publicId,
           rankLabel: row.detectiveRank || "NOVICE",
-          status: row.suspendedAt ? "SUSPENDED" : "ACTIVE",
+          status: "ACTIVE",
         };
       }
     } catch {
       user = {
         displayName: "DETECTIVE",
-        badgeNumber: 8421,
+        publicId: "DET-LOCALDEV",
         rankLabel: "NOVICE",
         status: "ACTIVE",
       };

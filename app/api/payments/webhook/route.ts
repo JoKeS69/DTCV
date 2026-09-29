@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getPaymentProvider } from "@/lib/payments";
 import { applyWebhookEvent } from "@/lib/payments/webhook";
-import { WEBHOOK_LIMITS, rateLimit } from "@/lib/rate-limit";
+import {
+  WEBHOOK_LIMITS,
+  networkRateKey,
+  rateLimit,
+} from "@/lib/rate-limit";
 
 /**
  * Signed payment webhook / callback endpoint.
@@ -11,7 +15,10 @@ import { WEBHOOK_LIMITS, rateLimit } from "@/lib/rate-limit";
 export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const ip = forwarded || request.headers.get("x-real-ip") || "unknown";
-  const limited = rateLimit(`webhook:${ip}`, WEBHOOK_LIMITS.ip);
+  const limited = rateLimit(
+    networkRateKey("webhook", ip),
+    WEBHOOK_LIMITS.network,
+  );
   if (!limited.ok) {
     return NextResponse.json(
       { ok: false, error: "Rate limited" },

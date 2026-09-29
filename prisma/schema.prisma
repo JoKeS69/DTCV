@@ -136,16 +136,23 @@ enum BoardNodeType {
 
 // ─── Auth / User ─────────────────────────────────────────────────────────────
 
-/// Platform user. Passwords are bcrypt hashes only.
+/// Platform user. Passwords: Argon2id (legacy bcrypt verified + rehashed on login).
 model User {
   id              String    @id @default(cuid())
   username        String    @unique
-  email           String    @unique
+  /// @deprecated plaintext — null after security remediation; use emailEncrypted
+  email           String?   @unique
+  /// AES-256-GCM ciphertext (v1:iv:tag:ct). Never expose publicly.
+  emailEncrypted  String?
+  /// HMAC blind index for login/reset lookup (not reversible).
+  emailBlindIndex String?   @unique
   displayName     String?
   passwordHash    String
   emailVerifiedAt DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  /// Bumped on password change to invalidate JWT sessions.
+  sessionVersion  Int       @default(0)
 
   // Detective progression (XP only from fictional / challenges — enforced in app)
   role               UserRole           @default(USER)
@@ -159,8 +166,10 @@ model User {
   subscriptionCancelAtPeriodEnd Boolean @default(false)
   /// When set, credentials login is rejected (admin suspend).
   suspendedAt        DateTime?
-  /// Public badge id shown as DETECTIVE #NNNN
+  /// Internal sequential id — never show on public surfaces.
   badgeNumber        Int                @unique @default(autoincrement())
+  /// Opaque public detective id (DET-XXXXXXXX).
+  publicId           String             @unique
   detectiveXP        Int                @default(0)
   detectiveRank      DetectiveRank      @default(NOVICE)
   bio                String?

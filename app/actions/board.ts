@@ -190,8 +190,12 @@ export async function addNoteBoardNode(input: {
     return { ok: false, error: "Note must be 1–4000 characters" };
   }
 
+  const { sealPrivateText } = await import("@/lib/crypto/aead");
   const note = await getPrisma().investigationNote.create({
-    data: { investigationId: gate.investigation.id, body },
+    data: {
+      investigationId: gate.investigation.id,
+      body: sealPrivateText(body),
+    },
     select: { id: true },
   });
 

@@ -1,7 +1,10 @@
 /**
- * Simple in-memory sliding-window rate limiter for community posts.
- * Process-local — enough for Phase 5 anti-spam; swap for Redis later if needed.
+ * In-memory sliding-window rate limiter.
+ * Network signals use short-TTL salted HMAC of IP — never store raw IP in DB/logs.
  */
+
+import { createHmac } from "node:crypto";
+import { getRateLimitPepper } from "@/lib/crypto/secrets";
 
 type Bucket = { timestamps: number[] };
 
@@ -10,6 +13,37 @@ const buckets = new Map<string, Bucket>();
 export type RateLimitResult =
   | { ok: true }
   | { ok: false; retryAfterSec: number };
+
+function rateLimitBypassAllowed(): boolean {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  ) {
+    // Never allow e2e/dev bypass in production.
+    return false;
+  }
+  return (
+    process.env.E2E_TEST === "1" || process.env.DISABLE_RATE_LIMIT === "1"
+  );
+}
+
+/**
+ * Short-TTL network bucket key: HMAC(pepper, `${day}|${ip}`).
+ * Raw IP is not persisted; key rotates daily with the day component.
+ */
+export function networkRateKey(prefix: string, ipOrUnknown: string): string {
+  const day = new Date().toISOString().slice(0, 10);
+  const material = `${day}|${ipOrUnknown || "unknown"}`;
+  const digest = createHmac("sha256", getRateLimitPepper())
+    .update(material)
+    .digest("base64url")
+    .slice(0, 22);
+  return `${prefix}:n:${digest}`;
+}
+
+export function userRateKey(prefix: string, userId: string): string {
+  return `${prefix}:u:${userId}`;
+}
 
 export function rateLimit(
   key: string,
@@ -21,11 +55,7 @@ export function rateLimit(
     windowMs: number;
   },
 ): RateLimitResult {
-  // Local/e2e suites would otherwise trip auth budgets mid-run.
-  if (
-    process.env.E2E_TEST === "1" ||
-    process.env.DISABLE_RATE_LIMIT === "1"
-  ) {
+  if (rateLimitBypassAllowed()) {
     return { ok: true };
   }
 
@@ -35,7 +65,10 @@ export function rateLimit(
 
   if (bucket.timestamps.length >= limit) {
     const oldest = bucket.timestamps[0] ?? now;
-    const retryAfterSec = Math.max(1, Math.ceil((windowMs - (now - oldest)) / 1000));
+    const retryAfterSec = Math.max(
+      1,
+      Math.ceil((windowMs - (now - oldest)) / 1000),
+    );
     buckets.set(key, bucket);
     return { ok: false, retryAfterSec };
   }
@@ -61,5 +94,5 @@ export const AUTH_LIMITS = {
 } as const;
 
 export const WEBHOOK_LIMITS = {
-  ip: { limit: 120, windowMs: 60 * 1000 },
+  network: { limit: 120, windowMs: 60 * 1000 },
 } as const;

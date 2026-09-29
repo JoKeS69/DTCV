@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { COMMUNITY_LIMITS, rateLimit } from "@/lib/rate-limit";
+import {
+  COMMUNITY_LIMITS,
+  rateLimit,
+  userRateKey,
+} from "@/lib/rate-limit";
 import { forceUserTheoryLabel } from "@/lib/community/queries";
 import { getPrisma } from "@/lib/db";
 import { requireActiveUser } from "@/lib/server/authz";
@@ -87,7 +91,10 @@ export async function createDiscussion(input: {
     return { ok: false, error: "Invalid discussion (title 3–160, body 10–8000 chars)" };
   }
 
-  const limited = rateLimit(`discussion:${gate.user.id}`, COMMUNITY_LIMITS.discussion);
+  const limited = rateLimit(
+    userRateKey("discussion", gate.user.id),
+    COMMUNITY_LIMITS.discussion,
+  );
   if (!limited.ok) {
     return { ok: false, error: `Slow down — retry in ${limited.retryAfterSec}s` };
   }
@@ -130,7 +137,10 @@ export async function createComment(input: {
     return { ok: false, error: "Invalid comment (1–4000 chars)" };
   }
 
-  const limited = rateLimit(`comment:${gate.user.id}`, COMMUNITY_LIMITS.comment);
+  const limited = rateLimit(
+    userRateKey("comment", gate.user.id),
+    COMMUNITY_LIMITS.comment,
+  );
   if (!limited.ok) {
     return { ok: false, error: `Slow down — retry in ${limited.retryAfterSec}s` };
   }
@@ -196,7 +206,10 @@ export async function toggleCommentLike(
   const gate = await requireUser();
   if (!gate.ok || !gate.user) return { ok: false, error: gate.error };
 
-  const limited = rateLimit(`reaction:${gate.user.id}`, COMMUNITY_LIMITS.reaction);
+  const limited = rateLimit(
+    userRateKey("reaction", gate.user.id),
+    COMMUNITY_LIMITS.reaction,
+  );
   if (!limited.ok) {
     return { ok: false, error: `Slow down — retry in ${limited.retryAfterSec}s` };
   }
@@ -285,7 +298,10 @@ export async function createReport(input: {
     return { ok: false, error: "Invalid report (reason required)" };
   }
 
-  const limited = rateLimit(`report:${gate.user.id}`, COMMUNITY_LIMITS.report);
+  const limited = rateLimit(
+    userRateKey("report", gate.user.id),
+    COMMUNITY_LIMITS.report,
+  );
   if (!limited.ok) {
     return { ok: false, error: `Slow down — retry in ${limited.retryAfterSec}s` };
   }

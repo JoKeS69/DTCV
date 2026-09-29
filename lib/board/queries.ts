@@ -73,8 +73,14 @@ export async function getBoardState(investigationId: string, userId: string) {
   if (!investigation?.fictionalCase) return null;
   const caseFile = investigation.fictionalCase;
 
+  const { openPrivateText } = await import("@/lib/crypto/aead");
+  const notes = investigation.notes.map((n) => ({
+    ...n,
+    body: openPrivateText(n.body),
+  }));
+
   const catalog = buildCatalog({
-    notes: investigation.notes,
+    notes,
     fictionalCase: caseFile,
   });
   const labelByKey = new Map(

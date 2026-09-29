@@ -16,7 +16,7 @@ import { primaryNav } from "@/lib/site-nav";
 
 export type DeckUser = {
   displayName: string;
-  badgeNumber: number | null;
+  publicId: string;
   rankLabel: string;
   status: "ACTIVE" | "SUSPENDED" | "GUEST";
 } | null;
@@ -60,7 +60,7 @@ export function CommandDeckSidebar({
   const pathname = usePathname() ?? "";
   const demoUser = user ?? {
     displayName: "DETECTIVE",
-    badgeNumber: 8421,
+    publicId: "DET-GUEST000",
     rankLabel: "NOVICE",
     status: "ACTIVE" as const,
   };
@@ -112,12 +112,10 @@ export function CommandDeckSidebar({
       </p>
       <div className="mt-0 space-y-1.5 font-mono text-[12px] uppercase tracking-[0.08em] xl:mt-3 xl:text-[13px]">
         <p className="hidden text-text xl:block">{demoUser.displayName}</p>
-        <p className="hidden text-text-muted xl:block">
-          <span className="text-text-dim">ID: </span>
-          {demoUser.badgeNumber != null
-            ? String(demoUser.badgeNumber).padStart(6, "0")
-            : "008421"}
-        </p>
+          <p className="hidden text-text-muted xl:block">
+            <span className="text-text-dim">ID: </span>
+            {demoUser.publicId}
+          </p>
         <p className="hidden text-text-muted xl:block">
           <span className="text-text-dim">RANK: </span>
           {demoUser.rankLabel}
@@ -218,12 +216,7 @@ export function CommandDeckSidebar({
               </p>
               <div className="mt-3 space-y-1.5 font-mono text-[13px] uppercase tracking-[0.08em]">
                 <p className="text-text">{demoUser.displayName}</p>
-                <p className="text-text-muted">
-                  ID:{" "}
-                  {demoUser.badgeNumber != null
-                    ? String(demoUser.badgeNumber).padStart(6, "0")
-                    : "008421"}
-                </p>
+                <p className="text-text-muted">ID: {demoUser.publicId}</p>
                 <p className="text-text-muted">RANK: {demoUser.rankLabel}</p>
                 <p>
                   STATUS:{" "}

@@ -117,8 +117,9 @@ export async function addInvestigationNote(input: {
     return { ok: false, error: "Investigation already submitted" };
   }
 
+  const { sealPrivateText } = await import("@/lib/crypto/aead");
   await getPrisma().investigationNote.create({
-    data: { investigationId: investigation.id, body },
+    data: { investigationId: investigation.id, body: sealPrivateText(body) },
   });
 
   revalidatePath(`/fictional/${input.slug}`);

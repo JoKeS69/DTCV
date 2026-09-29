@@ -5,9 +5,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
+import { lookupEmailBlindIndex, sealEmail } from "@/lib/crypto/email";
 import { getPrisma } from "@/lib/db";
+import { generatePublicDetectiveId } from "@/lib/identity/public-id";
 import { hashPassword } from "@/lib/password";
-import { AUTH_LIMITS, rateLimit } from "@/lib/rate-limit";
+import {
+  AUTH_LIMITS,
+  networkRateKey,
+  rateLimit,
+} from "@/lib/rate-limit";
 import { requireActiveUser } from "@/lib/server/authz";
 import {
   allowDevAuthLinks,
@@ -39,18 +45,18 @@ export type AuthActionState = {
   verifyUrl?: string;
 };
 
-async function clientKey(prefix: string, extra = "") {
+async function networkKey(prefix: string) {
   const h = await headers();
   const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
   const ip = forwarded || h.get("x-real-ip") || "unknown";
-  return `${prefix}:${ip}:${extra}`;
+  return networkRateKey(prefix, ip);
 }
 
 export async function registerAction(
   _prev: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const rl = rateLimit(await clientKey("auth:register"), AUTH_LIMITS.register);
+  const rl = rateLimit(await networkKey("auth:register"), AUTH_LIMITS.register);
   if (!rl.ok) {
     return {
       ok: false,
@@ -72,9 +78,17 @@ export async function registerAction(
   const { username, email, password } = parsed.data;
   const displayName = parsed.data.displayName || username;
   const prisma = getPrisma();
+  const sealed = sealEmail(email);
+  const publicId = generatePublicDetectiveId();
 
   const existing = await prisma.user.findFirst({
-    where: { OR: [{ username }, { email: email.toLowerCase() }] },
+    where: {
+      OR: [
+        { username },
+        { emailBlindIndex: sealed.emailBlindIndex },
+        { email: email.toLowerCase() },
+      ],
+    },
   });
   if (existing) {
     return { ok: false, error: "Username or email already registered" };
@@ -84,9 +98,12 @@ export async function registerAction(
   const user = await prisma.user.create({
     data: {
       username,
-      email: email.toLowerCase(),
+      email: null,
+      emailEncrypted: sealed.emailEncrypted,
+      emailBlindIndex: sealed.emailBlindIndex,
       displayName,
       passwordHash,
+      publicId,
     },
   });
 
@@ -101,7 +118,6 @@ export async function registerAction(
 
   const site = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const verifyUrl = `${site}/verify-email?token=${rawVerify}`;
-  // Never return raw tokens outside local email-placeholder mode.
   if (allowDevAuthLinks()) {
     console.info("[auth] verify placeholder link", verifyUrl);
   } else {
@@ -137,10 +153,7 @@ export async function loginAction(
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const rl = rateLimit(
-    await clientKey("auth:login", username || "anon"),
-    AUTH_LIMITS.login,
-  );
+  const rl = rateLimit(await networkKey("auth:login"), AUTH_LIMITS.login);
   if (!rl.ok) {
     return {
       ok: false,
@@ -188,7 +201,7 @@ export async function requestPasswordResetAction(
     .toLowerCase();
 
   const rl = rateLimit(
-    await clientKey("auth:reset", email || "anon"),
+    await networkKey("auth:reset"),
     AUTH_LIMITS.passwordReset,
   );
   if (!rl.ok) {
@@ -203,9 +216,11 @@ export async function requestPasswordResetAction(
   }
 
   const prisma = getPrisma();
-  const user = await prisma.user.findUnique({ where: { email } });
+  const blind = lookupEmailBlindIndex(email);
+  const user =
+    (await prisma.user.findUnique({ where: { emailBlindIndex: blind } })) ??
+    (await prisma.user.findUnique({ where: { email } }));
 
-  // Always return success-shaped response to avoid email enumeration.
   const genericMessage = allowDevAuthLinks()
     ? "If that email is registered, a reset link was issued. Development email placeholder is on — use the reset link below when shown."
     : "If that email is registered, a password reset was requested. Check your email when delivery is configured.";
@@ -235,7 +250,6 @@ export async function requestPasswordResetAction(
     };
   }
 
-  // Production / non-placeholder: never echo the token to the client.
   console.info("[auth] password reset token issued (email not configured)");
   return { ok: true, message: genericMessage };
 }
@@ -264,9 +278,11 @@ export async function resetPasswordAction(
   await prisma.$transaction([
     prisma.user.update({
       where: { id: record.userId },
-      data: { passwordHash },
+      data: {
+        passwordHash,
+        sessionVersion: { increment: 1 },
+      },
     }),
-    // Invalidate all outstanding reset tokens for this user.
     prisma.passwordResetToken.updateMany({
       where: { userId: record.userId, usedAt: null },
       data: { usedAt: now },

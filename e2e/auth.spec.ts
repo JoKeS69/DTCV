@@ -21,11 +21,22 @@ test.describe("Auth", () => {
       timeout: 15_000,
     });
 
-    const { rows } = await sql<{ email: string }>(
-      `SELECT email FROM "User" WHERE username = $1`,
+    const { rows } = await sql<{
+      email: string | null;
+      emailEncrypted: string | null;
+      emailBlindIndex: string | null;
+      publicId: string | null;
+    }>(
+      `SELECT email, "emailEncrypted", "emailBlindIndex", "publicId" FROM "User" WHERE username = $1`,
       [username],
     );
-    expect(rows[0]?.email).toBe(email);
+    // Email must be sealed — never stored plaintext for new accounts.
+    expect(rows[0]?.email).toBeNull();
+    expect(rows[0]?.emailEncrypted).toMatch(/^v1:/);
+    expect(rows[0]?.emailBlindIndex).toBeTruthy();
+    expect(rows[0]?.publicId).toMatch(/^DET-/);
+    // Ciphertext must not contain the plaintext email.
+    expect(rows[0]?.emailEncrypted).not.toContain(email);
   });
 
   test("logs in with demo credentials", async ({ page }) => {

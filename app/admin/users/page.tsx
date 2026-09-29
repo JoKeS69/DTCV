@@ -15,9 +15,8 @@ export default async function AdminUsersPage() {
       id: true,
       username: true,
       displayName: true,
-      email: true,
+      publicId: true,
       role: true,
-      badgeNumber: true,
       detectiveXP: true,
       detectiveRank: true,
       subscriptionPlan: true,
@@ -52,7 +51,7 @@ export default async function AdminUsersPage() {
                     {user.displayName ?? user.username}
                   </p>
                   <p className="text-[10px] text-text-dim">
-                    {formatDetectiveBadge(user.badgeNumber)} · @{user.username}
+                    {formatDetectiveBadge(user.publicId)} · @{user.username}
                   </p>
                 </td>
                 <td className="px-3 py-2 text-text">{user.role}</td>

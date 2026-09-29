@@ -10,6 +10,7 @@ declare module "next-auth" {
       username: string;
       displayName?: string | null;
       emailVerifiedAt?: string | null;
+      sessionVersion?: number;
     };
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
     username?: string;
     displayName?: string | null;
     emailVerifiedAt?: string | null;
+    sessionVersion?: number;
   }
 }
 
@@ -25,5 +27,6 @@ declare module "next-auth/jwt" {
     username?: string;
     displayName?: string | null;
     emailVerifiedAt?: string | null;
+    sessionVersion?: number;
   }
 }

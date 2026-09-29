@@ -10,6 +10,7 @@ import { InvestigationHistory } from "@/components/progression/InvestigationHist
 import { StatsHud } from "@/components/progression/StatsHud";
 import { getDetectiveDossier } from "@/lib/progression/queries";
 import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { requireActiveUser } from "@/lib/server/authz";
 import { privatePageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = privatePageMetadata("Profile");
@@ -18,11 +19,15 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.username) redirect("/login?callbackUrl=/profile");
 
+  const gate = await requireActiveUser();
+  if (!gate.ok) redirect("/login?callbackUrl=/profile");
+
   const dossier = await getDetectiveDossier(session.user.username);
   if (!dossier) redirect("/login?callbackUrl=/profile");
   const entitlements = session.user.id
     ? await getUserEntitlements(session.user.id)
     : null;
+  const ownerEmail = gate.user.email;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-3 py-6 md:px-6 md:py-10">
@@ -129,7 +134,7 @@ export default async function ProfilePage() {
           <div>
             <dt className="text-text-dim">Email</dt>
             <dd className="mt-1 normal-case tracking-normal text-text">
-              {session.user.email}
+              {ownerEmail ?? "—"}
             </dd>
           </div>
           <div>

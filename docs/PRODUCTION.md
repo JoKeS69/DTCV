@@ -26,13 +26,15 @@ Copy from `.env.example`. **Required in production:**
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string (pooled OK for Prisma adapter) |
 | `AUTH_SECRET` | `openssl rand -base64 32` — never reuse .env.example |
+| `ENCRYPTION_KEY` | Field AEAD DEK material — inject via secret manager / KMS unwrap (required in production) |
+| `EMAIL_BLIND_INDEX_KEY` | Separate HMAC key for email lookup — required in production |
 | `AUTH_URL` | `https://YOUR_DOMAIN` |
 | `NEXT_PUBLIC_SITE_URL` | Same public origin |
 | `AUTH_EMAIL_PLACEHOLDER` | Must be `false` in production |
-| `E2E_TEST` | Must be `0` / unset in production |
+| `E2E_TEST` | Must be `0` / unset in production (bypass hard-disabled when NODE_ENV=production) |
 | `PAYMENTS_MODE` | `live` only when gateway ready; else keep `test` off public traffic |
 | `PAYMENTS_WEBHOOK_SECRET` | Long random; **no placeholder strings** |
-| `VISA_GATEWAY_*` | Required when `PAYMENTS_MODE=live` |
+| `VISA_GATEWAY_*` | Required when `PAYMENTS_MODE=live` — **Visa only; do not add Stripe** |
 
 Optional placeholders (no-op until set):
 

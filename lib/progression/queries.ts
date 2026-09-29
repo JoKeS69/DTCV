@@ -11,7 +11,7 @@ export async function getDetectiveDossier(username: string) {
       displayName: true,
       bio: true,
       avatarUrl: true,
-      badgeNumber: true,
+      publicId: true,
       detectiveXP: true,
       detectiveRank: true,
       createdAt: true,
@@ -82,7 +82,7 @@ export async function getDetectiveDossier(username: string) {
 
   return {
     ...user,
-    badgeLabel: formatDetectiveBadge(user.badgeNumber),
+    badgeLabel: formatDetectiveBadge(user.publicId),
     rankLabel: rankLabel(user.detectiveRank),
     progress,
     stats,
@@ -104,7 +104,7 @@ export async function getFictionalLeaderboard(limit = 10) {
     select: {
       username: true,
       displayName: true,
-      badgeNumber: true,
+      publicId: true,
       detectiveXP: true,
       detectiveRank: true,
       _count: {
@@ -121,7 +121,7 @@ export async function getFictionalLeaderboard(limit = 10) {
     rank: index + 1,
     username: u.username,
     displayName: u.displayName,
-    badgeLabel: formatDetectiveBadge(u.badgeNumber),
+    badgeLabel: formatDetectiveBadge(u.publicId),
     detectiveXP: u.detectiveXP,
     rankLabel: rankLabel(u.detectiveRank),
     completed: u._count.investigations,

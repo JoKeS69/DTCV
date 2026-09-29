@@ -1,4 +1,5 @@
 import type { DetectiveRank } from "@/lib/generated/prisma/client";
+import { formatPublicDetectiveId } from "@/lib/identity/public-id";
 
 /**
  * Rank ladder (display names). XP thresholds apply to fictional / challenge XP only.
@@ -55,6 +56,11 @@ export function rankProgress(xp: number): {
   };
 }
 
-export function formatDetectiveBadge(badgeNumber: number): string {
-  return `DETECTIVE #${String(badgeNumber).padStart(4, "0")}`;
+/** Public badge label — uses opaque DET- id (not sequential badgeNumber). */
+export function formatDetectiveBadge(publicIdOrBadge: string | number): string {
+  if (typeof publicIdOrBadge === "string") {
+    return formatPublicDetectiveId(publicIdOrBadge);
+  }
+  // Legacy numeric path — do not use for public UI
+  return `INTERNAL-${String(publicIdOrBadge).padStart(4, "0")}`;
 }

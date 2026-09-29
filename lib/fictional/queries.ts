@@ -126,7 +126,7 @@ export async function getUserInvestigation(
   fictionalCaseId: string,
 ) {
   if (!userId) return null;
-  return getPrisma().investigation.findFirst({
+  const row = await getPrisma().investigation.findFirst({
     where: {
       userId,
       fictionalCaseId,
@@ -138,6 +138,15 @@ export async function getUserInvestigation(
       submission: true,
     },
   });
+  if (!row) return null;
+  const { openPrivateText } = await import("@/lib/crypto/aead");
+  return {
+    ...row,
+    notes: row.notes.map((n) => ({
+      ...n,
+      body: openPrivateText(n.body),
+    })),
+  };
 }
 
 /**

@@ -3,7 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { authConfig } from "@/auth.config";
 import { getPrisma } from "@/lib/db";
-import { verifyPassword } from "@/lib/password";
+import {
+  hashPassword,
+  needsRehash,
+  verifyPassword,
+} from "@/lib/password";
 
 const credentialsSchema = z.object({
   username: z.string().min(3).max(32),
@@ -28,7 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const username = parsed.data.username.trim().toLowerCase();
         try {
-          const user = await getPrisma().user.findUnique({ where: { username } });
+          const user = await getPrisma().user.findUnique({
+            where: { username },
+          });
           if (!user) return null;
           if (user.suspendedAt) return null;
 
@@ -38,13 +44,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
           if (!valid) return null;
 
+          if (needsRehash(user.passwordHash)) {
+            const nextHash = await hashPassword(parsed.data.password);
+            await getPrisma().user.update({
+              where: { id: user.id },
+              data: { passwordHash: nextHash },
+            });
+          }
+
           return {
             id: user.id,
             name: user.displayName ?? user.username,
-            email: user.email,
             username: user.username,
             displayName: user.displayName,
             emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
+            sessionVersion: user.sessionVersion,
           };
         } catch (error) {
           console.error("[auth] authorize failed", error);
@@ -53,4 +67,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.username = (user as { username?: string }).username;
+        token.displayName = (user as { displayName?: string | null }).displayName;
+        token.emailVerifiedAt = (
+          user as { emailVerifiedAt?: string | null }
+        ).emailVerifiedAt;
+        token.sessionVersion =
+          (user as { sessionVersion?: number }).sessionVersion ?? 0;
+        delete (token as { email?: unknown }).email;
+      }
+
+      if (token.sub && typeof token.sessionVersion === "number") {
+        try {
+          const row = await getPrisma().user.findUnique({
+            where: { id: token.sub },
+            select: { sessionVersion: true, suspendedAt: true },
+          });
+          if (!row || row.suspendedAt) {
+            return {};
+          }
+          if (row.sessionVersion !== token.sessionVersion) {
+            return {};
+          }
+        } catch {
+          // keep token if DB briefly unavailable
+        }
+      }
+
+      return token;
+    },
+  },
 });

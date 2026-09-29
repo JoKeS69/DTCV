@@ -5,8 +5,10 @@
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import bcrypt from "bcryptjs";
 import { PrismaClient } from "../lib/generated/prisma/client";
+import { sealEmail } from "../lib/crypto/email";
+import { generatePublicDetectiveId } from "../lib/identity/public-id";
+import { hashPassword } from "../lib/password";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -20,8 +22,10 @@ const prisma = new PrismaClient({
 async function main() {
   console.log("Seeding DETECTIVE (fictional demo only)…");
 
-  const passwordHash = await bcrypt.hash("detective-demo-2026", 12);
-  const adminPasswordHash = await bcrypt.hash("detective-admin-2026", 12);
+  const passwordHash = await hashPassword("detective-demo-2026");
+  const adminPasswordHash = await hashPassword("detective-admin-2026");
+  const demoSealed = sealEmail("demo@detective.local");
+  const adminSealed = sealEmail("admin@detective.local");
 
   const demoUser = await prisma.user.upsert({
     where: { username: "demo_detective" },
@@ -29,14 +33,22 @@ async function main() {
       detectiveXP: 120,
       detectiveRank: "JUNIOR",
       bio: "Seeded demo account for local development.",
+      passwordHash,
+      email: null,
+      emailEncrypted: demoSealed.emailEncrypted,
+      emailBlindIndex: demoSealed.emailBlindIndex,
+      emailVerifiedAt: new Date(),
     },
     create: {
       username: "demo_detective",
-      email: "demo@detective.local",
+      email: null,
+      emailEncrypted: demoSealed.emailEncrypted,
+      emailBlindIndex: demoSealed.emailBlindIndex,
       displayName: "Demo Detective",
       passwordHash,
       emailVerifiedAt: new Date(),
       role: "USER",
+      publicId: generatePublicDetectiveId(),
       detectiveXP: 120,
       detectiveRank: "JUNIOR",
       bio: "Seeded demo account for local development.",
@@ -49,17 +61,23 @@ async function main() {
     update: {
       role: "ADMIN",
       passwordHash: adminPasswordHash,
+      email: null,
+      emailEncrypted: adminSealed.emailEncrypted,
+      emailBlindIndex: adminSealed.emailBlindIndex,
       emailVerifiedAt: new Date(),
       suspendedAt: null,
       displayName: "Ops Admin",
     },
     create: {
       username: "admin_ops",
-      email: "admin@detective.local",
+      email: null,
+      emailEncrypted: adminSealed.emailEncrypted,
+      emailBlindIndex: adminSealed.emailBlindIndex,
       displayName: "Ops Admin",
       passwordHash: adminPasswordHash,
       emailVerifiedAt: new Date(),
       role: "ADMIN",
+      publicId: generatePublicDetectiveId(),
       detectiveXP: 0,
       detectiveRank: "NOVICE",
       bio: "Seeded ADMIN account for command deck testing.",
