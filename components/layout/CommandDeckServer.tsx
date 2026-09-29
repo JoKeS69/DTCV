@@ -26,17 +26,17 @@ export async function CommandDeckServer({
       });
       if (row) {
         user = {
-          // Mockup: USER block shows DETECTIVE / ID / RANK: NOVICE
+          // Mockup USER block: DETECTIVE / ID / RANK / STATUS
           displayName: "DETECTIVE",
-          badgeNumber: row.badgeNumber,
-          rankLabel: row.detectiveRank,
+          badgeNumber: row.badgeNumber ?? 8421,
+          rankLabel: row.detectiveRank || "NOVICE",
           status: row.suspendedAt ? "SUSPENDED" : "ACTIVE",
         };
       }
     } catch {
       user = {
         displayName: "DETECTIVE",
-        badgeNumber: null,
+        badgeNumber: 8421,
         rankLabel: "NOVICE",
         status: "ACTIVE",
       };

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "DETECTIVE — Global investigation platform";
+export const alt = "CASE//NET — Global investigation platform";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -40,7 +40,7 @@ export default function TwitterImage() {
               letterSpacing: 12,
             }}
           >
-            DETECTIVE
+            CASE//NET
           </div>
           <div
             style={{

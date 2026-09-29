@@ -1,9 +1,9 @@
 import { getSiteUrl } from "@/lib/env";
 
-export const SITE_NAME = "DETECTIVE";
+export const SITE_NAME = "CASE//NET";
 export const SITE_TAGLINE = "Global investigation platform";
 export const DEFAULT_DESCRIPTION =
-  "DETECTIVE — sourced real-case files, community discussion, and fictional training investigations. No guilt declarations. Citations required.";
+  "CASE//NET — sourced real-case files, community discussion, and fictional training investigations. No guilt declarations. Citations required.";
 
 /** Absolute public URL for a path (leading slash optional). */
 export function absoluteUrl(path = "/"): string {

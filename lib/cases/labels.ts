@@ -20,9 +20,9 @@ export function statusClass(status: CaseStatus): string {
     case "COLD":
       return "text-amber";
     case "UNSOLVED":
-      return "text-text-muted";
+      return "text-unsolved";
     case "CLOSED":
-      return "text-text";
+      return "text-closed";
     default:
       return "text-text-muted";
   }

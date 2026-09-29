@@ -1,0 +1,36 @@
+export function FilterControls({
+  type,
+  status,
+  sort,
+}: {
+  type: string;
+  status: string;
+  sort: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <select name="type" defaultValue={type} className="hud-select">
+        <option value="ALL">All Types</option>
+        <option value="MISSING">Missing</option>
+        <option value="HOMICIDE">Homicide</option>
+        <option value="DISAPPEARANCE">Disappearance</option>
+        <option value="UNKNOWN">Unknown</option>
+        <option value="ACCIDENT">Accident</option>
+        <option value="THEFT">Theft</option>
+      </select>
+      <select name="status" defaultValue={status} className="hud-select">
+        <option value="ALL">All Statuses</option>
+        <option value="OPEN">Open</option>
+        <option value="COLD">Cold</option>
+        <option value="UNSOLVED">Unsolved</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+      <select name="sort" defaultValue={sort} className="hud-select">
+        <option value="updated">Sort: Updated</option>
+        <option value="recent">Sort: Recent</option>
+        <option value="code">Sort: Case ID</option>
+        <option value="title">Sort: Title</option>
+      </select>
+    </div>
+  );
+}

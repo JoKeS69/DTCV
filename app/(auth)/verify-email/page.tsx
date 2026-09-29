@@ -18,7 +18,7 @@ export default async function VerifyEmailPage({
   return (
     <div className="w-full max-w-[360px] text-center">
       <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text">
-        DETECTIVE
+        CASE//NET
       </h1>
       <p className="mt-6 border border-border px-4 py-4 font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">
         {result.ok ? result.message : result.error}

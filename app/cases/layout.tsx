@@ -1,22 +1,13 @@
 import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
-import { getPrisma } from "@/lib/db";
+import { HUD_STATS } from "@/lib/cases/hud-data";
 
-export default async function CasesLayout({
+export default function CasesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  let activeCaseFiles: number | undefined;
-  try {
-    activeCaseFiles = await getPrisma().case.count({
-      where: { published: true },
-    });
-  } catch {
-    activeCaseFiles = undefined;
-  }
-
   return (
-    <CommandDeckServer activeCaseFiles={activeCaseFiles}>
+    <CommandDeckServer activeCaseFiles={HUD_STATS.total}>
       {children}
     </CommandDeckServer>
   );

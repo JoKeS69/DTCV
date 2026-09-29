@@ -2,7 +2,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
-/** Shared DETECTIVE HUD chrome — design-refs dashboard/mobile density. */
+/** Shared CASE//NET HUD chrome — design-refs dashboard/mobile density. */
 export function AppShell({
   children,
   activeCaseFiles,

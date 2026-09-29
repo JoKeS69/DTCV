@@ -18,7 +18,7 @@ export default async function ResetPasswordPage({
     <div className="w-full">
       <div className="mb-8 text-center">
         <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text">
-          DETECTIVE
+          CASE//NET
         </h1>
         <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.32em] text-text-muted">
           {token ? "Set new password" : "Password reset"}

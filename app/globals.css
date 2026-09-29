@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
-/* DETECTIVE — HUD theme (mockup-aligned) */
+/* CASE//NET — command deck HUD (mockup-aligned) */
 @theme inline {
   --color-bg: #050505;
   --color-surface: #0a0a0a;
-  --color-surface-elevated: #111111;
-  --color-border: #2a2a2a;
-  --color-border-strong: #3a3a3a;
-  --color-text: #e8e8e8;
-  --color-text-muted: #9a9a9a;
-  --color-text-dim: #5c5c5c;
+  --color-surface-elevated: #14181c;
+  --color-border: #2a2e33;
+  --color-border-strong: #3a4048;
+  --color-text: #e6e8ea;
+  --color-text-muted: #9aa3ad;
+  --color-text-dim: #5c646e;
   --color-cta: #8a99ad;
   --color-cta-text: #08090a;
-  --color-online: #22c55e;
-  --color-amber: #f59e0b;
+  --color-online: #4ade80;
+  --color-amber: #f5a524;
+  --color-unsolved: #7d8fa3;
+  --color-closed: #c4c8cc;
   --color-danger: #b33a3a;
+  --color-selected: #272d33;
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
@@ -22,17 +25,20 @@
 :root {
   --bg: #050505;
   --surface: #0a0a0a;
-  --surface-elevated: #111111;
-  --border: #2a2a2a;
-  --border-strong: #3a3a3a;
-  --text: #e8e8e8;
-  --text-muted: #9a9a9a;
-  --text-dim: #5c5c5c;
+  --surface-elevated: #14181c;
+  --border: #2a2e33;
+  --border-strong: #3a4048;
+  --text: #e6e8ea;
+  --text-muted: #9aa3ad;
+  --text-dim: #5c646e;
   --cta: #8a99ad;
   --cta-text: #08090a;
-  --online: #22c55e;
-  --amber: #f59e0b;
+  --online: #4ade80;
+  --amber: #f5a524;
+  --unsolved: #7d8fa3;
+  --closed: #c4c8cc;
   --danger: #b33a3a;
+  --selected: #272d33;
 }
 
 * {
@@ -52,7 +58,7 @@ body {
   color: var(--text);
   font-family: var(--font-mono), ui-monospace, monospace;
   -webkit-font-smoothing: antialiased;
-  line-height: 1.45;
+  line-height: 1.4;
   overflow-x: clip;
 }
 
@@ -62,7 +68,7 @@ a {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--cta) 50%, transparent);
+  background: color-mix(in srgb, var(--cta) 45%, transparent);
   color: #fff;
 }
 
@@ -71,11 +77,10 @@ a {
   outline-offset: 2px;
 }
 
-/* Motions */
-@keyframes detective-fade-up {
+@keyframes casenet-fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -83,17 +88,28 @@ a {
   }
 }
 
-@keyframes detective-pulse {
+@keyframes casenet-pulse {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.55;
+    opacity: 0.45;
   }
 }
 
-@keyframes detective-grid-drift {
+@keyframes casenet-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes casenet-grid-drift {
   from {
     background-position: 0 0;
   }
@@ -103,22 +119,25 @@ a {
 }
 
 .motion-fade-up {
-  animation: detective-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: casenet-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .motion-fade-up-delay-1 {
-  animation-delay: 0.1s;
+  animation-delay: 0.08s;
 }
 .motion-fade-up-delay-2 {
-  animation-delay: 0.2s;
+  animation-delay: 0.16s;
 }
 .motion-fade-up-delay-3 {
-  animation-delay: 0.3s;
+  animation-delay: 0.24s;
 }
 .motion-pulse-online {
-  animation: detective-pulse 2.2s ease-in-out infinite;
+  animation: casenet-pulse 2.2s ease-in-out infinite;
+}
+.motion-cursor-blink {
+  animation: casenet-cursor 1.1s step-end infinite;
 }
 .motion-grid-drift {
-  animation: detective-grid-drift 60s linear infinite;
+  animation: casenet-grid-drift 60s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,17 +146,46 @@ a {
   .motion-fade-up-delay-2,
   .motion-fade-up-delay-3,
   .motion-pulse-online,
+  .motion-cursor-blink,
   .motion-grid-drift {
     animation: none !important;
   }
 }
 
-/* Public hero map */
+/* Status badge — thin bordered rect matching mockup */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.status-OPEN {
+  color: var(--online);
+}
+.status-COLD {
+  color: var(--amber);
+}
+.status-UNSOLVED {
+  color: var(--unsolved);
+}
+.status-CLOSED {
+  color: var(--closed);
+}
+
+/* Public / auth chrome */
 .hud-map {
   background-color: #050505;
   background-image:
-    linear-gradient(color-mix(in srgb, #2a2a2a 70%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, #2a2a2a 70%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, #2a2e33 70%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, #2a2e33 70%, transparent) 1px, transparent 1px),
     radial-gradient(ellipse 70% 50% at 50% 45%, #121212 0%, transparent 70%);
   background-size:
     40px 40px,
@@ -155,13 +203,12 @@ a {
     radial-gradient(ellipse at center, transparent 35%, #050505 100%);
 }
 
-/* Auth map / chrome */
 .auth-map-grid {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 48px 48px;
-  animation: detective-grid-drift 80s linear infinite;
+  animation: casenet-grid-drift 80s linear infinite;
 }
 
 .auth-vignette {
@@ -174,7 +221,7 @@ a {
   position: absolute;
   width: 18px;
   height: 18px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #3a4048;
 }
 .hud-corner-tl {
   top: 12px;
@@ -312,4 +359,64 @@ a {
   flex: 1;
   height: 1px;
   background: #333;
+}
+
+/* HUD form controls */
+.hud-select {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%235c646e' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E")
+    no-repeat right 0.45rem center;
+  background-color: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 1.4rem 0.35rem 0.5rem;
+  min-height: 28px;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.hud-select:hover {
+  border-color: var(--border-strong);
+}
+
+.hud-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  padding: 0.4rem 2rem 0.4rem 0.6rem;
+  min-height: 30px;
+  border-radius: 0;
+  outline: none;
+}
+
+.hud-input::placeholder {
+  color: var(--text-dim);
+}
+
+.hud-input:focus {
+  border-color: var(--border-strong);
+}
+
+.hud-panel {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 0;
+}
+
+.hud-panel-title {
+  border-bottom: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }

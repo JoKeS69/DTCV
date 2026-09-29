@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CommandDeckHeader } from "@/components/layout/CommandDeckHeader";
 import {
   CommandDeckSidebar,
   type DeckUser,
 } from "@/components/layout/CommandDeckSidebar";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { MobileHeader } from "@/components/layout/MobileHeader";
+import { HUD_STATS } from "@/lib/cases/hud-data";
 
 export function CommandDeckShell({
   children,
@@ -18,14 +20,13 @@ export function CommandDeckShell({
   activeCaseFiles?: number;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const countLabel =
-    typeof activeCaseFiles === "number"
-      ? `${activeCaseFiles.toLocaleString("en-US")} ACTIVE CASE FILES`
-      : "SYSTEM ONLINE";
+  const count = activeCaseFiles ?? HUD_STATS.total;
+  const countLabel = `${count.toLocaleString("en-US")} ACTIVE CASE FILES`;
 
   return (
     <div className="flex h-svh flex-col overflow-hidden bg-bg">
-      <CommandDeckHeader
+      <CommandDeckHeader />
+      <MobileHeader
         menuOpen={menuOpen}
         onMenu={() => setMenuOpen((v) => !v)}
       />
@@ -35,32 +36,28 @@ export function CommandDeckShell({
           mobileOpen={menuOpen}
           onNavigate={() => setMenuOpen(false)}
         />
-        {menuOpen ? (
-          <button
-            type="button"
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
-            aria-label="Close menu overlay"
-            onClick={() => setMenuOpen(false)}
-          />
-        ) : null}
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto pb-16 md:pb-0">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-[4.5rem] md:pb-0">
             {children}
           </div>
-          <footer className="hidden shrink-0 items-center justify-between border-t border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-dim md:flex">
+          <footer className="hidden shrink-0 items-center justify-between border-t border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] md:flex">
             <p className="text-online">
-              <span className="mr-2 inline-block size-1.5 rounded-full bg-online align-middle motion-pulse-online" />
+              <span className="text-text-dim">&gt; </span>
               SYSTEM MESSAGE: DATABASE CONNECTION SECURE // {countLabel}
             </p>
-            <p className="text-text-muted">_</p>
+            <p className="text-text-muted">
+              &gt; <span className="motion-cursor-blink">_</span>
+            </p>
           </footer>
-          <div className="border-t border-border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-online md:hidden">
-            <span className="mr-2 inline-block size-1.5 rounded-full bg-online align-middle motion-pulse-online" />
+          <div className="border-t border-border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-online md:hidden">
+            <span className="mr-1.5 inline-block size-1.5 rounded-full bg-online align-middle motion-pulse-online" />
             DATABASE CONNECTION SECURE // {countLabel}
           </div>
         </div>
       </div>
-      <MobileBottomNav />
+      <Suspense fallback={null}>
+        <BottomNavigation />
+      </Suspense>
     </div>
   );
 }

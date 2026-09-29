@@ -1,4 +1,4 @@
-# Design lock — Phase 14 (FINAL)
+# Design lock — CASE//NET fidelity
 
 ## Sources (pixel/layout authority)
 
@@ -7,16 +7,17 @@
 | Desktop | `/cursor/stores/self/media/desktop.jpeg` → `design-refs/desktop-final.jpeg` |
 | Mobile | `/cursor/stores/self/media/mobileversion.jpeg` → `design-refs/mobile-final.jpeg` |
 
-Brand in product UI: **DETECTIVE** (mockup text CASE//NET replaced).
+Brand in product UI: **CASE//NET** | GLOBAL INVESTIGATION PLATFORM (exact mockup text).
 
 ## Implemented
 
-- Command deck shell: header `DETECTIVE | GLOBAL INVESTIGATION PLATFORM`, SYSTEM: ONLINE, clock
-- Left **Main terminal** sidebar (01–07) + USER block + manifesto
-- Cases HUD: Case database + detail + Global cases + Recent activity + Discussion
-- Mobile: stacked sections + bottom nav (Cases / Search / Evidence / Discussions / Profile)
-- `/` redirects into the command deck (`/cases`) — mockup homepage IS the HUD
+- Command deck shell: header `CASE//NET | GLOBAL INVESTIGATION PLATFORM`, SYSTEM: ONLINE, clock
+- Left sidebar 01–07 + USER (DETECTIVE / ID / RANK / STATUS) + manifesto
+- Cases HUD: Case database table (sample rows) + detail + Global cases map/stats + Recent activity + Discussion
+- Mobile: hamburger header, stacked sections, bottom nav (Cases / Search / Evidence / Discussions / Profile)
+- Bottom system bar: DATABASE CONNECTION SECURE // 2,481 ACTIVE CASE FILES
+- `/` → `/cases` (homepage IS the command deck)
 
 ## Status
 
-Final mockups **present**. MISSING markers removed.
+Final mockups present. Fidelity branch recreates CASE//NET chrome — no DETECTIVE rename on HUD surfaces.

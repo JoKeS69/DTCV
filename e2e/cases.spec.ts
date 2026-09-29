@@ -2,25 +2,25 @@ import { expect, test } from "@playwright/test";
 import { loginAs, sql } from "./helpers";
 
 test.describe("Cases", () => {
-  test("browses case database and opens a case", async ({ page }) => {
+  test("browses CASE//NET HUD and selects a case", async ({ page }) => {
     await page.goto("/cases");
-    await expect(
-      page.getByRole("heading", { name: /global case files/i }),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/CASE DATABASE|> CASES/i).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText("CASE//NET").first()).toBeVisible();
 
-    const { rows } = await sql<{ slug: string; caseCode: string }>(
-      `SELECT slug, "caseCode" FROM "Case" WHERE published = true ORDER BY "updatedAt" DESC LIMIT 1`,
-    );
-    expect(rows[0]).toBeTruthy();
-    const published = rows[0]!;
+    await page.getByRole("link", { name: "25-00217" }).first().click();
+    await expect(page).toHaveURL(/select=25-00217/);
+    await expect(page.getByText(/Disappearance - Yuki Tanaka/i).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /view full case/i })).toBeVisible();
+  });
 
-    await page.getByRole("link", { name: published.caseCode }).first().click();
-    await expect(page).toHaveURL(new RegExp(`select=${published.slug}`));
-    await page.getByRole("link", { name: /view full case/i }).click();
-    await expect(page).toHaveURL(new RegExp(`/cases/${published.slug}`));
-    await expect(
-      page.getByText(new RegExp(published.caseCode, "i")).first(),
-    ).toBeVisible();
+  test("filters HUD case table by status", async ({ page }) => {
+    await page.goto("/cases");
+    await page.locator('select[name="status"]').selectOption("COLD");
+    await expect(page).toHaveURL(/status=COLD/);
+    await expect(page.getByText("23-10441").first()).toBeVisible();
+    await expect(page.getByText("25-00217")).toHaveCount(0);
   });
 
   test("follows a published case when signed in", async ({ page }) => {
