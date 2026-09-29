@@ -9,12 +9,14 @@ import {
   getSolutionReveal,
   getUserInvestigation,
 } from "@/lib/fictional/queries";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  return { title: `Result · ${slug}` };
+  // Private scorecard — never index theory results.
+  return privatePageMetadata(`Result · ${slug}`);
 }
 
 export default async function FictionalResultPage({ params }: Props) {

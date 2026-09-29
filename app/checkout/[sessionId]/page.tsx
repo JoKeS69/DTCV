@@ -8,8 +8,9 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { formatMoney, getPaymentsMode } from "@/lib/payments/config";
 import { paymentsStatusSummary } from "@/lib/payments";
 import { getPrisma } from "@/lib/db";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = { title: "Checkout" };
+export const metadata: Metadata = privatePageMetadata("Checkout");
 
 type Props = { params: Promise<{ sessionId: string }> };
 

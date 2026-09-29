@@ -3,8 +3,14 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { UpgradeButton } from "@/components/billing/BillingActions";
 import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = { title: "Premium challenges" };
+export const metadata: Metadata = buildPageMetadata({
+  title: "Premium challenges",
+  description:
+    "Investigator Pro challenge bay — timed fictional drills and advanced training lanes.",
+  path: "/fictional/challenges",
+});
 
 export default async function PremiumChallengesPage() {
   const session = await auth();

@@ -13,14 +13,26 @@ import {
 } from "@/lib/community/queries";
 import { getPrisma } from "@/lib/db";
 import { rankLabel } from "@/lib/progression/ranks";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const discussion = await getDiscussionById(id);
-  if (!discussion) return { title: "Discussion not found" };
-  return { title: `${discussion.title} · Discussion` };
+  if (!discussion || !discussion.case.published) {
+    return buildPageMetadata({
+      title: "Discussion not found",
+      path: `/discussions/${id}`,
+      noIndex: true,
+    });
+  }
+  // Title + case code only — never dump comment bodies or emails into SEO.
+  return buildPageMetadata({
+    title: `${discussion.title} · Discussion`,
+    description: `Community discussion on case ${discussion.case.caseCode}. User theories are labeled; not evidence of guilt.`,
+    path: `/discussions/${discussion.id}`,
+  });
 }
 
 export default async function DiscussionDetailPage({ params }: Props) {

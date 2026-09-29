@@ -10,10 +10,9 @@ import { InvestigationHistory } from "@/components/progression/InvestigationHist
 import { StatsHud } from "@/components/progression/StatsHud";
 import { getDetectiveDossier } from "@/lib/progression/queries";
 import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Profile",
-};
+export const metadata: Metadata = privatePageMetadata("Profile");
 
 export default async function ProfilePage() {
   const session = await auth();

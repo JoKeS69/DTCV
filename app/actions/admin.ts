@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdminAction } from "@/lib/admin/auth";
@@ -38,6 +38,8 @@ function revalidateAdmin(...extra: string[]) {
   revalidatePath("/admin/subscriptions");
   revalidatePath("/cases");
   revalidatePath("/fictional");
+  revalidatePath("/sitemap.xml");
+  revalidateTag("cases-public", "max");
   for (const path of extra) revalidatePath(path);
 }
 

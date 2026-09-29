@@ -8,14 +8,27 @@ import {
   fictionalRequiresPremium,
   getUserEntitlements,
 } from "@/lib/payments/entitlements";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Fictional ops",
-};
+  description:
+    "FICTIONAL training cases for detective progression. Invented scenarios only — never real crimes.",
+  path: "/fictional",
+});
 
-export default async function FictionalListPage() {
+type SearchParams = Promise<{ page?: string }>;
+
+export default async function FictionalListPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page ?? "1") || 1);
   const session = await auth();
-  const cases = await listPublishedFictionalCases();
+  const result = await listPublishedFictionalCases({ page });
+  const cases = result.items;
   const entitlements = session?.user?.id
     ? await getUserEntitlements(session.user.id)
     : null;
@@ -65,6 +78,8 @@ export default async function FictionalListPage() {
             Pricing
           </Link>
           {entitlements?.isPremium ? " · PRO CLEARANCE" : " · FREE CLEARANCE"}
+          {" · "}
+          {result.total} files · page {result.page}/{result.totalPages}
         </p>
       </div>
 
@@ -115,6 +130,32 @@ export default async function FictionalListPage() {
           );
         })}
       </ul>
+
+      <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.14em]">
+        {page > 1 ? (
+          <Link
+            href={`/fictional?page=${page - 1}`}
+            className="text-text-muted hover:text-text"
+          >
+            ← Prev
+          </Link>
+        ) : (
+          <span className="text-text-dim">← Prev</span>
+        )}
+        <span className="text-text-dim">
+          Page {result.page} / {result.totalPages}
+        </span>
+        {page < result.totalPages ? (
+          <Link
+            href={`/fictional?page=${page + 1}`}
+            className="text-text-muted hover:text-text"
+          >
+            Next →
+          </Link>
+        ) : (
+          <span className="text-text-dim">Next →</span>
+        )}
+      </div>
 
       {cases.length === 0 ? (
         <p className="mt-6 font-mono text-[11px] text-text-dim">

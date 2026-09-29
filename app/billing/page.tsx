@@ -10,8 +10,9 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { paymentsStatusSummary } from "@/lib/payments";
 import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = { title: "Billing" };
+export const metadata: Metadata = privatePageMetadata("Billing");
 
 export default async function BillingPage({
   searchParams,

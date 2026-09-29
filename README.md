@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–10** (foundation through Visa payments).
+includes **Phase 0–11** (foundation through SEO + performance).
 
 ## Stack
 
@@ -44,6 +44,16 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Import the GitHub repo in Vercel (Next.js preset).
 2. Set `DATABASE_URL`, auth, and `PAYMENTS_*` / `VISA_GATEWAY_*` vars in Environment Variables.
 3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+
+## SEO + performance (Phase 11)
+
+- Public metadata: title, description, canonical, Open Graph, Twitter cards
+- `app/sitemap.ts` + `app/robots.ts` (blocks `/admin`, `/billing`, `/checkout`, `/profile`, `/api`)
+- JSON-LD on home + real case detail (no private user fields)
+- Default OG art via `app/opengraph-image.tsx`
+- Case list cached (`unstable_cache`, 60s) with `cases-public` tag invalidation
+- Case + fictional listings paginated (`CASE_PAGE_SIZE=20`, `FICTIONAL_PAGE_SIZE=12`)
+- Fonts: `display: "swap"`, preload; route `loading.tsx` for cases/fictional
 
 ## Payments — Visa (Phase 10)
 

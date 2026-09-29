@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { requireAdmin } from "@/lib/admin/auth";
+import { privatePageMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = privatePageMetadata("Admin");
 
 export default async function AdminLayout({
   children,

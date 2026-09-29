@@ -5,11 +5,20 @@ import { CaseFilters } from "@/components/cases/CaseFilters";
 import { CasePreviewPanel } from "@/components/cases/CasePreviewPanel";
 import { CaseStatusText } from "@/components/cases/CaseStatusText";
 import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
-import { getCaseBySlug, listPublishedCases } from "@/lib/cases/queries";
+import {
+  getCaseBySlugCached,
+  listPublishedCasesCached,
+} from "@/lib/cases/public-cache";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Case database",
-};
+  description:
+    "Browse published DETECTIVE case files with safety labels, sources, and filters. No guilt declarations.",
+  path: "/cases",
+});
+
+export const revalidate = 60;
 
 type SearchParams = Promise<{
   q?: string;
@@ -41,7 +50,7 @@ export default async function CasesPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
-  const result = await listPublishedCases({
+  const result = await listPublishedCasesCached({
     q: sp.q,
     type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
     status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
@@ -56,7 +65,9 @@ export default async function CasesPage({
     selectedSlug != null
       ? result.items.find((item) => item.slug === selectedSlug) ?? null
       : null;
-  const selectedFull = selectedSlug ? await getCaseBySlug(selectedSlug) : null;
+  const selectedFull = selectedSlug
+    ? await getCaseBySlugCached(selectedSlug)
+    : null;
 
   const prevQuery = buildQuery(sp, page - 1);
   const nextQuery = buildQuery(sp, page + 1);

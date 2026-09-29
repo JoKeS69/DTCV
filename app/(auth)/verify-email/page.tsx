@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { verifyEmailAction } from "@/app/actions/auth";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Verify email",
-};
+export const metadata: Metadata = privatePageMetadata("Verify email");
 
 export default async function VerifyEmailPage({
   searchParams,

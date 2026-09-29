@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import { getSiteUrl } from "@/lib/env";
+import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
 import "./globals.css";
 
 const sans = IBM_Plex_Sans({
@@ -8,24 +9,50 @@ const sans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   display: "swap",
+  preload: true,
 });
 
 const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "DETECTIVE",
-    template: "%s · DETECTIVE",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Global detective investigation platform — real cases, community, and fictional investigations.",
-  robots: { index: false, follow: false },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  // Public surfaces opt into indexing via page metadata; private stay noindex.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050607",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

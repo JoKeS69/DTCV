@@ -3,10 +3,9 @@ import {
   ConfirmResetForm,
   RequestResetForm,
 } from "@/components/auth/ResetPasswordForm";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Reset password",
-};
+export const metadata: Metadata = privatePageMetadata("Reset password");
 
 export default async function ResetPasswordPage({
   searchParams,

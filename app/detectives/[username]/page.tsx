@@ -6,16 +6,26 @@ import { DetectiveIdentityCard } from "@/components/progression/DetectiveIdentit
 import { InvestigationHistory } from "@/components/progression/InvestigationHistory";
 import { StatsHud } from "@/components/progression/StatsHud";
 import { getDetectiveDossier } from "@/lib/progression/queries";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type Props = { params: Promise<{ username: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
   const dossier = await getDetectiveDossier(username);
-  if (!dossier) return { title: "Detective not found" };
-  return {
+  if (!dossier) {
+    return buildPageMetadata({
+      title: "Detective not found",
+      path: `/detectives/${username}`,
+      noIndex: true,
+    });
+  }
+  // Public dossier only — never include email or private account fields.
+  return buildPageMetadata({
     title: `${dossier.displayName ?? dossier.username} · ${dossier.rankLabel}`,
-  };
+    description: `Public DETECTIVE dossier for @${dossier.username}. Rank ${dossier.rankLabel}. Fictional-ops XP only.`,
+    path: `/detectives/${dossier.username}`,
+  });
 }
 
 export default async function PublicDetectiveProfilePage({ params }: Props) {

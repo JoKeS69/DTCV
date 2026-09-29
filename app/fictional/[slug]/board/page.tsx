@@ -13,14 +13,15 @@ import {
   fictionalRequiresPremium,
   getUserEntitlements,
 } from "@/lib/payments/entitlements";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const caseFile = await getFictionalCaseBySlug(slug);
-  if (!caseFile) return { title: "Board not found" };
-  return { title: `Board · ${caseFile.caseCode}` };
+  if (!caseFile) return privatePageMetadata("Board not found");
+  return privatePageMetadata(`Board · ${caseFile.caseCode}`);
 }
 
 export default async function FictionalBoardPage({ params }: Props) {

@@ -15,14 +15,28 @@ import {
   fictionalRequiresPremium,
   getUserEntitlements,
 } from "@/lib/payments/entitlements";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { metaDescription } from "@/lib/seo/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const caseFile = await getFictionalCaseBySlug(slug);
-  if (!caseFile) return { title: "Fictional case not found" };
-  return { title: `${caseFile.caseCode} · ${caseFile.title}` };
+  if (!caseFile) {
+    return buildPageMetadata({
+      title: "Fictional case not found",
+      path: `/fictional/${slug}`,
+      noIndex: true,
+    });
+  }
+  return buildPageMetadata({
+    title: `${caseFile.caseCode} · ${caseFile.title}`,
+    description: metaDescription(
+      `[FICTIONAL] ${caseFile.synopsis} Difficulty ${caseFile.difficulty}.`,
+    ),
+    path: `/fictional/${caseFile.slug}`,
+  });
 }
 
 export default async function FictionalCasePage({ params }: Props) {

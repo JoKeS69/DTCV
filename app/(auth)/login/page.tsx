@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Login",
-};
+export const metadata: Metadata = privatePageMetadata("Login");
 
 export default async function LoginPage({
   searchParams,

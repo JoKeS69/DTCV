@@ -11,10 +11,14 @@ import {
 } from "@/lib/payments/config";
 import { paymentsStatusSummary } from "@/lib/payments";
 import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Pricing",
-};
+  description:
+    "DETECTIVE clearance tiers — Free core access and Investigator Pro via Visa. Amounts configured by environment.",
+  path: "/pricing",
+});
 
 export default async function PricingPage({
   searchParams,

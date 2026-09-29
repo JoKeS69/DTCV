@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getFictionalLeaderboard } from "@/lib/progression/queries";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Fictional rankings",
-};
+  description:
+    "DETECTIVE fictional-ops leaderboard by training XP only. Real-case discussion does not affect rank.",
+  path: "/fictional/rankings",
+});
 
 export default async function FictionalRankingsPage() {
   const board = await getFictionalLeaderboard(15);

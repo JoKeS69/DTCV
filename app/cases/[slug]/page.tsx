@@ -1,25 +1,43 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { auth } from "@/auth";
 import { CaseEngagement } from "@/components/cases/CaseEngagement";
 import { CaseStatusText } from "@/components/cases/CaseStatusText";
 import { ContentLabelBadge } from "@/components/cases/ContentLabelBadge";
 import { DiscussionPanel } from "@/components/community/DiscussionPanel";
-import { getCaseBySlug, getCaseEngagement } from "@/lib/cases/queries";
+import { getCaseEngagement } from "@/lib/cases/queries";
+import { getCaseBySlugCached } from "@/lib/cases/public-cache";
+import { JsonLd, realCaseJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { metaDescription } from "@/lib/seo/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const caseFile = await getCaseBySlug(slug);
-  if (!caseFile) return { title: "Case not found" };
-  return { title: `${caseFile.caseCode} · ${caseFile.title}` };
+  const caseFile = await getCaseBySlugCached(slug);
+  if (!caseFile) {
+    return buildPageMetadata({
+      title: "Case not found",
+      path: `/cases/${slug}`,
+      noIndex: true,
+    });
+  }
+  return buildPageMetadata({
+    title: `${caseFile.caseCode} · ${caseFile.title}`,
+    description: metaDescription(
+      `${caseFile.summary} Label: ${caseFile.contentLabel}. Status: ${caseFile.status}.`,
+    ),
+    path: `/cases/${caseFile.slug}`,
+    type: "article",
+  });
 }
 
 export default async function CaseDetailPage({ params }: Props) {
   const { slug } = await params;
-  const caseFile = await getCaseBySlug(slug);
+  const caseFile = await getCaseBySlugCached(slug);
   if (!caseFile) notFound();
 
   const session = await auth();
@@ -27,6 +45,23 @@ export default async function CaseDetailPage({ params }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-3 py-6 md:px-4">
+      <JsonLd
+        data={realCaseJsonLd({
+          caseCode: caseFile.caseCode,
+          title: caseFile.title,
+          summary: caseFile.summary,
+          slug: caseFile.slug,
+          location: caseFile.location,
+          year: caseFile.year,
+          status: caseFile.status,
+          contentLabel: caseFile.contentLabel,
+          updatedAt: caseFile.updatedAt,
+          sources: caseFile.sources.map((s) => ({
+            title: s.title,
+            url: s.url,
+          })),
+        })}
+      />
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href="/cases" className="hover:text-text">
           ← Case database
@@ -201,12 +236,20 @@ export default async function CaseDetailPage({ params }: Props) {
       </Section>
 
       <Section title="Discussion">
-        <DiscussionPanel
-          caseId={caseFile.id}
-          caseSlug={caseFile.slug}
-          discussions={caseFile.discussions}
-          signedIn={!!session?.user}
-        />
+        <Suspense
+          fallback={
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-dim">
+              Loading discussion…
+            </p>
+          }
+        >
+          <DiscussionPanel
+            caseId={caseFile.id}
+            caseSlug={caseFile.slug}
+            discussions={caseFile.discussions}
+            signedIn={!!session?.user}
+          />
+        </Suspense>
       </Section>
 
       <Section title="Updates">

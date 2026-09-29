@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Sign up",
-};
+export const metadata: Metadata = privatePageMetadata("Sign up");
 
 export default function RegisterPage() {
   return (
