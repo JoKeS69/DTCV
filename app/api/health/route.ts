@@ -8,6 +8,6 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     service: "detective",
-    phase: 12,
+    phase: 14,
   });
 }

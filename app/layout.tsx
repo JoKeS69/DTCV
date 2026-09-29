@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { ObservabilityBoot } from "@/components/observability/ObservabilityBoot";
 import { getSiteUrl } from "@/lib/env";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
 import "./globals.css";
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full`}>
       <body className="min-h-full bg-bg font-mono text-text antialiased">
+        <ObservabilityBoot />
         {children}
       </body>
     </html>

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
+import { AppShell } from "@/components/layout/AppShell";
 import { requireAdmin } from "@/lib/admin/auth";
 import { privatePageMetadata } from "@/lib/seo/metadata";
 
@@ -14,11 +13,5 @@ export default async function AdminLayout({
   // Server-side ADMIN gate for every /admin route (never trust client).
   await requireAdmin();
 
-  return (
-    <div className="flex min-h-svh flex-col bg-bg">
-      <SiteHeader />
-      <div className="flex-1">{children}</div>
-      <SiteFooter />
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

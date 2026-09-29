@@ -1,16 +1,19 @@
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
+import { AppShell } from "@/components/layout/AppShell";
+import { getPrisma } from "@/lib/db";
 
-export default function CasesLayout({
+export default async function CasesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-svh flex-col bg-bg">
-      <SiteHeader />
-      <div className="flex-1">{children}</div>
-      <SiteFooter />
-    </div>
-  );
+  let activeCaseFiles: number | undefined;
+  try {
+    activeCaseFiles = await getPrisma().case.count({
+      where: { published: true },
+    });
+  } catch {
+    activeCaseFiles = undefined;
+  }
+
+  return <AppShell activeCaseFiles={activeCaseFiles}>{children}</AppShell>;
 }

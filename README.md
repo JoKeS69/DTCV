@@ -1,7 +1,7 @@
 # DETECTIVE
 
 Global detective investigation platform. Phased delivery — this repo currently
-includes **Phase 0–13** (foundation through testing).
+includes **Phase 0–14** (foundation through production prep). **No auto-deploy.**
 
 ## Stack
 
@@ -39,11 +39,26 @@ Open [http://localhost:3000](http://localhost:3000).
 | `lib/db.ts` | Prisma client wiring |
 | `prisma/` | Schema & migrations |
 
-## Deploy on Vercel
+## Production prep (Phase 14)
+
+Full runbook: [`docs/PRODUCTION.md`](./docs/PRODUCTION.md) · design lock: [`docs/DESIGN_LOCK.md`](./docs/DESIGN_LOCK.md)
+
+```bash
+npm run lint && npm run build
+npm run db:deploy          # prisma migrate deploy (staging/prod)
+npm run db:prod-check      # connectivity + counts
+```
+
+- `vercel.json` — Vercel framework + migrate-on-build (manual promote only)
+- Observability placeholders: `lib/observability/{monitoring,analytics}.ts`
+- **Design blocker:** upload `desktop.jpeg` + `mobileversion.jpeg` for pixel-exact UI; interim chrome locked to `design-refs/*.jpg` with brand DETECTIVE
+
+### Deploy on Vercel (manual only — do not auto-ship)
 
 1. Import the GitHub repo in Vercel (Next.js preset).
-2. Set `DATABASE_URL`, auth, and `PAYMENTS_*` / `VISA_GATEWAY_*` vars in Environment Variables.
-3. Build command: `npm run build` (runs `prisma generate` via postinstall).
+2. Set env vars from `.env.example` (production values — see runbook).
+3. Build: `prisma generate && prisma migrate deploy && next build` (see `vercel.json`).
+4. Promote to production only when an operator explicitly chooses to.
 
 ## Testing (Phase 13)
 
