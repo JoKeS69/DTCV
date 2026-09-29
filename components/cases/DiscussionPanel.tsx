@@ -1,63 +1,47 @@
 import Link from "next/link";
-import { MessageSquare } from "lucide-react";
 import type { HudDiscussion } from "@/lib/cases/hud-data";
+import { DiscussionItem } from "@/components/ui/DiscussionItem";
+import { Panel, PanelHeader } from "@/components/ui/Panel";
 
 export function DiscussionPanel({
   caseCode,
   discussions,
+  sheet = false,
 }: {
   caseCode: string | null;
   discussions: HudDiscussion[];
+  sheet?: boolean;
 }) {
   return (
-    <section className="hud-panel flex h-full min-h-[200px] flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim">
-        <span>
-          &gt; DISCUSSION
-          {caseCode ? ` (CASE ${caseCode})` : ""}
-        </span>
-        {caseCode ? (
-          <Link
-            href={`/cases?select=${caseCode}`}
-            className="text-text-muted hover:text-text"
-          >
-            View all →
-          </Link>
-        ) : null}
-      </header>
-      <ul className="min-h-0 flex-1 divide-y divide-border/80 overflow-y-auto">
+    <Panel className={sheet ? "motion-sheet-in min-h-[70svh]" : "min-h-[240px]"}>
+      <PanelHeader
+        action={
+          caseCode ? (
+            <Link
+              href={`/cases?select=${caseCode}`}
+              className="font-mono text-[12px] uppercase tracking-[0.1em] text-text-muted transition-colors hover:text-text"
+            >
+              View all →
+            </Link>
+          ) : null
+        }
+      >
+        &gt; DISCUSSION
+        {caseCode ? ` (CASE ${caseCode})` : ""}
+      </PanelHeader>
+      <ul className="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto px-1 py-1 md:px-2">
         {discussions.length === 0 ? (
-          <li className="px-3 py-4 font-mono text-[10px] text-text-dim">
+          <li className="px-4 py-8 font-mono text-[14px] text-text-dim">
             No discussions on this file yet
           </li>
         ) : (
           discussions.map((d) => (
-            <li key={d.id} className="px-2.5 py-2.5">
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-border font-mono text-[8px] text-text-dim"
-                  aria-hidden
-                >
-                  {d.avatarInitial}
-                </span>
-                <span className="font-mono text-[10px] text-text">
-                  {d.authorUsername}
-                </span>
-                <span className="font-mono text-[9px] text-text-dim">
-                  {d.createdLabel}
-                </span>
-              </div>
-              <p className="mt-1.5 font-mono text-[11px] leading-snug text-text-muted normal-case tracking-normal">
-                {d.body}
-              </p>
-              <p className="mt-1.5 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-text-dim">
-                <MessageSquare className="size-3" strokeWidth={1.25} aria-hidden />
-                {d.replyCount} Reply
-              </p>
+            <li key={d.id}>
+              <DiscussionItem item={d} />
             </li>
           ))
         )}
       </ul>
-    </section>
+    </Panel>
   );
 }

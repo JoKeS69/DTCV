@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  BookOpen,
+  FileSearch,
+  FolderSearch,
+  GraduationCap,
+  MessageSquare,
+  Search,
+  User,
+} from "lucide-react";
 import { designTokens } from "@/lib/design-tokens";
 import { primaryNav } from "@/lib/site-nav";
 
@@ -11,6 +20,16 @@ export type DeckUser = {
   rankLabel: string;
   status: "ACTIVE" | "SUSPENDED" | "GUEST";
 } | null;
+
+const ICONS: Record<string, typeof Search> = {
+  Cases: BookOpen,
+  Search,
+  Evidence: FolderSearch,
+  Intel: FileSearch,
+  Forum: MessageSquare,
+  Training: GraduationCap,
+  Profile: User,
+};
 
 function isActive(label: string, pathname: string) {
   switch (label) {
@@ -46,80 +65,111 @@ export function CommandDeckSidebar({
     status: "ACTIVE" as const,
   };
 
-  const body = (
-    <>
-      <nav aria-label="Main terminal" className="flex flex-col pt-1">
-        {primaryNav.map((item) => {
-          const active = isActive(item.label, pathname);
-          return (
-            <Link
-              key={`${item.index}-${item.label}`}
-              href={item.href}
-              onClick={onNavigate}
-              className={[
-                "flex items-center justify-between px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
-                active
-                  ? "bg-selected text-text"
-                  : "text-text-muted hover:bg-surface hover:text-text",
-              ].join(" ")}
-            >
-              <span>
-                <span className="mr-2.5 text-text-dim">{item.index}</span>
-                {item.label}
-              </span>
-              {active ? <span className="text-text-dim">&gt;</span> : null}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="mt-5 border-t border-border px-3 py-3">
-        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-text-dim">
-          User
-        </p>
-        <div className="mt-2 space-y-1 font-mono text-[10px] uppercase tracking-[0.12em]">
-          <p className="text-text">{demoUser.displayName}</p>
-          <p className="text-text-muted">
-            <span className="text-text-dim">ID: </span>
-            {demoUser.badgeNumber != null
-              ? String(demoUser.badgeNumber).padStart(6, "0")
-              : "008421"}
-          </p>
-          <p className="text-text-muted">
-            <span className="text-text-dim">RANK: </span>
-            {demoUser.rankLabel}
-          </p>
-          <p>
-            <span className="text-text-dim">STATUS: </span>
-            <span
-              className={
-                demoUser.status === "ACTIVE" ? "text-online" : "text-text-muted"
-              }
-            >
-              {demoUser.status}
+  const nav = (
+    <nav aria-label="Main terminal" className="flex flex-col gap-1 px-2 pt-3 xl:px-3">
+      {primaryNav.map((item) => {
+        const active = isActive(item.label, pathname);
+        const Icon = ICONS[item.label] ?? BookOpen;
+        return (
+          <Link
+            key={`${item.index}-${item.label}`}
+            href={item.href}
+            onClick={onNavigate}
+            title={`${item.index} ${item.label}`}
+            className={[
+              "group flex items-center gap-3 rounded-[6px] px-2.5 py-2.5 font-mono text-[13px] uppercase tracking-[0.12em] transition-colors xl:px-3 xl:py-3",
+              active
+                ? "bg-selected text-text"
+                : "text-text-muted hover:bg-surface-elevated hover:text-text",
+            ].join(" ")}
+          >
+            <Icon
+              className="size-[18px] shrink-0 opacity-80"
+              strokeWidth={active ? 1.75 : 1.4}
+              aria-hidden
+            />
+            <span className="hidden min-w-0 flex-1 truncate xl:inline">
+              <span className="mr-2 text-text-dim">{item.index}</span>
+              {item.label}
             </span>
-          </p>
-        </div>
-        {!user ? (
-          <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.12em] text-text-dim">
-            <Link href="/login" className="text-text-muted hover:text-text">
-              Login →
-            </Link>
-          </p>
-        ) : null}
-      </div>
+            {/* Tablet icon-rail label tooltip via title; show index on lg only as sr */}
+            <span className="sr-only xl:hidden">
+              {item.index} {item.label}
+            </span>
+            {active ? (
+              <span className="ml-auto hidden text-text-dim xl:inline">&gt;</span>
+            ) : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 
-      <p className="mt-auto border-t border-border px-3 py-3 font-mono text-[9px] uppercase leading-relaxed tracking-[0.16em] text-text-dim">
+  const userBlock = (
+    <div className="mt-auto border-t border-border px-3 py-4 xl:px-4">
+      <p className="hidden font-mono text-[12px] uppercase tracking-[0.18em] text-text-dim xl:block">
+        User
+      </p>
+      <div className="mt-0 space-y-1.5 font-mono text-[12px] uppercase tracking-[0.08em] xl:mt-3 xl:text-[13px]">
+        <p className="hidden text-text xl:block">{demoUser.displayName}</p>
+        <p className="hidden text-text-muted xl:block">
+          <span className="text-text-dim">ID: </span>
+          {demoUser.badgeNumber != null
+            ? String(demoUser.badgeNumber).padStart(6, "0")
+            : "008421"}
+        </p>
+        <p className="hidden text-text-muted xl:block">
+          <span className="text-text-dim">RANK: </span>
+          {demoUser.rankLabel}
+        </p>
+        <p className="hidden xl:block">
+          <span className="text-text-dim">STATUS: </span>
+          <span
+            className={
+              demoUser.status === "ACTIVE" ? "text-online" : "text-text-muted"
+            }
+          >
+            {demoUser.status}
+          </span>
+        </p>
+        {/* Compact rail avatar */}
+        <div className="flex justify-center xl:hidden">
+          <span
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface-elevated text-[12px] text-online"
+            title={`${demoUser.displayName} · ${demoUser.status}`}
+          >
+            D
+          </span>
+        </div>
+      </div>
+      {!user ? (
+        <p className="mt-3 hidden font-mono text-[12px] uppercase tracking-[0.1em] text-text-dim xl:block">
+          <Link href="/login" className="text-text-muted hover:text-text">
+            Login →
+          </Link>
+        </p>
+      ) : null}
+      <p className="mt-4 hidden font-mono text-[12px] uppercase leading-relaxed tracking-[0.12em] text-text-dim xl:block">
         {designTokens.manifesto.join(" ")}
       </p>
+    </div>
+  );
+
+  const fullBody = (
+    <>
+      {nav}
+      {userBlock}
     </>
   );
 
   return (
     <>
-      <aside className="hidden w-[188px] shrink-0 flex-col border-r border-border bg-bg md:flex">
-        {body}
+      {/* Tablet icon rail 1024–1279; full sidebar ≥1280 */}
+      <aside className="hidden w-[var(--sidebar-rail)] shrink-0 flex-col border-r border-border bg-surface/40 md:flex xl:w-[var(--sidebar-w)]">
+        {fullBody}
       </aside>
+
+      {/* Mobile drawer */}
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
@@ -128,8 +178,62 @@ export function CommandDeckSidebar({
             aria-label="Close menu overlay"
             onClick={onNavigate}
           />
-          <div className="relative z-10 flex h-full w-[min(280px,85vw)] flex-col border-r border-border bg-bg">
-            {body}
+          <div className="relative z-10 flex h-full w-[min(300px,88vw)] flex-col border-r border-border bg-bg shadow-2xl">
+            <div className="border-b border-border px-4 py-4">
+              <p className="font-mono text-[16px] font-semibold tracking-[0.12em] text-text">
+                {designTokens.brand}
+              </p>
+              <p className="mt-1 font-mono text-[12px] uppercase tracking-[0.1em] text-text-muted">
+                {designTokens.tagline}
+              </p>
+            </div>
+            <nav aria-label="Main terminal" className="flex flex-col gap-1 px-3 pt-3">
+              {primaryNav.map((item) => {
+                const active = isActive(item.label, pathname);
+                const Icon = ICONS[item.label] ?? BookOpen;
+                return (
+                  <Link
+                    key={`m-${item.index}-${item.label}`}
+                    href={item.href}
+                    onClick={onNavigate}
+                    className={[
+                      "flex items-center gap-3 rounded-[6px] px-3 py-3 font-mono text-[14px] uppercase tracking-[0.12em] transition-colors",
+                      active
+                        ? "bg-selected text-text"
+                        : "text-text-muted hover:bg-surface-elevated hover:text-text",
+                    ].join(" ")}
+                  >
+                    <Icon className="size-[18px]" strokeWidth={1.5} aria-hidden />
+                    <span>
+                      <span className="mr-2 text-text-dim">{item.index}</span>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="mt-auto border-t border-border px-4 py-5">
+              <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-text-dim">
+                User
+              </p>
+              <div className="mt-3 space-y-1.5 font-mono text-[13px] uppercase tracking-[0.08em]">
+                <p className="text-text">{demoUser.displayName}</p>
+                <p className="text-text-muted">
+                  ID:{" "}
+                  {demoUser.badgeNumber != null
+                    ? String(demoUser.badgeNumber).padStart(6, "0")
+                    : "008421"}
+                </p>
+                <p className="text-text-muted">RANK: {demoUser.rankLabel}</p>
+                <p>
+                  STATUS:{" "}
+                  <span className="text-online">{demoUser.status}</span>
+                </p>
+              </div>
+              <p className="mt-5 font-mono text-[12px] uppercase leading-relaxed tracking-[0.12em] text-text-dim">
+                {designTokens.manifesto.join(" ")}
+              </p>
+            </div>
           </div>
         </div>
       ) : null}

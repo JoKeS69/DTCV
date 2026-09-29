@@ -18,7 +18,7 @@ function formatHudClock(date: Date) {
     .toUpperCase();
 }
 
-/** Desktop header — CASE//NET | GLOBAL INVESTIGATION PLATFORM */
+/** Desktop / tablet header */
 export function CommandDeckHeader() {
   const [clock, setClock] = useState("");
 
@@ -30,10 +30,10 @@ export function CommandDeckHeader() {
   }, []);
 
   return (
-    <header className="hidden h-10 shrink-0 items-center justify-between gap-3 border-b border-border bg-bg px-4 md:flex">
+    <header className="hidden h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-bg/95 px-5 backdrop-blur-sm md:flex xl:px-6">
       <Link
         href="/cases"
-        className="min-w-0 truncate font-mono text-[13px] tracking-[0.14em] text-text"
+        className="min-w-0 truncate font-mono text-[15px] tracking-[0.12em] text-text xl:text-[16px]"
       >
         <span className="font-semibold">{designTokens.brand}</span>
         <span className="text-text-dim"> | </span>
@@ -41,13 +41,13 @@ export function CommandDeckHeader() {
           {designTokens.tagline}
         </span>
       </Link>
-      <div className="flex shrink-0 items-center gap-4">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">
+      <div className="flex shrink-0 items-center gap-5">
+        <span className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
           SYSTEM: ONLINE
-          <span className="size-1.5 rounded-full bg-online motion-pulse-online" />
+          <span className="size-2 rounded-full bg-online motion-pulse-online" />
         </span>
         <time
-          className="font-mono text-[10px] tracking-[0.14em] text-text-dim"
+          className="font-mono text-[12px] tracking-[0.12em] text-text-dim"
           suppressHydrationWarning
         >
           {clock || "—"}

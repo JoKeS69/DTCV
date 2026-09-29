@@ -1,8 +1,10 @@
 import type { HudCaseStatus } from "@/lib/cases/hud-data";
 import type { CaseStatus } from "@/lib/generated/prisma/client";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 type Status = HudCaseStatus | CaseStatus;
 
+/** Soft status pill — shared StatusBadge wrapper for existing call sites */
 export function CaseStatusText({
   status,
   boxed = true,
@@ -12,10 +14,10 @@ export function CaseStatusText({
 }) {
   if (!boxed) {
     return (
-      <span className={`font-mono text-[10px] uppercase tracking-[0.14em] status-${status}`}>
+      <span className={`font-mono text-[12px] uppercase tracking-[0.12em] status-${status}`}>
         {status}
       </span>
     );
   }
-  return <span className={`status-badge status-${status}`}>{status}</span>;
+  return <StatusBadge status={status} />;
 }

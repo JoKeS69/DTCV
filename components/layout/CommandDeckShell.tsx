@@ -37,20 +37,22 @@ export function CommandDeckShell({
           onNavigate={() => setMenuOpen(false)}
         />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto pb-[4.5rem] md:pb-0">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+12px)] md:pb-0">
             {children}
           </div>
-          <footer className="hidden shrink-0 items-center justify-between border-t border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] md:flex">
-            <p className="text-online">
+          <footer
+            className="hidden h-9 shrink-0 items-center justify-between border-t border-border bg-surface/50 px-5 font-mono text-[12px] uppercase tracking-[0.1em] md:flex xl:px-6"
+          >
+            <p className="truncate text-online">
               <span className="text-text-dim">&gt; </span>
               SYSTEM MESSAGE: DATABASE CONNECTION SECURE // {countLabel}
             </p>
-            <p className="text-text-muted">
+            <p className="shrink-0 text-text-muted">
               &gt; <span className="motion-cursor-blink">_</span>
             </p>
           </footer>
-          <div className="border-t border-border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-online md:hidden">
-            <span className="mr-1.5 inline-block size-1.5 rounded-full bg-online align-middle motion-pulse-online" />
+          <div className="border-t border-border px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.08em] text-online md:hidden">
+            <span className="mr-2 inline-block size-2 rounded-full bg-online align-middle motion-pulse-online" />
             DATABASE CONNECTION SECURE // {countLabel}
           </div>
         </div>

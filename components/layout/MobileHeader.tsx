@@ -18,7 +18,6 @@ function formatHudClock(date: Date) {
     .toUpperCase();
 }
 
-/** Mobile mockup header — hamburger + stacked brand + SYSTEM ONLINE */
 export function MobileHeader({
   onMenu,
   menuOpen,
@@ -36,37 +35,37 @@ export function MobileHeader({
   }, []);
 
   return (
-    <header className="flex shrink-0 items-start justify-between gap-2 border-b border-border bg-bg px-2.5 py-2 md:hidden">
-      <div className="flex min-w-0 items-start gap-2">
+    <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border bg-bg px-4 py-3 md:hidden">
+      <div className="flex min-w-0 items-start gap-3">
         <button
           type="button"
-          className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center text-text"
+          className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"
           aria-expanded={menuOpen}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           onClick={onMenu}
         >
-          <span aria-hidden className="flex w-[18px] flex-col gap-[5px]">
+          <span aria-hidden className="flex w-5 flex-col gap-[5px]">
             <span className="block h-px bg-text" />
             <span className="block h-px bg-text" />
             <span className="block h-px bg-text" />
           </span>
         </button>
-        <Link href="/cases" className="min-w-0">
-          <span className="block font-mono text-[15px] font-semibold tracking-[0.16em] text-text">
+        <Link href="/cases" className="min-w-0 pt-1">
+          <span className="block font-mono text-[18px] font-semibold tracking-[0.12em] text-text">
             {designTokens.brand}
           </span>
-          <span className="mt-0.5 block font-mono text-[8px] font-normal uppercase tracking-[0.14em] text-text-muted">
+          <span className="mt-1 block font-mono text-[12px] font-normal uppercase tracking-[0.1em] text-text-muted">
             {designTokens.tagline}
           </span>
         </Link>
       </div>
-      <div className="shrink-0 pt-0.5 text-right">
-        <p className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-text-muted">
-          <span className="size-1.5 rounded-full bg-online motion-pulse-online" />
+      <div className="shrink-0 pt-1 text-right">
+        <p className="inline-flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.1em] text-text-muted">
+          <span className="size-2 rounded-full bg-online motion-pulse-online" />
           SYSTEM ONLINE
         </p>
         <time
-          className="mt-0.5 block font-mono text-[9px] tracking-[0.1em] text-text-dim"
+          className="mt-1 block font-mono text-[12px] tracking-[0.08em] text-text-dim"
           suppressHydrationWarning
         >
           {clock || "—"}

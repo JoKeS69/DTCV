@@ -16,7 +16,10 @@ const items = [
     label: "Cases",
     icon: Home,
     match: (p: string, focus: string | null) =>
-      p.startsWith("/cases") && focus !== "search" && !p.includes("discussions"),
+      p.startsWith("/cases") &&
+      focus !== "search" &&
+      focus !== "discussions" &&
+      focus !== "evidence",
   },
   {
     href: "/cases?focus=search",
@@ -53,27 +56,31 @@ export function BottomNavigation() {
   return (
     <nav
       aria-label="Mobile primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 backdrop-blur-sm md:hidden"
+      style={{
+        height: "calc(var(--bottom-nav) + env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid h-[var(--bottom-nav)] grid-cols-5">
         {items.map((item) => {
           const active = item.match(pathname, focus);
           const Icon = item.icon;
           return (
-            <li key={item.label}>
+            <li key={item.label} className="min-w-0">
               <Link
                 href={item.href}
                 className={[
-                  "flex flex-col items-center justify-center gap-1 px-1 py-2.5 font-mono text-[8px] uppercase tracking-[0.12em]",
+                  "flex h-full flex-col items-center justify-center gap-1 px-1 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors",
                   active ? "text-text" : "text-text-dim",
                 ].join(" ")}
               >
                 <Icon
-                  className="size-4"
-                  strokeWidth={active ? 1.75 : 1.25}
+                  className="size-5"
+                  strokeWidth={active ? 1.85 : 1.4}
                   aria-hidden
                 />
-                {item.label}
+                <span className="truncate">{item.label}</span>
               </Link>
             </li>
           );

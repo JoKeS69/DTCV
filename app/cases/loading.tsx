@@ -1,10 +1,12 @@
 export default function CasesLoading() {
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-3 py-8 md:px-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
-        Loading case database…
-      </p>
-      <div className="mt-4 h-40 animate-pulse border border-border bg-surface/40" />
+    <main className="flex h-full min-h-0 flex-col gap-4 p-4 md:gap-5 md:p-5 xl:gap-6 xl:p-6">
+      <div className="hud-panel flex min-h-[420px] flex-col">
+        <div className="hud-panel-title">&gt; CASE DATABASE</div>
+        <div className="flex flex-1 items-center justify-center px-6 py-16 font-mono text-[14px] text-text-dim">
+          Loading case database…
+        </div>
+      </div>
     </main>
   );
 }
