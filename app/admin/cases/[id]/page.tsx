@@ -105,6 +105,10 @@ export default async function AdminCaseEditPage({ params }: Props) {
           publicNotes: caseFile.publicNotes ?? "",
           location: caseFile.location ?? "",
           countryCode: caseFile.countryCode ?? "",
+          latitude:
+            caseFile.latitude != null ? String(caseFile.latitude) : "",
+          longitude:
+            caseFile.longitude != null ? String(caseFile.longitude) : "",
           year: caseFile.year != null ? String(caseFile.year) : "",
           type: caseFile.type,
           status: caseFile.status,

@@ -100,6 +100,14 @@ const caseSchema = z.object({
   publicNotes: z.string().trim().max(8000).optional().nullable(),
   location: z.string().trim().max(200).optional().nullable(),
   countryCode: z.string().trim().max(8).optional().nullable(),
+  latitude: z.preprocess(
+    (v) => (v === "" || v === undefined ? null : v),
+    z.coerce.number().min(-90).max(90).nullable().optional(),
+  ),
+  longitude: z.preprocess(
+    (v) => (v === "" || v === undefined ? null : v),
+    z.coerce.number().min(-180).max(180).nullable().optional(),
+  ),
   year: z.coerce.number().int().min(1800).max(2100).optional().nullable(),
   type: z.enum([
     "DISAPPEARANCE",
@@ -123,6 +131,8 @@ export async function upsertCase(input: {
   publicNotes?: string | null;
   location?: string | null;
   countryCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   year?: number | null;
   type: CaseType;
   status: CaseStatus;
@@ -139,6 +149,14 @@ export async function upsertCase(input: {
   }
 
   const slug = parsed.data.slug?.trim() || slugify(parsed.data.title);
+  const lat = parsed.data.latitude ?? null;
+  const lng = parsed.data.longitude ?? null;
+  // Both coords required for a map pin; partial pairs are cleared.
+  const hasGeo =
+    lat != null &&
+    lng != null &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng);
   const data = {
     caseCode: parsed.data.caseCode.toUpperCase(),
     title: parsed.data.title,
@@ -147,6 +165,8 @@ export async function upsertCase(input: {
     publicNotes: parsed.data.publicNotes || null,
     location: parsed.data.location || null,
     countryCode: parsed.data.countryCode?.toUpperCase() || null,
+    latitude: hasGeo ? lat : null,
+    longitude: hasGeo ? lng : null,
     year: parsed.data.year ?? null,
     type: parsed.data.type,
     status: parsed.data.status,

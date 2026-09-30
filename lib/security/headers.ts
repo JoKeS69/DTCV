@@ -38,7 +38,8 @@ export function buildContentSecurityPolicy(nonce: string): string {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    // Esri World Dark Gray Base tiles for GLOBAL CASES (Leaflet)
+    "img-src 'self' data: blob: https://server.arcgisonline.com https://services.arcgisonline.com",
     "font-src 'self' data:",
     "connect-src 'self'",
     "frame-ancestors 'none'",

@@ -48,3 +48,14 @@ export type HudStats = {
   CLOSED: number;
   topLocations: { country: string; count: number }[];
 };
+
+/** Published case with real WGS84 coords for the GLOBAL CASES map. */
+export type HudMapMarker = {
+  id: string;
+  caseCode: string;
+  slug: string;
+  title: string;
+  status: HudCaseStatus;
+  lat: number;
+  lng: number;
+};

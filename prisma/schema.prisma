@@ -293,6 +293,9 @@ model Case {
   publicNotes  String?
   location     String?
   countryCode  String?
+  /// Optional WGS84 coordinates for GLOBAL CASES map markers. Null = not shown on map.
+  latitude     Float?
+  longitude    Float?
   year         Int?
   type         CaseType     @default(UNKNOWN)
   status       CaseStatus   @default(OPEN)

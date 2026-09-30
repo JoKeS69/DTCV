@@ -84,6 +84,7 @@
 
 - **script-src:** `'self' 'nonce-…' 'strict-dynamic'` (+ `'unsafe-eval'` **development only** for React/Next debug).
 - **style-src:** `'self' 'unsafe-inline'` retained for Next/Tailwind runtime styles until a full style-nonce/hash pipeline lands.
+- **img-src:** `'self' data: blob:` plus Esri ArcGIS Online hosts (`server.arcgisonline.com`, `services.arcgisonline.com`) for GLOBAL CASES Leaflet dark basemap tiles.
 - Middleware sets CSP on both request (for Next nonce injection) and response.
 
 ---
