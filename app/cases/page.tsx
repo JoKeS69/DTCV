@@ -147,7 +147,7 @@ export default async function CasesPage({
   const emptyDatabase = items.length === 0 && !sp.q && (!sp.type || sp.type === "ALL") && (!sp.status || sp.status === "ALL");
 
   return (
-    <main className="flex h-full min-h-0 flex-col gap-4 p-4 md:gap-5 md:p-5 xl:gap-6 xl:p-6">
+    <main className="flex h-full min-h-0 flex-col gap-4 p-4 md:gap-5 md:p-6 xl:gap-6 xl:p-8">
       <div className="grid min-h-0 flex-1 gap-4 md:gap-5 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-6">
         <div className="grid min-h-0 gap-4 md:gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-6">
           <Panel id="case-database" className="min-h-[420px] xl:min-h-0">
@@ -174,8 +174,8 @@ export default async function CasesPage({
                 </p>
                 <p className="max-w-md text-[12px] text-text-dim">
                   {emptyDatabase
-                    ? "Published case files will appear here when a data source is connected."
-                    : "Adjust search or filters to broaden results."}
+                    ? "Connect a data source to publish case files."
+                    : "Try broader search or filters."}
                 </p>
               </div>
             ) : (

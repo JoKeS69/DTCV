@@ -73,8 +73,8 @@ export function CreateDiscussionForm({
         });
       }}
     >
-      <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber">
-        Labeled USER THEORY — not a verified claim. No guilt accusations.
+      <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-amber">
+        USER THEORY — not verified. No guilt accusations.
       </p>
       <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-text-dim">
         Title

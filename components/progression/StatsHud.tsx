@@ -27,16 +27,16 @@ export function StatsHud({
   ];
 
   return (
-    <dl className="grid gap-2 sm:grid-cols-3 md:grid-cols-6">
+    <dl className="grid gap-3 sm:grid-cols-3 md:grid-cols-6">
       {cells.map((cell) => (
         <div
           key={cell.label}
-          className="border border-border/80 bg-bg/40 px-2 py-2 font-mono"
+          className="border border-border/80 bg-bg/40 px-3 py-3 font-mono"
         >
-          <dt className="text-[9px] uppercase tracking-[0.14em] text-text-dim">
+          <dt className="text-[11px] uppercase tracking-[0.12em] text-text-dim">
             {cell.label}
           </dt>
-          <dd className="mt-1 text-sm uppercase tracking-[0.08em] text-text">
+          <dd className="mt-1.5 text-[15px] uppercase tracking-[0.08em] text-text">
             {cell.value}
           </dd>
         </div>

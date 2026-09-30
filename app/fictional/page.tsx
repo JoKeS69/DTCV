@@ -54,7 +54,7 @@ export default async function FictionalListPage({
   );
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-3 py-6 md:px-4">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">
       <div className="border border-border bg-surface/50 px-4 py-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
           &gt; Training bay
@@ -62,9 +62,8 @@ export default async function FictionalListPage({
         <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.1em] text-text md:text-2xl">
           Fictional case files
         </h1>
-        <p className="mt-2 max-w-2xl font-mono text-[12px] text-text-muted normal-case tracking-normal">
-          Structured investigations for detective progression. Every file here is
-          invented — never confused with real-crime cases.
+        <p className="mt-2 max-w-2xl font-mono text-[13px] text-text-muted normal-case tracking-normal">
+          Invented training files only — never real-crime cases.
         </p>
         <div className="mt-3">
           <FictionalBanner />

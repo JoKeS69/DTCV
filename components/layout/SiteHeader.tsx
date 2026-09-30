@@ -71,11 +71,10 @@ export function SiteHeader() {
         <nav aria-label="Primary" className="hidden items-center lg:flex">
           {primaryNav.map((item) => (
             <Link
-              key={`${item.index}-${item.label}`}
+              key={item.label}
               href={item.href}
-              className="px-2 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted transition-colors hover:bg-surface-elevated hover:text-text"
+              className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted transition-colors hover:bg-surface-elevated hover:text-text"
             >
-              <span className="mr-1.5 text-text-dim">{item.index}</span>
               {item.label}
             </Link>
           ))}
@@ -106,12 +105,11 @@ export function SiteHeader() {
           <nav aria-label="Mobile" className="flex flex-col">
             {primaryNav.map((item) => (
               <Link
-                key={`${item.index}-${item.label}`}
+                key={item.label}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className="border-b border-border px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text"
               >
-                <span className="mr-2 text-text-dim">{item.index}</span>
                 {item.label}
               </Link>
             ))}

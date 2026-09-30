@@ -19,10 +19,10 @@ export function InvestigationHistory({
 }) {
   if (items.length === 0) {
     return (
-      <p className="font-mono text-[11px] text-text-dim">
-        No fictional investigations yet.{" "}
+      <p className="font-mono text-[13px] text-text-dim">
+        No investigations yet.{" "}
         <Link href="/fictional" className="text-cta hover:underline">
-          Open training bay →
+          Training →
         </Link>
       </p>
     );

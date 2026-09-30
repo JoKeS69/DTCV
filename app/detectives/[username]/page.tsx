@@ -36,7 +36,7 @@ export default async function PublicDetectiveProfilePage({ params }: Props) {
   const earned = dossier.achievementCatalog.filter((a) => a.earned);
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-3 py-6 md:px-4">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href="/fictional" className="hover:text-text">
           ← Training bay
@@ -60,12 +60,12 @@ export default async function PublicDetectiveProfilePage({ params }: Props) {
 
       <section className="mt-4 border border-border bg-surface/40">
         <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
-          &gt; Statistics (fictional ops)
+          &gt; Statistics
         </header>
         <div className="px-4 py-3">
           <StatsHud stats={dossier.stats} />
-          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.14em] text-text-dim">
-            Rankings & XP exclude real-case discussion activity.
+          <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim">
+            Rankings & XP exclude real-case discussion.
           </p>
         </div>
       </section>

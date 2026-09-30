@@ -45,7 +45,7 @@ export default async function CaseDetailPage({ params }: Props) {
   const engagement = await getCaseEngagement(session?.user?.id, caseFile.id);
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-3 py-6 md:px-4">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">
       <JsonLd
         data={realCaseJsonLd({
           caseCode: caseFile.caseCode,

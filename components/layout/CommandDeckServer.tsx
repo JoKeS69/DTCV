@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { CommandDeckShell } from "@/components/layout/CommandDeckShell";
-import type { DeckUser } from "@/components/layout/CommandDeckSidebar";
+import type { DeckUser } from "@/components/layout/deck-user";
 import { getCaseStatsCached } from "@/lib/cases/dashboard";
 import { getPrisma } from "@/lib/db";
 
