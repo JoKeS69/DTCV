@@ -124,9 +124,9 @@ export default async function CasesPage({
     (!sp.status || sp.status === "ALL");
 
   return (
-    <main className="flex h-full min-h-0 flex-col gap-5 p-5 md:gap-6 md:p-6 xl:gap-8 xl:p-8">
-      <div className="grid min-h-0 flex-1 gap-5 md:gap-6 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-8">
-        <div className="grid min-h-0 gap-5 md:gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-8">
+    <main className="flex h-full min-h-0 flex-col gap-6 p-5 md:gap-7 md:p-7 xl:gap-8 xl:p-9">
+      <div className="grid min-h-0 flex-1 gap-6 md:gap-7 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-8">
+        <div className="grid min-h-0 gap-6 md:gap-7 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-8">
           <Panel id="case-database" className="min-h-[420px] xl:min-h-0">
             <PanelHeader className="text-[13px] text-text-muted md:text-[13px]">
               <span className="md:hidden">&gt; CASES</span>
@@ -169,7 +169,7 @@ export default async function CasesPage({
           </div>
         </div>
 
-        <div className="grid min-h-0 gap-5 md:grid-cols-2 md:gap-6 xl:gap-8">
+        <div className="grid min-h-0 gap-6 md:grid-cols-2 md:gap-7 xl:gap-8">
           <GlobalCases stats={stats} markers={mapMarkers} />
           <RecentActivity items={activity} />
         </div>

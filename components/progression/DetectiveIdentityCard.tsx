@@ -24,7 +24,7 @@ export function DetectiveIdentityCard({
           {badgeLabel}
         </p>
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-          <h1 className="font-mono text-[13px] font-normal uppercase tracking-[0.14em] text-text-muted">
+          <h1 className="font-mono text-[12px] font-normal uppercase tracking-[0.16em] text-text-dim">
             {displayName}
           </h1>
           <RankBadge rank={rank} />

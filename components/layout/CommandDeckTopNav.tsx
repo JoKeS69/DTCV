@@ -127,7 +127,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
   const navLinkClass = (active: boolean) =>
     [
-      "inline-flex items-center gap-2 rounded-[6px] px-3 py-2 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
+      "inline-flex items-center gap-1.5 rounded-[6px] px-2.5 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors xl:gap-2 xl:px-3 xl:text-[12px]",
       active
         ? "bg-selected text-text"
         : "text-text-muted hover:bg-surface-elevated hover:text-text",
@@ -136,9 +136,9 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
   return (
     <>
       <header className="shrink-0 border-b border-border bg-bg/95 backdrop-blur-sm">
-        {/* Desktop / tablet — single topmost nav row */}
-        <div className="relative hidden items-center gap-4 px-5 py-3 md:flex xl:gap-6 xl:px-8 xl:py-3.5">
-          <div className="z-10 flex min-w-0 max-w-[34%] shrink items-center gap-3">
+        {/* Desktop / tablet — single topmost nav row, links truly centered */}
+        <div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-5 py-3 md:grid xl:gap-6 xl:px-8 xl:py-3.5">
+          <div className="flex min-w-0 items-center gap-3 justify-self-start">
             <Link
               href="/cases"
               className="shrink-0 font-mono text-[13px] font-semibold tracking-[0.12em] text-text"
@@ -153,7 +153,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
           <nav
             aria-label="Main terminal"
-            className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-wrap items-center justify-center gap-x-2 gap-y-1 xl:gap-x-4"
+            className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 justify-self-center xl:gap-x-3"
           >
             {primaryNav.map((item) => {
               const active = isActive(item.label, pathname, focus);
@@ -166,7 +166,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                   aria-current={active ? "page" : undefined}
                 >
                   <Icon
-                    className="size-4 shrink-0 opacity-80"
+                    className="size-3.5 shrink-0 opacity-80 xl:size-4"
                     strokeWidth={active ? 1.75 : 1.4}
                     aria-hidden
                   />
@@ -181,7 +181,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             })}
           </nav>
 
-          <div className="z-10 ml-auto flex shrink-0 flex-col items-end gap-1">
+          <div className="flex shrink-0 flex-col items-end gap-1 justify-self-end">
             <span className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">
               ONLINE
               <span className="size-2 rounded-full bg-online motion-pulse-online" />
@@ -246,9 +246,6 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
               <div className="mt-3">
                 <UserChip user={guestUser} />
               </div>
-              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim">
-                {designTokens.manifesto.join(" ")}
-              </p>
               {!user ? (
                 <Link
                   href="/login"
