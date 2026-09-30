@@ -12,7 +12,7 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-3 py-6 md:px-4">
+    <main className="deck-page max-w-6xl">
       <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
         &gt; Command deck · ADMIN
       </p>

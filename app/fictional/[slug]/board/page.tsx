@@ -50,7 +50,7 @@ export default async function FictionalBoardPage({ params }: Props) {
   if (!board) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-3 py-4 md:px-4">
+    <main className="deck-page deck-page--wide">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href={`/fictional/${slug}`} className="hover:text-text">
           ← {caseFile.caseCode}

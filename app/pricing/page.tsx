@@ -37,7 +37,7 @@ export default async function PricingPage({
   return (
     <div className="flex min-h-svh flex-col bg-bg">
       <SiteHeader />
-      <main className="relative mx-auto w-full max-w-5xl flex-1 px-3 py-8 md:px-4">
+      <main className="deck-page relative max-w-5xl flex-1">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] opacity-70"

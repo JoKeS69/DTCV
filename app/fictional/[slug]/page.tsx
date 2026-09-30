@@ -59,7 +59,7 @@ export default async function FictionalCasePage({ params }: Props) {
 
   if (locked) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-5 py-6 md:px-8 md:py-8">
+      <main className="deck-page">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
           <Link href="/fictional" className="hover:text-text">
             ← Fictional ops
@@ -101,7 +101,7 @@ export default async function FictionalCasePage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-5 py-6 md:px-8 md:py-8">
+    <main className="deck-page">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href="/fictional" className="hover:text-text">
           ← Fictional ops

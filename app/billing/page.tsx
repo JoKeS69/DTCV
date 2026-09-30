@@ -31,7 +31,7 @@ export default async function BillingPage({
   return (
     <div className="flex min-h-svh flex-col bg-bg">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 py-8 md:px-4">
+      <main className="deck-page max-w-2xl flex-1">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
           &gt; Subscription desk · DETECTIVE
         </p>

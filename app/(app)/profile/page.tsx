@@ -29,7 +29,7 @@ export default async function ProfilePage() {
     : null;
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 px-5 py-6 md:px-8 md:py-8 xl:px-10">
+    <main className="deck-page space-y-6 pb-16 md:pb-20 xl:pb-24">
       <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-dim">
         &gt; Investigator terminal
       </p>
@@ -103,23 +103,20 @@ export default async function ProfilePage() {
         </dl>
       </section>
 
-      <section className="border border-border bg-surface">
-        <header className="border-b border-border px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.16em] text-text-dim">
+      <div className="deck-actions">
+        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-dim">
           Display name
-        </header>
-        <div className="flex justify-center px-5 py-4">
-          <ProfileForm
-            action={updateProfileAction}
-            defaultDisplayName={dossier.displayName ?? dossier.username}
-          />
-        </div>
-      </section>
-
-      <form action={logoutAction} className="pt-2">
-        <button type="submit" className="auth-btn-ghost max-w-xs">
-          LOGOUT
-        </button>
-      </form>
+        </p>
+        <ProfileForm
+          action={updateProfileAction}
+          defaultDisplayName={dossier.displayName ?? dossier.username}
+        />
+        <form action={logoutAction}>
+          <button type="submit" className="deck-btn-sm">
+            LOGOUT
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

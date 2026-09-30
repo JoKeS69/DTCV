@@ -18,8 +18,8 @@ export function ProfileForm({
   const [state, formAction, pending] = useActionState(action, initial);
 
   return (
-    <form action={formAction} className="mx-auto w-full max-w-xs space-y-2 text-center">
-      <label className="auth-field mx-auto max-w-[220px]">
+    <form action={formAction} className="mx-auto flex w-full max-w-[220px] flex-col items-center gap-2 text-center">
+      <label className="auth-field w-full max-w-[220px]">
         <span className="auth-field-icon" aria-hidden>
           #
         </span>
@@ -28,7 +28,8 @@ export function ProfileForm({
           defaultValue={defaultDisplayName}
           required
           maxLength={64}
-          className="auth-input text-center text-[13px]"
+          className="auth-input text-center text-[12px]"
+          aria-label="Display name"
         />
       </label>
       {state.error ? (
@@ -37,11 +38,7 @@ export function ProfileForm({
       {state.message ? (
         <p className="font-mono text-[11px] text-online">{state.message}</p>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="auth-btn-primary mx-auto max-w-[160px] !py-2 text-[11px]"
-      >
+      <button type="submit" disabled={pending} className="deck-btn-sm deck-btn-sm--solid">
         {pending ? "SAVING…" : "SAVE →"}
       </button>
     </form>
