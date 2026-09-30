@@ -5,8 +5,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
+import { parseRegisterFormData } from "@/lib/auth/register-input";
 import { lookupEmailBlindIndex } from "@/lib/crypto/email";
 import { getPrisma } from "@/lib/db";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { generatePublicDetectiveId } from "@/lib/identity/public-id";
 import { hashPassword } from "@/lib/password";
 import {
@@ -20,20 +22,6 @@ import {
   safeCallbackPath,
 } from "@/lib/security/callback";
 import { createRawToken, hashToken } from "@/lib/tokens";
-
-const registerSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3, "Username must be at least 3 characters")
-    .max(32, "Username must be at most 32 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username: letters, numbers, underscore")
-    .transform((value) => value.toLowerCase()),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128),
-});
 
 export type AuthActionState = {
   ok: boolean;
@@ -62,40 +50,63 @@ export async function registerAction(
     };
   }
 
-  const parsed = registerSchema.safeParse({
-    username: formData.get("username"),
-    password: formData.get("password"),
-  });
-
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const parsed = parseRegisterFormData(formData);
+  if (!parsed.ok) {
+    return { ok: false, error: parsed.error };
   }
 
   const { username, password } = parsed.data;
-  // Signup collects username + password only. Email is optional in schema;
-  // leave sealed email columns null until a future profile/email-capture flow.
+  // Signup collects username + password only. Email columns are optional —
+  // omit them (null) until a future profile/email-capture flow.
   // Display name defaults to username (editable later on profile).
   const displayName = username;
   const prisma = getPrisma();
   const publicId = generatePublicDetectiveId();
 
-  const existing = await prisma.user.findUnique({ where: { username } });
-  if (existing) {
-    return { ok: false, error: "Username already registered" };
-  }
+  try {
+    // username is @unique in schema + User_username_key migration.
+    // Never call findUnique with undefined — Prisma throws KnownRequestError.
+    const existing = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+    if (existing) {
+      return { ok: false, error: "Username already registered" };
+    }
 
-  const passwordHash = await hashPassword(password);
-  await prisma.user.create({
-    data: {
-      username,
-      email: null,
-      emailEncrypted: null,
-      emailBlindIndex: null,
-      displayName,
-      passwordHash,
-      publicId,
-    },
-  });
+    const passwordHash = await hashPassword(password);
+    await prisma.user.create({
+      data: {
+        username,
+        displayName,
+        passwordHash,
+        publicId,
+        // Explicit nulls: schema allows optional email after security remediation.
+        email: null,
+        emailEncrypted: null,
+        emailBlindIndex: null,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { ok: false, error: "Username already registered" };
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.error("[auth] register prisma error", error);
+      return {
+        ok: false,
+        error:
+          "Registration failed. Ensure the database is migrated and the Prisma client is generated (npx prisma migrate deploy && npx prisma generate), then restart the app.",
+      };
+    }
+    throw error;
+  }
 
   try {
     await signIn("credentials", {
