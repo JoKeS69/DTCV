@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import type { HudMapMarker } from "@/lib/cases/hud-types";
 import { getPrisma } from "@/lib/db";
 
 export type CaseStatusCounts = {
@@ -132,6 +133,56 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
     .slice(0, 8);
 }
 
+async function loadMapMarkers(): Promise<HudMapMarker[]> {
+  const rows = await getPrisma().case.findMany({
+    where: {
+      published: true,
+      isDevStub: false,
+      latitude: { not: null },
+      longitude: { not: null },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 500,
+    select: {
+      id: true,
+      caseCode: true,
+      slug: true,
+      title: true,
+      status: true,
+      latitude: true,
+      longitude: true,
+    },
+  });
+
+  return rows.flatMap((row) => {
+    const lat = row.latitude;
+    const lng = row.longitude;
+    if (
+      lat == null ||
+      lng == null ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: row.id,
+        caseCode: row.caseCode,
+        slug: row.slug,
+        title: row.title,
+        status: row.status,
+        lat,
+        lng,
+      },
+    ];
+  });
+}
+
 export function getCaseStatsCached() {
   return unstable_cache(loadCaseStats, ["case-stats"], {
     revalidate: 60,
@@ -142,6 +193,13 @@ export function getCaseStatsCached() {
 export function getRecentActivityCached() {
   return unstable_cache(loadRecentActivity, ["case-activity"], {
     revalidate: 30,
+    tags: ["cases-public"],
+  })();
+}
+
+export function getMapMarkersCached() {
+  return unstable_cache(loadMapMarkers, ["case-map-markers"], {
+    revalidate: 60,
     tags: ["cases-public"],
   })();
 }

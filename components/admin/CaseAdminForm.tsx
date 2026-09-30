@@ -19,6 +19,8 @@ type CaseValues = {
   publicNotes: string;
   location: string;
   countryCode: string;
+  latitude: string;
+  longitude: string;
   year: string;
   type: CaseType;
   status: CaseStatus;
@@ -40,6 +42,8 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
     publicNotes: initial?.publicNotes ?? "",
     location: initial?.location ?? "",
     countryCode: initial?.countryCode ?? "",
+    latitude: initial?.latitude ?? "",
+    longitude: initial?.longitude ?? "",
     year: initial?.year ?? "",
     type: initial?.type ?? "UNKNOWN",
     status: initial?.status ?? "OPEN",
@@ -67,6 +71,10 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
             publicNotes: values.publicNotes || null,
             location: values.location || null,
             countryCode: values.countryCode || null,
+            latitude: values.latitude.trim() ? Number(values.latitude) : null,
+            longitude: values.longitude.trim()
+              ? Number(values.longitude)
+              : null,
             year: values.year ? Number(values.year) : null,
             type: values.type,
             status: values.status,
@@ -137,6 +145,26 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
             className="mt-1 w-full border border-border bg-bg px-3 py-2 font-mono text-[12px] text-text"
             value={values.countryCode}
             onChange={(e) => set("countryCode", e.target.value)}
+          />
+        </Field>
+        <Field label="Latitude (optional)">
+          <input
+            className="mt-1 w-full border border-border bg-bg px-3 py-2 font-mono text-[12px] text-text"
+            value={values.latitude}
+            onChange={(e) => set("latitude", e.target.value)}
+            inputMode="decimal"
+            placeholder="-90 to 90"
+            aria-label="Latitude"
+          />
+        </Field>
+        <Field label="Longitude (optional)">
+          <input
+            className="mt-1 w-full border border-border bg-bg px-3 py-2 font-mono text-[12px] text-text"
+            value={values.longitude}
+            onChange={(e) => set("longitude", e.target.value)}
+            inputMode="decimal"
+            placeholder="-180 to 180"
+            aria-label="Longitude"
           />
         </Field>
         <Field label="Year">

@@ -555,3 +555,41 @@ a {
   height: 1px;
   background: var(--border-strong);
 }
+
+/* GLOBAL CASES — Leaflet dark basemap chrome */
+.casenet-world-map.leaflet-container {
+  background: #050505;
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+.casenet-world-map .leaflet-control-attribution {
+  background: rgb(5 5 5 / 0.72);
+  color: var(--text-dim);
+  font-size: 10px;
+  max-width: min(100%, 280px);
+}
+.casenet-world-map .leaflet-control-attribution a {
+  color: var(--text-muted);
+}
+.casenet-world-map .leaflet-control-zoom a {
+  background: var(--surface-elevated);
+  border-color: var(--border);
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+}
+.casenet-world-map .leaflet-control-zoom a:hover {
+  background: var(--selected);
+  color: var(--text);
+}
+.casenet-world-map .leaflet-tooltip {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  padding: 4px 8px;
+}
+.casenet-world-map .leaflet-tooltip-top::before {
+  border-top-color: var(--border);
+}

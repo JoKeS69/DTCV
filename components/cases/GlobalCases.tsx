@@ -1,9 +1,15 @@
-import type { HudStats } from "@/lib/cases/hud-types";
+import type { HudMapMarker, HudStats } from "@/lib/cases/hud-types";
 import { WorldMap } from "@/components/cases/WorldMap";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 import { StatCard } from "@/components/ui/StatCard";
 
-export function GlobalCases({ stats }: { stats: HudStats }) {
+export function GlobalCases({
+  stats,
+  markers = [],
+}: {
+  stats: HudStats;
+  markers?: HudMapMarker[];
+}) {
   return (
     <Panel className="min-h-[320px]">
       <PanelHeader>
@@ -12,19 +18,34 @@ export function GlobalCases({ stats }: { stats: HudStats }) {
       </PanelHeader>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 xl:grid-cols-[1.35fr_1fr]">
         <div className="relative min-h-[220px] border-b border-border md:min-h-[240px] xl:min-h-[280px] xl:border-b-0 xl:border-r">
-          <WorldMap className="min-h-[220px] md:min-h-[240px] xl:absolute xl:inset-0 xl:min-h-0" />
-          <p className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[12px] uppercase tracking-[0.1em] text-text-dim">
+          <WorldMap
+            markers={markers}
+            className="min-h-[220px] md:min-h-[240px] xl:absolute xl:inset-0 xl:min-h-0"
+          />
+          <p className="pointer-events-none absolute bottom-4 left-4 right-4 z-[500] flex flex-wrap gap-x-4 gap-y-1 font-mono text-[12px] uppercase tracking-[0.1em] text-text-dim">
             <span>
-              <span className="text-online">●</span> Open
+              <span className="text-online" aria-hidden>
+                ●
+              </span>{" "}
+              Open
             </span>
             <span>
-              <span className="text-amber">●</span> Cold
+              <span className="text-amber" aria-hidden>
+                ●
+              </span>{" "}
+              Cold
             </span>
             <span>
-              <span className="text-unsolved">●</span> Unsolved
+              <span className="text-unsolved" aria-hidden>
+                ●
+              </span>{" "}
+              Unsolved
             </span>
             <span>
-              <span className="text-closed">●</span> Closed
+              <span className="text-closed" aria-hidden>
+                ●
+              </span>{" "}
+              Closed
             </span>
           </p>
         </div>

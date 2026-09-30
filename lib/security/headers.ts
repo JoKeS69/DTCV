@@ -38,7 +38,8 @@ export function buildContentSecurityPolicy(nonce: string): string {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    // Carto dark basemap tiles for GLOBAL CASES (Leaflet)
+    "img-src 'self' data: blob: https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com",
     "font-src 'self' data:",
     "connect-src 'self'",
     "frame-ancestors 'none'",

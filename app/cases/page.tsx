@@ -15,7 +15,11 @@ import {
   toHudStats,
 } from "@/lib/cases/hud-adapters";
 import type { HudCase } from "@/lib/cases/hud-types";
-import { getCaseStatsCached, getRecentActivityCached } from "@/lib/cases/dashboard";
+import {
+  getCaseStatsCached,
+  getMapMarkersCached,
+  getRecentActivityCached,
+} from "@/lib/cases/dashboard";
 import { listPublishedCasesCached } from "@/lib/cases/public-cache";
 import { getPrisma } from "@/lib/db";
 import type { CaseStatus, CaseType } from "@/lib/generated/prisma/client";
@@ -71,7 +75,7 @@ export default async function CasesPage({
       ? sp.sort
       : "updated";
 
-  const [list, statsBundle, activityRaw] = await Promise.all([
+  const [list, statsBundle, activityRaw, mapMarkers] = await Promise.all([
     listPublishedCasesCached({
       q: sp.q,
       type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
@@ -81,6 +85,7 @@ export default async function CasesPage({
     }),
     getCaseStatsCached(),
     getRecentActivityCached(),
+    getMapMarkersCached(),
   ]);
 
   const items: HudCase[] = list.items.map(toHudCase);
@@ -168,7 +173,7 @@ export default async function CasesPage({
         </div>
 
         <div className="grid min-h-0 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-6">
-          <GlobalCases stats={stats} />
+          <GlobalCases stats={stats} markers={mapMarkers} />
           <RecentActivity items={activity} />
           <div className="hidden min-h-0 xl:block">
             <DiscussionPanel
