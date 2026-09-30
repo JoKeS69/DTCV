@@ -556,6 +556,143 @@ a {
   background: var(--border-strong);
 }
 
+/* Auth landing — smaller, separated blocks (register / login) */
+.auth-landing .auth-brand {
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.auth-landing .auth-brand-title {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.auth-landing .auth-brand-sub {
+  margin-top: 0.4rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.26em;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.auth-landing .auth-brand-cue {
+  margin-top: 0.65rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.auth-landing .auth-stack {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.auth-landing .auth-block {
+  width: 100%;
+}
+
+.auth-landing .auth-block--cta {
+  margin-top: 0.35rem;
+}
+
+.auth-landing .auth-block--secondary {
+  margin-top: 0.05rem;
+}
+
+.auth-landing .auth-field {
+  min-height: 40px;
+  background: rgb(0 0 0 / 0.42);
+  border-color: rgb(255 255 255 / 0.12);
+}
+
+.auth-landing .auth-field-icon,
+.auth-landing .auth-field-action {
+  width: 34px;
+}
+
+.auth-landing .auth-input {
+  font-size: 14px;
+  padding: 0.55rem 0.55rem 0.55rem 0;
+  letter-spacing: 0.02em;
+}
+
+/* Keep ≥16px on narrow viewports to avoid iOS input zoom */
+@media (max-width: 420px) {
+  .auth-landing .auth-input {
+    font-size: 16px;
+  }
+}
+
+.auth-landing .auth-btn-primary,
+.auth-landing .auth-btn-ghost {
+  min-height: 40px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.auth-landing .auth-or {
+  gap: 0.55rem;
+  margin: 0.1rem 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+}
+
+.auth-landing .auth-or::before,
+.auth-landing .auth-or::after {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.auth-landing .auth-feedback {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.auth-landing .auth-feedback--error {
+  color: var(--danger, #ef4444);
+}
+
+.auth-landing .auth-feedback--ok {
+  color: var(--online, #34d399);
+}
+
+.auth-landing .auth-aux-link {
+  margin: 0.15rem 0 0;
+  text-align: center;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.auth-landing .auth-aux-link a:hover {
+  color: var(--text-muted);
+}
+
+@media (min-width: 640px) {
+  .auth-landing .auth-brand-title {
+    font-size: 1.25rem;
+    letter-spacing: 0.24em;
+  }
+}
+
 /* GLOBAL CASES — Leaflet dark basemap chrome */
 .casenet-world-map.leaflet-container {
   background: #050505;

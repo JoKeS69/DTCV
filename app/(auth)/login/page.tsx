@@ -13,14 +13,10 @@ export default async function LoginPage({
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
-        <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text md:text-[1.75rem]">
-          CASE//NET
-        </h1>
-        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.32em] text-text-muted">
-          Global Investigation Platform
-        </p>
-      </div>
+      <header className="auth-brand">
+        <h1 className="auth-brand-title">CASE//NET</h1>
+        <p className="auth-brand-sub">Global Investigation Platform</p>
+      </header>
       <LoginForm callbackUrl={params.callbackUrl} />
     </div>
   );
