@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
 /**
- * Final mockup homepage IS the command deck (cases HUD).
- * Brand: CASE//NET. See media/desktop.jpeg + mobileversion.jpeg.
+ * Entry experience: unauthenticated visitors land on signup (CASE//NET identity).
+ * Authenticated detectives continue to the cases command deck.
  */
-export default function HomePage() {
-  redirect("/cases");
+export default async function HomePage() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/cases");
+  }
+  redirect("/register");
 }

@@ -6,7 +6,7 @@ export const metadata: Metadata = privatePageMetadata("Sign up");
 
 export default function RegisterPage() {
   return (
-    <div className="w-full">
+    <div className="mx-auto flex w-full max-w-[360px] flex-col items-stretch">
       <div className="mb-8 text-center">
         <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text md:text-[1.75rem]">
           CASE//NET

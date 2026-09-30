@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
-import { lookupEmailBlindIndex, sealEmail } from "@/lib/crypto/email";
+import { lookupEmailBlindIndex } from "@/lib/crypto/email";
 import { getPrisma } from "@/lib/db";
 import { generatePublicDetectiveId } from "@/lib/identity/public-id";
 import { hashPassword } from "@/lib/password";
@@ -29,8 +29,6 @@ const registerSchema = z.object({
     .max(32, "Username must be at most 32 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Username: letters, numbers, underscore")
     .transform((value) => value.toLowerCase()),
-  email: z.string().trim().email("Valid email required").max(254),
-  displayName: z.string().trim().max(64).optional(),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -66,8 +64,6 @@ export async function registerAction(
 
   const parsed = registerSchema.safeParse({
     username: formData.get("username"),
-    email: formData.get("email"),
-    displayName: formData.get("displayName") || undefined,
     password: formData.get("password"),
   });
 
@@ -75,54 +71,31 @@ export async function registerAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { username, email, password } = parsed.data;
-  const displayName = parsed.data.displayName || username;
+  const { username, password } = parsed.data;
+  // Signup collects username + password only. Email is optional in schema;
+  // leave sealed email columns null until a future profile/email-capture flow.
+  // Display name defaults to username (editable later on profile).
+  const displayName = username;
   const prisma = getPrisma();
-  const sealed = sealEmail(email);
   const publicId = generatePublicDetectiveId();
 
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { username },
-        { emailBlindIndex: sealed.emailBlindIndex },
-        { email: email.toLowerCase() },
-      ],
-    },
-  });
+  const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) {
-    return { ok: false, error: "Username or email already registered" };
+    return { ok: false, error: "Username already registered" };
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       username,
       email: null,
-      emailEncrypted: sealed.emailEncrypted,
-      emailBlindIndex: sealed.emailBlindIndex,
+      emailEncrypted: null,
+      emailBlindIndex: null,
       displayName,
       passwordHash,
       publicId,
     },
   });
-
-  const rawVerify = createRawToken();
-  await prisma.emailVerificationToken.create({
-    data: {
-      tokenHash: hashToken(rawVerify),
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    },
-  });
-
-  const site = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const verifyUrl = `${site}/verify-email?token=${rawVerify}`;
-  if (allowDevAuthLinks()) {
-    console.info("[auth] verify placeholder link", verifyUrl);
-  } else {
-    console.info("[auth] verification token issued (email not configured)");
-  }
 
   try {
     await signIn("credentials", {
@@ -135,7 +108,6 @@ export async function registerAction(
       return {
         ok: true,
         message: "Account created. Sign in to continue.",
-        ...(allowDevAuthLinks() ? { verifyUrl } : {}),
       };
     }
     throw error;

@@ -5,12 +5,11 @@ test.describe("Auth", () => {
   test("registers a new detective and lands on profile", async ({ page }) => {
     const stamp = Date.now();
     const username = `e2e_${stamp}`;
-    const email = `e2e_${stamp}@example.com`;
 
     await page.goto("/register");
+    await expect(page.locator('input[name="email"]')).toHaveCount(0);
+    await expect(page.locator('input[name="displayName"]')).toHaveCount(0);
     await page.fill('input[name="username"]', username);
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="displayName"]', `E2E ${stamp}`);
     await page.fill('input[name="password"]', "e2e-test-pass-2026");
     await Promise.all([
       page.waitForURL(/\/profile/, { timeout: 20_000 }),
@@ -25,18 +24,18 @@ test.describe("Auth", () => {
       email: string | null;
       emailEncrypted: string | null;
       emailBlindIndex: string | null;
+      displayName: string | null;
       publicId: string | null;
     }>(
-      `SELECT email, "emailEncrypted", "emailBlindIndex", "publicId" FROM "User" WHERE username = $1`,
+      `SELECT email, "emailEncrypted", "emailBlindIndex", "displayName", "publicId" FROM "User" WHERE username = $1`,
       [username],
     );
-    // Email must be sealed — never stored plaintext for new accounts.
+    // Signup is username+password only — no sealed email until captured later.
     expect(rows[0]?.email).toBeNull();
-    expect(rows[0]?.emailEncrypted).toMatch(/^v1:/);
-    expect(rows[0]?.emailBlindIndex).toBeTruthy();
+    expect(rows[0]?.emailEncrypted).toBeNull();
+    expect(rows[0]?.emailBlindIndex).toBeNull();
+    expect(rows[0]?.displayName).toBe(username);
     expect(rows[0]?.publicId).toMatch(/^DET-/);
-    // Ciphertext must not contain the plaintext email.
-    expect(rows[0]?.emailEncrypted).not.toContain(email);
   });
 
   test("logs in with demo credentials", async ({ page }) => {
@@ -53,5 +52,15 @@ test.describe("Auth", () => {
     await expect(
       page.getByText(/invalid username or password|invalid credentials/i),
     ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("root redirects guests to register landing", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/register/);
+    await expect(
+      page.getByRole("heading", { name: /CASE\/\/NET/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/create detective identity/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /login/i })).toBeVisible();
   });
 });

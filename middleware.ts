@@ -37,7 +37,9 @@ export default auth((req) => {
     url.searchParams.set("callbackUrl", pathname);
     response = NextResponse.redirect(url);
   } else if (req.auth && (pathname === "/login" || pathname === "/register")) {
-    response = NextResponse.redirect(new URL("/profile", req.nextUrl.origin));
+    response = NextResponse.redirect(new URL("/cases", req.nextUrl.origin));
+  } else if (req.auth && pathname === "/") {
+    response = NextResponse.redirect(new URL("/cases", req.nextUrl.origin));
   } else {
     response = NextResponse.next({
       request: { headers: requestHeaders },

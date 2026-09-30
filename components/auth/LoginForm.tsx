@@ -11,7 +11,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={action} className="mx-auto w-full max-w-[360px] space-y-3">
+    <form action={action} className="w-full space-y-3">
       <input type="hidden" name="callbackUrl" value={callbackUrl || "/profile"} />
 
       <label className="auth-field">
@@ -22,6 +22,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
           name="username"
           autoComplete="username"
           placeholder="Username"
+          aria-label="Username"
           required
           minLength={3}
           className="auth-input"
@@ -37,6 +38,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
           type={showPassword ? "text" : "password"}
           autoComplete="current-password"
           placeholder="Password"
+          aria-label="Password"
           required
           minLength={8}
           className="auth-input"

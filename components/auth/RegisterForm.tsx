@@ -11,7 +11,7 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={action} className="mx-auto w-full max-w-[360px] space-y-3">
+    <form action={action} className="w-full space-y-3">
       <label className="auth-field">
         <span className="auth-field-icon" aria-hidden>
           <UserIcon />
@@ -20,36 +20,10 @@ export function RegisterForm() {
           name="username"
           autoComplete="username"
           placeholder="Username"
+          aria-label="Username"
           required
           minLength={3}
           pattern="[a-z0-9_]+"
-          className="auth-input"
-        />
-      </label>
-
-      <label className="auth-field">
-        <span className="auth-field-icon" aria-hidden>
-          <MailIcon />
-        </span>
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Email"
-          required
-          className="auth-input"
-        />
-      </label>
-
-      <label className="auth-field">
-        <span className="auth-field-icon" aria-hidden>
-          <BadgeIcon />
-        </span>
-        <input
-          name="displayName"
-          autoComplete="nickname"
-          placeholder="Display name (optional)"
-          maxLength={64}
           className="auth-input"
         />
       </label>
@@ -63,6 +37,7 @@ export function RegisterForm() {
           type={showPassword ? "text" : "password"}
           autoComplete="new-password"
           placeholder="Password"
+          aria-label="Password"
           required
           minLength={8}
           className="auth-input"
@@ -83,12 +58,9 @@ export function RegisterForm() {
         </p>
       ) : null}
 
-      {state.verifyUrl ? (
-        <p className="border border-border px-3 py-2 font-mono text-[10px] leading-relaxed tracking-[0.08em] text-text-muted">
-          EMAIL VERIFICATION PLACEHOLDER — provider not configured. Dev link:{" "}
-          <Link href={state.verifyUrl} className="text-online break-all">
-            verify email
-          </Link>
+      {state.message ? (
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-online">
+          {state.message}
         </p>
       ) : null}
 
@@ -112,24 +84,6 @@ function UserIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <circle cx="12" cy="8" r="3.5" />
       <path d="M5 19c1.5-3.5 4-5 7-5s5.5 1.5 7 5" />
-    </svg>
-  );
-}
-
-function MailIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="3" y="5" width="18" height="14" />
-      <path d="M3 7l9 7 9-7" />
-    </svg>
-  );
-}
-
-function BadgeIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 8v8M8 12h8" />
     </svg>
   );
 }
