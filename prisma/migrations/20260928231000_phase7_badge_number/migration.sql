@@ -13,6 +13,13 @@ WHERE "User".id = sub.id AND "User"."badgeNumber" IS NULL;
 ALTER TABLE "User" ALTER COLUMN "badgeNumber" SET NOT NULL;
 ALTER TABLE "User" ALTER COLUMN "badgeNumber" SET DEFAULT nextval('"User_badgeNumber_seq"');
 
-SELECT setval('"User_badgeNumber_seq"', COALESCE((SELECT MAX("badgeNumber") FROM "User"), 0));
+-- Postgres sequences start at 1; setval(..., 0) is rejected.
+-- Empty table: setval(1, false) → next nextval() returns 1.
+-- Non-empty: setval(MAX, true) → next nextval() returns MAX+1.
+SELECT setval(
+  '"User_badgeNumber_seq"',
+  GREATEST(COALESCE((SELECT MAX("badgeNumber") FROM "User"), 1), 1),
+  (SELECT COALESCE(MAX("badgeNumber"), 0) > 0 FROM "User")
+);
 
 CREATE UNIQUE INDEX IF NOT EXISTS "User_badgeNumber_key" ON "User"("badgeNumber");
