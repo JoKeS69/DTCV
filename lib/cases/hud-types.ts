@@ -19,6 +19,9 @@ export type HudCase = {
   priority: "LOW" | "MEDIUM" | "HIGH";
   assignedTo: string;
   overview: string;
+  sourceUrl?: string | null;
+  sourceAttribution?: string | null;
+  agency?: string | null;
 };
 
 export type HudDiscussion = {

@@ -152,7 +152,7 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
             value={values.type}
             onChange={(e) => set("type", e.target.value as CaseType)}
           >
-            {["DISAPPEARANCE", "HOMICIDE", "MISSING", "UNKNOWN", "OTHER"].map(
+            {["DISAPPEARANCE", "HOMICIDE", "MISSING", "WANTED", "UNIDENTIFIED", "KIDNAPPING", "SEEKING_INFORMATION", "TERRORIST", "UNKNOWN", "OTHER"].map(
               (t) => (
                 <option key={t} value={t}>
                   {t}

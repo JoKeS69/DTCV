@@ -71,17 +71,35 @@ export default async function CasesPage({
       ? sp.sort
       : "updated";
 
-  const [list, statsBundle, activityRaw] = await Promise.all([
-    listPublishedCasesCached({
-      q: sp.q,
-      type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
-      status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
-      sort,
+  let list: Awaited<ReturnType<typeof listPublishedCasesCached>>;
+  let statsBundle: Awaited<ReturnType<typeof getCaseStatsCached>>;
+  let activityRaw: Awaited<ReturnType<typeof getRecentActivityCached>>;
+  try {
+    [list, statsBundle, activityRaw] = await Promise.all([
+      listPublishedCasesCached({
+        q: sp.q,
+        type: (sp.type as CaseType | "ALL" | undefined) ?? "ALL",
+        status: (sp.status as CaseStatus | "ALL" | undefined) ?? "ALL",
+        sort,
+        page: 1,
+      }),
+      getCaseStatsCached(),
+      getRecentActivityCached(),
+    ]);
+  } catch {
+    list = {
+      items: [],
+      total: 0,
       page: 1,
-    }),
-    getCaseStatsCached(),
-    getRecentActivityCached(),
-  ]);
+      pageSize: 20,
+      totalPages: 1,
+    };
+    statsBundle = {
+      counts: { total: 0, OPEN: 0, COLD: 0, UNSOLVED: 0, CLOSED: 0 },
+      topLocations: [],
+    };
+    activityRaw = [];
+  }
 
   const items: HudCase[] = list.items.map(toHudCase);
   const selected =

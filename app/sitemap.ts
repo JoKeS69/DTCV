@@ -25,6 +25,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: absoluteUrl("/sources"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: absoluteUrl("/pricing"),
       lastModified: now,
       changeFrequency: "monthly",
@@ -41,7 +47,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const [cases, fictional] = await Promise.all([
       getPrisma().case.findMany({
-        where: { published: true, isDevStub: false },
+        where: {
+          published: true,
+          isDevStub: false,
+          isHidden: false,
+        },
         select: { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 5000,

@@ -34,6 +34,9 @@ export function toHudCase(row: {
   priority: string;
   summary?: string | null;
   publicNotes?: string | null;
+  sourceUrl?: string | null;
+  sourceAttribution?: string | null;
+  agency?: string | null;
 }): HudCase {
   return {
     id: row.id,
@@ -47,8 +50,11 @@ export function toHudCase(row: {
     updatedLabel: formatRelativeLabel(row.updatedAt),
     updatedAt: row.updatedAt.toISOString(),
     priority: (row.priority as HudCase["priority"]) || "LOW",
-    assignedTo: "N/A",
+    assignedTo: row.agency?.trim() || "N/A",
     overview: (row.summary ?? row.publicNotes ?? "").trim() || "No overview published.",
+    sourceUrl: row.sourceUrl,
+    sourceAttribution: row.sourceAttribution,
+    agency: row.agency,
   };
 }
 

@@ -133,6 +133,84 @@ export default async function CaseDetailPage({ params }: Props) {
         <p className="font-mono text-[12px] leading-relaxed text-text-muted normal-case tracking-normal">
           {caseFile.summary}
         </p>
+        {caseFile.sourceAttribution || caseFile.sourceUrl ? (
+          <p className="mt-3 font-mono text-[11px] text-text-dim normal-case tracking-normal">
+            Source:{" "}
+            {caseFile.sourceUrl ? (
+              <a
+                href={caseFile.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-cta underline-offset-2 hover:underline"
+              >
+                {caseFile.sourceAttribution ?? "Official listing"}
+              </a>
+            ) : (
+              (caseFile.sourceAttribution ?? "—")
+            )}
+            {caseFile.lastSyncedAt
+              ? ` · Synced ${formatDateTime(caseFile.lastSyncedAt)}`
+              : null}
+          </p>
+        ) : null}
+      </Section>
+
+      {Array.isArray(caseFile.images) && caseFile.images.length > 0 ? (
+        <Section title="Images">
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {(caseFile.images as { url?: string; thumb?: string; caption?: string }[]).map(
+              (img, idx) => {
+                const src = img.thumb || img.url;
+                if (!src) return null;
+                return (
+                  <li key={`${src}-${idx}`} className="border border-border/80 p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={img.caption || caseFile.title}
+                      className="max-h-64 w-full object-contain bg-bg"
+                    />
+                    {img.caption ? (
+                      <p className="mt-2 font-mono text-[10px] text-text-dim normal-case">
+                        {img.caption}
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              },
+            )}
+          </ul>
+        </Section>
+      ) : null}
+
+      <Section title="Tips">
+        <p className="font-mono text-[12px] leading-relaxed text-text-muted normal-case tracking-normal">
+          {caseFile.tipsText?.trim() ||
+            "DETECTIVE does not collect tips. Contact the official source only."}
+        </p>
+        {caseFile.sourceUrl ? (
+          <p className="mt-3">
+            <a
+              href={caseFile.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex border border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text hover:border-cta/40"
+            >
+              Open official source →
+            </a>
+          </p>
+        ) : null}
+      </Section>
+
+      <Section title="Disclaimer">
+        <p className="font-mono text-[11px] leading-relaxed text-text-dim normal-case tracking-normal">
+          Listings are republished from attributed public sources and may change
+          or be removed upstream. No guilt declarations. See{" "}
+          <Link href="/sources" className="text-cta hover:underline">
+            Sources and terms
+          </Link>
+          .
+        </p>
       </Section>
 
       <Section title="Timeline">

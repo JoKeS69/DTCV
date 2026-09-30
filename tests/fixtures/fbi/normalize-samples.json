@@ -1,0 +1,481 @@
+{
+  "capturedAt": "2026-09-30",
+  "source": "https://api.fbi.gov/wanted/v1/list",
+  "items": [
+    {
+      "uid": "c034fc96d059474f97acdbeed3dd20c9",
+      "title": "MARY VIRGINIA GARCIA WEBB - BILLINGS, MONTANA",
+      "subjects": [
+        "ViCAP Homicides and Sexual Assaults"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/vicap/homicides-and-sexual-assaults/mary-virginia-garcia-webb---billings-montana",
+      "path": "/wanted/vicap/homicides-and-sexual-assaults/mary-virginia-garcia-webb---billings-montana",
+      "aliases": null,
+      "dates_of_birth_used": null,
+      "place_of_birth": null,
+      "sex": "Female",
+      "race": "white",
+      "hair": null,
+      "eyes": null,
+      "height_min": 70,
+      "height_max": 70,
+      "weight": "135 pounds",
+      "weight_min": 135,
+      "weight_max": 135,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": "<p>On June 7, 1996, Mary Garcia Webb left her home in Wenatchee, Washington, on her way to visit family in\u00a0Conway, Arkansas. She was traveling with two known individuals when their vehicle broke down in\u00a0Livingston, Montana. Garcia continued by hitchhiking; someone came forward stating they had provided\u00a0a ride from Livingston, Montana to Billings, Montana.\u00a0 Garcia was last seen alive on June 8, 1996 off I-90, five miles south of Billings, Montana, around 4:30 p.m.\u00a0\u00a0On June 25, 1996, her body was found in Northeastern Wyoming, very close to the Montana state border.\u00a0\u00a0The victim had suffered multiple gunshot wounds and blunt force trauma.\u00a0\u00a0</p>\r\n<p><br />The Wyoming Division of Criminal Investigation is seeking information from anyone who may be able\u00a0to assist in this investigation.</p>",
+      "caution": null,
+      "description": "June 8, 1996\r\nBillings, Montana",
+      "modified": "2026-09-30T14:31:12+00:00",
+      "publication": "2026-09-30T09:26:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/vicap/homicides-and-sexual-assaults/mary-virginia-garcia-webb---billings-montana/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/vicap/homicides-and-sexual-assaults/mary-virginia-garcia-webb---billings-montana/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/vicap/homicides-and-sexual-assaults/mary-virginia-garcia-webb---billings-montana/@@images/image"
+        }
+      ],
+      "field_offices": null,
+      "reward_text": null,
+      "warning_message": null,
+      "nationality": null,
+      "age_min": 19,
+      "age_max": 19,
+      "age_range": "19 years old at time of death",
+      "race_raw": "White",
+      "hair_raw": null,
+      "eyes_raw": null,
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "98df11f3903d4ecab8940693471cbca8",
+      "title": "CARLOTTA MARIA SANCHEZ",
+      "subjects": [
+        "Kidnappings and Missing Persons",
+        "Indian Country"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez",
+      "path": "/wanted/kidnap/carlotta-maria-sanchez",
+      "aliases": null,
+      "dates_of_birth_used": [
+        "February 10, 1967"
+      ],
+      "place_of_birth": "Yuma, Arizona",
+      "sex": "Female",
+      "race": null,
+      "hair": "brown",
+      "eyes": "brown",
+      "height_min": 66,
+      "height_max": 66,
+      "weight": "112 pounds (at time of disappearance)",
+      "weight_min": 112,
+      "weight_max": 112,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": "<p>On August 30, 1979, Carlotta Maria Sanchez, accompanied by her cousin,\u00a0<a data-urltype=\"/view\" data-val=\"https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier\" href=\"https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier\" data-linktype=\"external\">Elsie Eldora Luscier</a>, disappeared from Taholah, Washington, which is in the Quinault Nation Indian Reservation.\u00a0 The FBI is seeking information about the disappearance of both girls, and about those responsible for their disappearance.</p>\r\n<p>\u00a0</p>",
+      "caution": null,
+      "description": "August 30, 1979\r\nTaholah, Washington",
+      "modified": "2026-09-30T13:38:53+00:00",
+      "publication": "2023-08-25T07:57:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/@@images/image"
+        },
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/sanchezc2.jpg/@@images/image/large",
+          "caption": "",
+          "thumb": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/sanchezc2.jpg/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez/sanchezc2.jpg"
+        }
+      ],
+      "field_offices": [
+        "seattle"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $25,000 for information leading to the recovery of Carlotta Maria Sanchez and the arrest or conviction of those responsible for her disappearance.",
+      "warning_message": null,
+      "nationality": "American",
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": null,
+      "hair_raw": "Brown",
+      "eyes_raw": "Brown",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "fca89f1133a74259b4a0f944cd238343",
+      "title": "ELSIE ELDORA LUSCIER",
+      "subjects": [
+        "Kidnappings and Missing Persons",
+        "Indian Country"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier",
+      "path": "/wanted/kidnap/elsie-eldora-luscier",
+      "aliases": null,
+      "dates_of_birth_used": [
+        "January 30, 1966"
+      ],
+      "place_of_birth": null,
+      "sex": "Female",
+      "race": null,
+      "hair": "brown",
+      "eyes": "brown",
+      "height_min": 61,
+      "height_max": 61,
+      "weight": "110 pounds (at time of disappearance)",
+      "weight_min": 110,
+      "weight_max": 110,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": "<p>On August 30, 1979, Elsie Eldora Luscier, accompanied by her cousin, <a data-urltype=\"/view\" data-val=\"https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez\" href=\"https://www.fbi.gov/wanted/kidnap/carlotta-maria-sanchez\" data-linktype=\"external\">Carlotta Maria Sanchez</a>, disappeared from Taholah, Washington, which is in the Quinault Nation Indian Reservation.\u00a0 The FBI is seeking information about the disappearance of both girls, and about those responsible for their disappearance.</p>\r\n<p>\u00a0</p>",
+      "caution": null,
+      "description": "August 30, 1979\r\nTaholah, Washington",
+      "modified": "2026-09-30T13:35:08+00:00",
+      "publication": "2023-08-25T08:05:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/@@images/image"
+        },
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/luscier2.jpg/@@images/image/large",
+          "caption": "Enhanced Image",
+          "thumb": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/luscier2.jpg/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/elsie-eldora-luscier/luscier2.jpg"
+        }
+      ],
+      "field_offices": [
+        "seattle"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $25,000 for information leading to the recovery of Elsie Eldora Luscier and the arrest or conviction of those responsible for her disappearance.",
+      "warning_message": null,
+      "nationality": null,
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": null,
+      "hair_raw": "Brown",
+      "eyes_raw": "Brown",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "e68a2cd0426f44e0965dc7f92ca95a3b",
+      "title": "TAVIS LAMAR CHENAULT",
+      "subjects": [
+        "Criminal Enterprise Investigations"
+      ],
+      "status": "captured",
+      "url": "https://www.fbi.gov/wanted/cei/tavis-lamar-chenault",
+      "path": "/wanted/cei/tavis-lamar-chenault",
+      "aliases": [
+        "\"T\" ",
+        "\"Lil T\""
+      ],
+      "dates_of_birth_used": [
+        "January 21, 2001"
+      ],
+      "place_of_birth": "Lexington, Kentucky",
+      "sex": "Male",
+      "race": "black",
+      "hair": "black",
+      "eyes": "brown",
+      "height_min": 67,
+      "height_max": 67,
+      "weight": "200 pounds",
+      "weight_min": 200,
+      "weight_max": 200,
+      "scars_and_marks": "Chenault has various tattoos on both of his arms from his hands to his shoulders.",
+      "remarks": "<p>Chenault has ties to the Lexington, Kentucky, area.</p>",
+      "details": null,
+      "caution": "<p>Tavis Lamar Chenault is wanted for his alleged involvement in\u00a0a series of drug transactions investigated by the FBI and Lexington Police (Special Investigations) within the city of Lexington, Kentucky, between August 4, 2026, through August 14, 2026.\u00a0 On August 14, 2026, a federal arrest warrant was issued for Chenault in the United States District Court, Eastern District of Kentucky, Frankfort, Kentucky, after he was charged with Conspiracy to Possess with Intent to Distribute 400 Grams or More of a Mixture or Substance Containing a Detectable Amount of Fentanyl.</p>",
+      "description": "Conspiracy to Possess with Intent to Distribute 400 Grams or More of a Mixture or Substance Containing a Detectable Amount of Fentanyl",
+      "modified": "2026-09-29T17:11:55+00:00",
+      "publication": "2026-09-09T08:31:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/cei/tavis-lamar-chenault/@@images/image/large",
+          "caption": "Photograph taken in 2026",
+          "thumb": "https://www.fbi.gov/wanted/cei/tavis-lamar-chenault/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/cei/tavis-lamar-chenault/@@images/image"
+        }
+      ],
+      "field_offices": [
+        "louisville"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $20,000 for information leading to the arrest and conviction of Tavis Lamar Chenault.",
+      "warning_message": "SHOULD BE CONSIDERED ARMED AND DANGEROUS",
+      "nationality": "American",
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": "Black",
+      "hair_raw": "Black",
+      "eyes_raw": "Brown",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "b38a849f5f9644a48e03b4153b85df97",
+      "title": "STEFANIE DAMRON",
+      "subjects": [
+        "Kidnappings and Missing Persons"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/kidnap/stefanie-damron",
+      "path": "/wanted/kidnap/stefanie-damron",
+      "aliases": null,
+      "dates_of_birth_used": [
+        "October 6, 2010"
+      ],
+      "place_of_birth": null,
+      "sex": "Female",
+      "race": "white",
+      "hair": "brown",
+      "eyes": "green",
+      "height_min": 60,
+      "height_max": 60,
+      "weight": "130 pounds",
+      "weight_min": 130,
+      "weight_max": 130,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": "<p>The FBI's Boston Field Office and the Maine State Police are requesting the public's assistance in locating Stefanie Damron, of New Sweden, Maine. She was reported missing by her family on September 24, 2024. Stefanie was last seen wearing blue jeans, a long-sleeved blue shirt, and black Harley Davidson hiking boots.\u00a0</p>\r\n<p>\u00a0</p>",
+      "caution": null,
+      "description": "September 24, 2024\r\nNew Sweden, Maine",
+      "modified": "2026-09-28T21:36:43+00:00",
+      "publication": "2024-10-01T06:48:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/@@images/image"
+        },
+        {
+          "large": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/damron3.jpg/@@images/image/large",
+          "caption": "Photograph taken in 2022",
+          "thumb": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/damron3.jpg/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/kidnap/stefanie-damron/damron3.jpg"
+        }
+      ],
+      "field_offices": [
+        "boston"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $15,000 for information leading to the safe return of Stefanie Damron and/or information leading to the arrest and prosecution of anyone involved in her disappearance.",
+      "warning_message": null,
+      "nationality": null,
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": "White",
+      "hair_raw": "Brown, Shoulder Length",
+      "eyes_raw": "Green",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "043a2834e80848099aa61394cc54f9f9",
+      "title": "JULIOUS GEORGE KHALID",
+      "subjects": [
+        "Additional Violent Crimes",
+        "Case of the Week"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/additional/julious-george-khalid",
+      "path": "/wanted/additional/julious-george-khalid",
+      "aliases": [
+        "Julious George Robles",
+        "Akeem M. Mitchell"
+      ],
+      "dates_of_birth_used": [
+        "August 1, 1988"
+      ],
+      "place_of_birth": null,
+      "sex": "Male",
+      "race": "black",
+      "hair": "black",
+      "eyes": "brown",
+      "height_min": 73,
+      "height_max": 73,
+      "weight": "180 pounds",
+      "weight_min": 180,
+      "weight_max": 180,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": null,
+      "caution": "<p>Julious George Khalid is wanted for his alleged connection to the kidnapping of a person in Atlanta, Georgia.\u00a0\u00a0On August 7, 2026, Khalid and unknown co-conspirators allegedly kidnapped a victim at gunpoint on I-20 near Panola Road.\u00a0 The victim was subsequently released after being extorted for a large sum of money.\u00a0On September 18, 2026, a\u00a0federal arrest warrant was issued for Khalid in the United States District Court, Northern District of Georgia, Atlanta, Georgia, after he was charged with Kidnapping.</p>",
+      "description": "Kidnapping",
+      "modified": "2026-09-28T21:36:17+00:00",
+      "publication": "2026-09-23T10:25:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/additional/julious-george-khalid/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/additional/julious-george-khalid/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/additional/julious-george-khalid/@@images/image"
+        }
+      ],
+      "field_offices": [
+        "atlanta"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $10,000 for information leading to the arrest and conviction of Julious George Khalid.",
+      "warning_message": null,
+      "nationality": null,
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": "Black",
+      "hair_raw": "Black",
+      "eyes_raw": "Brown",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "ee0a85adb7414de487ec6afd941efd74",
+      "title": "ARMED JEWELRY STORE ROBBERY",
+      "subjects": [
+        "Seeking Information"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery",
+      "path": "/wanted/seeking-info/armed-jewelry-store-robbery",
+      "aliases": null,
+      "dates_of_birth_used": null,
+      "place_of_birth": null,
+      "sex": null,
+      "race": null,
+      "hair": null,
+      "eyes": null,
+      "height_min": null,
+      "height_max": null,
+      "weight": null,
+      "weight_min": null,
+      "weight_max": null,
+      "scars_and_marks": null,
+      "remarks": null,
+      "details": "<p>The Federal Bureau of Investigation's Norfolk Field Office in Virginia, and the United States Postal Inspection Service, are seeking information regarding the armed robbery of the New York Jewelry Store located in the Greenbrier Mall in Chesapeake, Virginia.\u00a0 On October 9, 2025, at approximately 3:30 p.m.,\u00a0two unknown suspects robbed the store of a large amount of gold jewelry.\u00a0 During the robbery, two US Postal Mail Carriers who were in the store delivering mail were also robbed at gunpoint of personal property and their mail scanner.\u00a0 The two suspects fled on foot.</p>\r\n<p>\u00a0</p>\r\n<p>The first suspect is described as a\u00a0Black male wearing white sweatpants, a dark hoodie with a white shirt underneath, and a dark-colored hat.</p>\r\n<p>The second suspect is described as a\u00a0Black male wearing a blue sport coat and pants, a pink dress shirt, a dark-colored top hat, sunglasses, and a medical mask.</p>\r\n<p>\u00a0</p>\r\n<p>The public is encouraged to share any personal videos or photos taken at, or around, the mall near the time of the robbery. These videos and photos can be shared at <a data-urltype=\"/view\" data-val=\"https://tips.fbi.gov/digitalmedia/4267f3c4793b484\" href=\"https://tips.fbi.gov/digitalmedia/4267f3c4793b484\" data-linktype=\"external\">FBI \u2014 Seeking Information on the New York Jewelers Armed Robbery at Greenbrier Mall</a>.</p>",
+      "caution": null,
+      "description": "Unknown Suspects\r\nChesapeake, Virginia\r\nOctober 9, 2025",
+      "modified": "2026-09-28T15:01:33+00:00",
+      "publication": "2025-10-29T09:49:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/@@images/image/large",
+          "caption": "Unknown Suspect 2",
+          "thumb": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/@@images/image"
+        },
+        {
+          "large": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/norfolk2.jpg/@@images/image/large",
+          "caption": "Unknown Suspect 1",
+          "thumb": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/norfolk2.jpg/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/seeking-info/armed-jewelry-store-robbery/norfolk2.jpg"
+        }
+      ],
+      "field_offices": [
+        "richmond"
+      ],
+      "reward_text": "The FBI is offering a reward of up to $25,000 for information leading to the identification, arrest, and conviction of these unknown suspects.  Additional reward money may be available.",
+      "warning_message": "SHOULD BE CONSIDERED ARMED AND DANGEROUS",
+      "nationality": null,
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": null,
+      "hair_raw": null,
+      "eyes_raw": null,
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    },
+    {
+      "uid": "4a9ead29d24c4f6fb80a9d28a40c9bde",
+      "title": "AHMED ABDALLAH TAHA KANDIL",
+      "subjects": [
+        "Parental Kidnapping"
+      ],
+      "status": "na",
+      "url": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil",
+      "path": "/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil",
+      "aliases": [
+        "Abdalla"
+      ],
+      "dates_of_birth_used": [
+        "June 1, 1971"
+      ],
+      "place_of_birth": "Egypt",
+      "sex": "Male",
+      "race": "white",
+      "hair": "brown",
+      "eyes": "green",
+      "height_min": 72,
+      "height_max": 72,
+      "weight": "170 to 180 pounds",
+      "weight_min": 170,
+      "weight_max": 180,
+      "scars_and_marks": null,
+      "remarks": "<p>Kandil has dual United States and Egyptian citizenship.</p>",
+      "details": "<p>Ahmed Abdallah Taha\u00a0Kandil\u00a0is wanted for international parental kidnapping pursuant to an arrest warrant issued on November 21, 2014,\u00a0in\u00a0the United States\u00a0District Court, Eastern District of Virginia.\u00a0</p>\r\n<p>\u00a0</p>\r\n<p>In 2014,\u00a0Kandil\u00a0and his estranged wife each resided in James City County, Virginia,\u00a0and shared joint custody of their two children, <a data-urltype=\"/view\" data-val=\"https://www.fbi.gov/wanted/kidnap/amina-and-belel-kandil\" href=\"https://www.fbi.gov/wanted/kidnap/amina-and-belel-kandil\" data-linktype=\"external\">Amina and Belel Kandil</a>.\u00a0\u00a0On August 29, 2014,\u00a0Kandil\u00a0picked up the children from his estranged\u00a0wife\u2019s home and advised her that he was taking them to visit his sister out of town and they would return before school started.\u00a0\u00a0Instead, he and the children flew out of JFK airport in New York, to\u00a0Boryspil, Ukraine,\u00a0and then to Ataturk, Turkey,\u00a0and never returned.\u00a0 On September 5, 2014, the Circuit Court of Williamsburg\u00a0and\u00a0James City County granted the children\u2019s mother immediate sole\u00a0and\u00a0legal custody.\u00a0</p>\r\n<p>\u00a0</p>\r\n<p>Kandil\u00a0and his children\u00a0may be living in the Alexandria, Cairo or Giza areas of Egypt, or the Hatay region of Turkey.\u00a0</p>\r\n<p>\u00a0</p>",
+      "caution": null,
+      "description": "International Parental Kidnapping",
+      "modified": "2026-09-28T14:59:25+00:00",
+      "publication": "2020-03-24T12:58:00",
+      "images": [
+        {
+          "large": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/@@images/image/large",
+          "caption": null,
+          "thumb": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/@@images/image"
+        },
+        {
+          "large": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/ahmed-kandil-1.png/@@images/image/large",
+          "caption": "",
+          "thumb": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/ahmed-kandil-1.png/@@images/image/thumb",
+          "original": "https://www.fbi.gov/wanted/parental-kidnappings/ahmed-abdallah-taha-kandil/ahmed-kandil-1.png"
+        }
+      ],
+      "field_offices": [
+        "richmond"
+      ],
+      "reward_text": null,
+      "warning_message": null,
+      "nationality": "Egyptian",
+      "age_min": null,
+      "age_max": null,
+      "age_range": null,
+      "race_raw": "White",
+      "hair_raw": "Brown",
+      "eyes_raw": "Green",
+      "possible_states": null,
+      "possible_countries": null,
+      "locations": null,
+      "additional_information": null
+    }
+  ]
+}

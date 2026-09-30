@@ -24,10 +24,22 @@ async function loadCaseStats(): Promise<{
 }> {
   const prisma = getPrisma();
   const [total, byStatus, byCountry] = await Promise.all([
-    prisma.case.count({ where: { published: true, isDevStub: false } }),
+    prisma.case.count({
+      where: {
+        published: true,
+        isDevStub: false,
+        isHidden: false,
+        OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
+      },
+    }),
     prisma.case.groupBy({
       by: ["status"],
-      where: { published: true, isDevStub: false },
+      where: {
+        published: true,
+        isDevStub: false,
+        isHidden: false,
+        OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
+      },
       _count: { _all: true },
     }),
     prisma.case.groupBy({
@@ -35,6 +47,8 @@ async function loadCaseStats(): Promise<{
       where: {
         published: true,
         isDevStub: false,
+        isHidden: false,
+        OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
         countryCode: { not: null },
       },
       _count: { _all: true },
@@ -66,7 +80,12 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
   const prisma = getPrisma();
   const [cases, comments, discussions] = await Promise.all([
     prisma.case.findMany({
-      where: { published: true, isDevStub: false },
+      where: {
+        published: true,
+        isDevStub: false,
+        isHidden: false,
+        OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
+      },
       orderBy: { updatedAt: "desc" },
       take: 4,
       select: { id: true, caseCode: true, slug: true, updatedAt: true, title: true },
@@ -74,7 +93,13 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
     prisma.comment.findMany({
       where: {
         deletedAt: null,
-        discussion: { case: { published: true, isDevStub: false } },
+        discussion: {
+          case: {
+            published: true,
+            isDevStub: false,
+            isHidden: false,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 4,

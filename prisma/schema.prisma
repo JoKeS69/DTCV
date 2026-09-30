@@ -60,8 +60,41 @@ enum CaseType {
   DISAPPEARANCE
   HOMICIDE
   MISSING
+  WANTED
+  UNIDENTIFIED
+  KIDNAPPING
+  SEEKING_INFORMATION
+  TERRORIST
   UNKNOWN
   OTHER
+}
+
+/// Upstream provider for synced / imported real cases.
+enum CaseDataSource {
+  fbi
+  ncmec
+  interpol
+  namus
+  europol
+  manual
+}
+
+/// Normalized public status for sourced cases (maps onto CaseStatus for legacy filters).
+enum SourcedCaseStatus {
+  ACTIVE
+  CAPTURED
+  RECOVERED
+  DECEASED
+  REMOVED_FROM_SOURCE
+  UNKNOWN
+}
+
+enum SyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+  SKIPPED
 }
 
 enum CasePriority {
@@ -276,6 +309,34 @@ model Case {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
+  /// External data-source integration (null = legacy admin-authored).
+  source            CaseDataSource?
+  sourceId          String?
+  sourceUrl         String?
+  /// Display / legal attribution for the original poster (e.g. "FBI Wanted").
+  sourceAttribution String?
+  aliases           String[]          @default([])
+  /// Demographics blob: sex, race, ageRange, datesOfBirth, nationality, …
+  demographics      Json?
+  /// Physical description blob: hair, eyes, height, weight, scars, …
+  physical          Json?
+  lastKnown         String?
+  agency            String?
+  /// Official tip instructions from the source (no in-app tip form).
+  tipsText          String?
+  /// Image refs: [{ url, thumb?, caption? }] — NCMEC poster bodies are NOT persisted.
+  images            Json?
+  sourceCategory    String?
+  sourcedStatus     SourcedCaseStatus?
+  sourceModifiedAt  DateTime?
+  firstSeenAt       DateTime?
+  lastSyncedAt      DateTime?
+  contentHash       String?
+  /// Sync-level hide (e.g. removed_from_source). Admin hide lives in CaseAdminOverride.
+  isHidden          Boolean           @default(false)
+  /// Sanitized upstream payload for admin inspection (never NCMEC poster body as SoT).
+  rawPayload        Json?
+
   sources        CaseSource[]
   events         CaseEvent[]
   persons        CasePerson[]
@@ -283,6 +344,58 @@ model Case {
   followedBy     FollowedCase[]
   savedBy        SavedCase[]
   investigations Investigation[]
+  adminOverride  CaseAdminOverride?
+
+  @@unique([source, sourceId])
+  @@index([source, lastSyncedAt])
+  @@index([isHidden, published])
+  @@index([sourcedStatus])
+}
+
+/// Admin-only overrides — sync upserts MUST NOT write these fields.
+model CaseAdminOverride {
+  id        String   @id @default(cuid())
+  caseId    String   @unique
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  /// When true, case is hidden from public regardless of sync state.
+  hide      Boolean  @default(false)
+  note      String?
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SyncRun {
+  id             String        @id @default(cuid())
+  source         CaseDataSource
+  status         SyncRunStatus @default(RUNNING)
+  startedAt      DateTime      @default(now())
+  finishedAt     DateTime?
+  fetchedCount   Int           @default(0)
+  upsertedCount  Int           @default(0)
+  removedCount   Int           @default(0)
+  skippedCount   Int           @default(0)
+  errorCount     Int           @default(0)
+  /// Human-readable summary; never log secrets or full poster bodies.
+  message        String?
+  details        Json?
+
+  @@index([source, startedAt])
+  @@index([status, startedAt])
+}
+
+model TakedownLog {
+  id        String   @id @default(cuid())
+  caseId    String?
+  source    CaseDataSource?
+  sourceId  String?
+  reason    String
+  note      String?
+  actorId   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([caseId])
 }
 
 model CaseSource {

@@ -66,7 +66,7 @@ export function CaseDetail({
           </dd>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <dt className="shrink-0 text-text-dim">Assigned To</dt>
+          <dt className="shrink-0 text-text-dim">Agency</dt>
           <dd className="text-text">{item.assignedTo}</dd>
         </div>
         <div className="flex items-start justify-between gap-4">
@@ -75,6 +75,25 @@ export function CaseDetail({
             {item.priority.charAt(0) + item.priority.slice(1).toLowerCase()}
           </dd>
         </div>
+        {item.sourceAttribution ? (
+          <div className="flex items-start justify-between gap-4">
+            <dt className="shrink-0 text-text-dim">Source</dt>
+            <dd className="text-right text-text normal-case tracking-normal">
+              {item.sourceUrl ? (
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-cta underline-offset-2 hover:underline"
+                >
+                  {item.sourceAttribution}
+                </a>
+              ) : (
+                item.sourceAttribution
+              )}
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-5 xl:px-6">

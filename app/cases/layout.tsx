@@ -6,9 +6,16 @@ export default async function CasesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { counts } = await getCaseStatsCached();
+  let activeCaseFiles = 0;
+  try {
+    const { counts } = await getCaseStatsCached();
+    activeCaseFiles = counts.total;
+  } catch {
+    // Build / offline DB: shell still renders.
+    activeCaseFiles = 0;
+  }
   return (
-    <CommandDeckServer activeCaseFiles={counts.total}>
+    <CommandDeckServer activeCaseFiles={activeCaseFiles}>
       {children}
     </CommandDeckServer>
   );

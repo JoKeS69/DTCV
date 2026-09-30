@@ -10,6 +10,7 @@ export const primaryNav = [
 
 export const footerNav = [
   { href: "/cases", label: "Case database" },
+  { href: "/sources", label: "Sources and terms" },
   { href: "/fictional", label: "Fictional ops" },
   { href: "/fictional/rankings", label: "Rankings" },
   { href: "/pricing", label: "Pricing" },

@@ -9,6 +9,7 @@ import {
 import { AdminActionButton } from "@/components/admin/AdminActionButtons";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CaseAdminForm } from "@/components/admin/CaseAdminForm";
+import { CaseOverrideForm } from "@/components/admin/CaseOverrideForm";
 import { SourceAdminForm } from "@/components/admin/SourceAdminForm";
 import { getPrisma } from "@/lib/db";
 
@@ -22,6 +23,7 @@ export default async function AdminCaseEditPage({ params }: Props) {
     where: { id },
     include: {
       sources: { orderBy: { createdAt: "asc" } },
+      adminOverride: true,
     },
   });
   if (!caseFile) notFound();
@@ -58,6 +60,40 @@ export default async function AdminCaseEditPage({ params }: Props) {
           </Link>
         ) : null}
       </div>
+
+      <div className="mb-4">
+        <CaseOverrideForm
+          caseId={caseFile.id}
+          initialHide={caseFile.adminOverride?.hide ?? false}
+          initialNote={caseFile.adminOverride?.note ?? ""}
+        />
+      </div>
+
+      {(caseFile.source || caseFile.sourceUrl) && (
+        <section className="mb-4 border border-border bg-surface/40 px-4 py-3 font-mono text-[11px]">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-text-dim">
+            Synced source
+          </p>
+          <p className="mt-1 text-text">
+            {caseFile.source ?? "—"} / {caseFile.sourceId ?? "—"}
+          </p>
+          {caseFile.sourceUrl ? (
+            <a
+              href={caseFile.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block break-all text-cta"
+            >
+              {caseFile.sourceUrl}
+            </a>
+          ) : null}
+          {caseFile.rawPayload ? (
+            <pre className="mt-3 max-h-48 overflow-auto border border-border bg-bg p-2 text-[10px] text-text-dim">
+              {JSON.stringify(caseFile.rawPayload, null, 2)}
+            </pre>
+          ) : null}
+        </section>
+      )}
 
       <CaseAdminForm
         initial={{

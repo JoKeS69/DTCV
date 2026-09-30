@@ -12,11 +12,15 @@ export function FilterControls({
       <select name="type" defaultValue={type} className="hud-select max-w-full">
         <option value="ALL">All Types</option>
         <option value="MISSING">Missing</option>
+        <option value="WANTED">Wanted</option>
+        <option value="KIDNAPPING">Kidnapping</option>
+        <option value="UNIDENTIFIED">Unidentified</option>
+        <option value="SEEKING_INFORMATION">Seeking information</option>
+        <option value="TERRORIST">Terrorist</option>
         <option value="HOMICIDE">Homicide</option>
         <option value="DISAPPEARANCE">Disappearance</option>
         <option value="UNKNOWN">Unknown</option>
-        <option value="ACCIDENT">Accident</option>
-        <option value="THEFT">Theft</option>
+        <option value="OTHER">Other</option>
       </select>
       <select name="status" defaultValue={status} className="hud-select max-w-full">
         <option value="ALL">All Statuses</option>

@@ -24,6 +24,37 @@ Open [http://localhost:3000](http://localhost:3000).
 `npm run build` succeeds without a live database. Prisma Client is generated on
 `postinstall` / `prisma generate`. Queries require `DATABASE_URL` at runtime.
 
+
+## Data sources
+
+Real cases (wanted + missing/unidentified) are ingested through adapters behind a common interface (`lib/sources`).
+
+| Source | Status | Notes |
+| --- | --- | --- |
+| **FBI Wanted** | **Enabled (primary)** | `https://api.fbi.gov/wanted/v1/list` — no API key. Paginated hourly sync. Attribute FBI + link `sourceUrl`. |
+| **NCMEC** | Disabled until creds | Poster API live-fetch only — **do not store poster content** in DB. Requires `NCMEC_CLIENT_ID` + `NCMEC_CLIENT_SECRET`, registration with NCMEC, and AI-use disclosure. Keep NCMEC notices; no ads beside content. |
+| **INTERPOL** | **Removed** | Terms forbid reproducing wanted/missing data on other sites and bots/data mining without written permission. No adapter. |
+| **NamUs** | Disabled stub | Permission required from `namus@usdoj.gov`. No scrape. `NAMUS_ENABLED=false`. |
+| **Europol** | Manual import only | Admin CSV/JSON (`/admin/import`). No automated collection. |
+| **CIA** | Not used | No case data; Factbook retired / irrelevant. |
+
+Public terms page: [`/sources`](./app/sources/page.tsx).
+
+### Manual sync
+
+```bash
+# Cron (Vercel hourly) — Authorization: Bearer $CRON_SECRET
+curl -H "Authorization: Bearer $CRON_SECRET" "$NEXT_PUBLIC_SITE_URL/api/cron/sync-cases"
+
+# Force one source
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  "$NEXT_PUBLIC_SITE_URL/api/cron/sync-cases?force=1&source=fbi"
+
+# Or Admin → Sync → Force sync
+```
+
+Admin overrides (hide/note) live in `CaseAdminOverride` and are never overwritten by sync.
+
 ## Folder map (production architecture)
 
 | Path | Purpose |

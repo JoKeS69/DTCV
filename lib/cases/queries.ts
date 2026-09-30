@@ -24,15 +24,23 @@ export async function listPublishedCases(query: CaseListQuery) {
     published: true,
     // Dev UI fixtures must never appear as public “real” cases.
     isDevStub: false,
+    isHidden: false,
+    // Admin hide override (separate table — sync never writes it)
+    OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
   };
 
   if (query.q?.trim()) {
     const q = query.q.trim();
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { caseCode: { contains: q, mode: "insensitive" } },
-      { location: { contains: q, mode: "insensitive" } },
-      { summary: { contains: q, mode: "insensitive" } },
+    where.AND = [
+      {
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { caseCode: { contains: q, mode: "insensitive" } },
+          { location: { contains: q, mode: "insensitive" } },
+          { summary: { contains: q, mode: "insensitive" } },
+          { agency: { contains: q, mode: "insensitive" } },
+        ],
+      },
     ];
   }
 
@@ -76,6 +84,12 @@ export async function listPublishedCases(query: CaseListQuery) {
         updatedAt: true,
         lastVerifiedAt: true,
         priority: true,
+        source: true,
+        sourceUrl: true,
+        sourceAttribution: true,
+        agency: true,
+        lastSyncedAt: true,
+        images: true,
       },
     }),
   ]);
@@ -89,13 +103,21 @@ export async function listPublishedCases(query: CaseListQuery) {
   };
 }
 
+const publicCaseVisibility: Prisma.CaseWhereInput = {
+  published: true,
+  isDevStub: false,
+  isHidden: false,
+  OR: [{ adminOverride: null }, { adminOverride: { hide: false } }],
+};
+
 export async function getCaseBySlug(slug: string) {
   return getPrisma().case.findFirst({
-    where: { slug, published: true, isDevStub: false },
+    where: { slug, ...publicCaseVisibility },
     include: {
       sources: { orderBy: { createdAt: "asc" } },
       events: { orderBy: [{ sortOrder: "asc" }, { occurredAt: "asc" }] },
       persons: { orderBy: { createdAt: "asc" } },
+      adminOverride: { select: { hide: true, note: true } },
       discussions: {
         where: { status: { not: "HIDDEN" }, deletedAt: null },
         orderBy: { updatedAt: "desc" },
