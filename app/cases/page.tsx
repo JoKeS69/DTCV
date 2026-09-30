@@ -4,14 +4,12 @@ import { X } from "lucide-react";
 import { CaseDetail } from "@/components/cases/CaseDetail";
 import { CaseTable } from "@/components/cases/CaseTable";
 import { CasesToolbar } from "@/components/cases/CasesToolbar";
-import { DiscussionPanel } from "@/components/cases/DiscussionPanel";
 import { GlobalCases } from "@/components/cases/GlobalCases";
 import { RecentActivity } from "@/components/cases/RecentActivity";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 import {
   toHudActivity,
   toHudCase,
-  toHudDiscussions,
   toHudStats,
 } from "@/lib/cases/hud-adapters";
 import type { HudCase } from "@/lib/cases/hud-types";
@@ -21,7 +19,6 @@ import {
   getRecentActivityCached,
 } from "@/lib/cases/dashboard";
 import { listPublishedCasesCached } from "@/lib/cases/public-cache";
-import { getPrisma } from "@/lib/db";
 import type { CaseStatus, CaseType } from "@/lib/generated/prisma/client";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
@@ -42,27 +39,6 @@ type SearchParams = Promise<{
   select?: string;
   focus?: string;
 }>;
-
-async function loadDiscussionsForCase(caseId: string | undefined) {
-  if (!caseId) return [];
-  const rows = await getPrisma().discussion.findMany({
-    where: {
-      caseId,
-      deletedAt: null,
-      status: { not: "HIDDEN" },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 12,
-    select: {
-      id: true,
-      body: true,
-      createdAt: true,
-      author: { select: { username: true } },
-      _count: { select: { comments: true } },
-    },
-  });
-  return toHudDiscussions(rows);
-}
 
 export default async function CasesPage({
   searchParams,
@@ -114,13 +90,10 @@ export default async function CasesPage({
       (c) => c.caseCode === sp.select || c.slug === sp.select,
     ) ?? null;
 
-  const discussions = await loadDiscussionsForCase(selected?.id);
   const stats = toHudStats(statsBundle.counts, statsBundle.topLocations);
   const activity = toHudActivity(activityRaw);
 
-  const showMobileDetail =
-    Boolean(sp.select) && Boolean(selected) && sp.focus !== "discussions";
-  const showMobileDiscussion = sp.focus === "discussions" && Boolean(selected);
+  const showMobileDetail = Boolean(sp.select) && Boolean(selected);
   const showTabletDrawer = Boolean(sp.select) && Boolean(selected);
 
   const buildSelectHref = (caseCode: string) => {
@@ -144,12 +117,16 @@ export default async function CasesPage({
     return q ? `/cases?${q}` : "/cases";
   })();
 
-  const emptyDatabase = items.length === 0 && !sp.q && (!sp.type || sp.type === "ALL") && (!sp.status || sp.status === "ALL");
+  const emptyDatabase =
+    items.length === 0 &&
+    !sp.q &&
+    (!sp.type || sp.type === "ALL") &&
+    (!sp.status || sp.status === "ALL");
 
   return (
-    <main className="flex h-full min-h-0 flex-col gap-4 p-4 md:gap-5 md:p-6 xl:gap-6 xl:p-8">
-      <div className="grid min-h-0 flex-1 gap-4 md:gap-5 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-6">
-        <div className="grid min-h-0 gap-4 md:gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-6">
+    <main className="flex h-full min-h-0 flex-col gap-5 p-5 md:gap-6 md:p-6 xl:gap-8 xl:p-8">
+      <div className="grid min-h-0 flex-1 gap-5 md:gap-6 xl:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] xl:gap-8">
+        <div className="grid min-h-0 gap-5 md:gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] xl:gap-8">
           <Panel id="case-database" className="min-h-[420px] xl:min-h-0">
             <PanelHeader className="text-[13px] text-text-muted md:text-[13px]">
               <span className="md:hidden">&gt; CASES</span>
@@ -192,26 +169,14 @@ export default async function CasesPage({
           </div>
         </div>
 
-        <div className="grid min-h-0 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-6">
+        <div className="grid min-h-0 gap-5 md:grid-cols-2 md:gap-6 xl:gap-8">
           <GlobalCases stats={stats} markers={mapMarkers} />
           <RecentActivity items={activity} />
-          <div className="hidden min-h-0 xl:block">
-            <DiscussionPanel
-              caseCode={selected?.caseCode ?? null}
-              discussions={discussions}
-            />
-          </div>
-          <div className="hidden md:col-span-2 md:block xl:hidden">
-            <DiscussionPanel
-              caseCode={selected?.caseCode ?? null}
-              discussions={discussions}
-            />
-          </div>
         </div>
       </div>
 
       {showTabletDrawer && selected ? (
-        <div className="fixed inset-y-0 right-0 z-40 hidden w-[min(420px,46vw)] border-l border-border bg-bg shadow-2xl md:block xl:hidden">
+        <div className="fixed inset-y-3 right-3 z-40 hidden w-[min(420px,46vw)] border border-border bg-bg shadow-2xl md:block xl:hidden">
           <div className="flex h-14 items-center justify-between border-b border-border px-4">
             <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
               Case detail
@@ -231,7 +196,7 @@ export default async function CasesPage({
       ) : null}
 
       {showMobileDetail && selected ? (
-        <div className="fixed inset-0 z-50 bg-bg/95 p-4 pt-4 backdrop-blur-sm md:hidden">
+        <div className="fixed inset-3 z-50 border border-border bg-bg/95 p-4 backdrop-blur-sm md:hidden">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
               Case detail
@@ -246,30 +211,6 @@ export default async function CasesPage({
           </div>
           <div className="h-[calc(100%-3.5rem)] overflow-y-auto pb-20">
             <CaseDetail item={selected} sheet />
-          </div>
-        </div>
-      ) : null}
-
-      {showMobileDiscussion && selected ? (
-        <div className="fixed inset-0 z-50 bg-bg/95 p-4 backdrop-blur-sm md:hidden">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
-              Discussion
-            </p>
-            <Link
-              href={closeSheetHref}
-              className="inline-flex size-10 items-center justify-center rounded-[6px] border border-border text-text-muted"
-              aria-label="Close discussion"
-            >
-              <X className="size-4" strokeWidth={1.5} />
-            </Link>
-          </div>
-          <div className="h-[calc(100%-3.5rem)] overflow-y-auto pb-20">
-            <DiscussionPanel
-              caseCode={selected.caseCode}
-              discussions={discussions}
-              sheet
-            />
           </div>
         </div>
       ) : null}

@@ -26,16 +26,16 @@ export function CommandDeckShell({
     <div className="flex h-svh flex-col overflow-hidden bg-bg">
       <Suspense
         fallback={
-          <div className="h-[7.5rem] shrink-0 border-b border-border md:h-[8.5rem]" />
+          <div className="h-14 shrink-0 border-b border-border md:h-[3.75rem]" />
         }
       >
         <CommandDeckTopNav user={user} />
       </Suspense>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+12px)] md:pb-0">
+        <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+16px)] md:pb-0">
           {children}
         </div>
-        <footer className="hidden h-9 shrink-0 items-center justify-between border-t border-border bg-surface/50 px-5 font-mono text-[12px] uppercase tracking-[0.1em] md:flex xl:px-6">
+        <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-border bg-surface/50 px-5 font-mono text-[12px] uppercase tracking-[0.1em] md:flex xl:px-8">
           <p className="truncate text-online">
             <span className="text-text-dim">&gt; </span>
             SYSTEM MESSAGE: DATABASE CONNECTION SECURE // {countLabel}

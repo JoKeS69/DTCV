@@ -43,7 +43,8 @@
   --danger: #b33a3a;
   --selected: #1a2228;
   --panel-pad: 16px;
-  --panel-gap: 16px;
+  --panel-gap: 20px;
+  --page-inset: 20px;
   --row-h: 54px;
   --sidebar-w: 252px;
   --sidebar-rail: 72px;
@@ -56,13 +57,15 @@
 @media (min-width: 768px) {
   :root {
     --panel-pad: 24px;
-    --panel-gap: 20px;
+    --panel-gap: 24px;
+    --page-inset: 24px;
   }
 }
 
 @media (min-width: 1280px) {
   :root {
-    --panel-gap: 24px;
+    --panel-gap: 32px;
+    --page-inset: 32px;
   }
 }
 

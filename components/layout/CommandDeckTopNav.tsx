@@ -68,56 +68,28 @@ function isActive(label: string, pathname: string, focus: string | null) {
   }
 }
 
-function UserIdentity({
+function UserChip({
   user,
-  compact = false,
 }: {
-  user: NonNullable<DeckUser> | {
+  user: {
     displayName: string;
     publicId: string;
     rankLabel: string;
     status: "ACTIVE" | "SUSPENDED" | "GUEST";
   };
-  compact?: boolean;
 }) {
   const statusClass =
     user.status === "ACTIVE" ? "text-online" : "text-text-muted";
 
-  if (compact) {
-    return (
-      <div className="min-w-0 font-mono text-[11px] uppercase tracking-[0.1em]">
-        <p className="truncate text-text">{user.displayName}</p>
-        <p className="mt-0.5 truncate text-text-dim">
-          {user.publicId}
-          <span className="mx-1.5 text-border-strong">·</span>
-          {user.rankLabel}
-          <span className="mx-1.5 text-border-strong">·</span>
-          <span className={statusClass}>{user.status}</span>
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-w-0 font-mono uppercase tracking-[0.08em]">
-      <p className="text-[11px] tracking-[0.18em] text-text-dim">User</p>
-      <p className="mt-1 text-[13px] text-text">{user.displayName}</p>
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-text-muted">
-        <span>
-          <span className="text-text-dim">ID: </span>
-          {user.publicId}
-        </span>
-        <span>
-          <span className="text-text-dim">RANK: </span>
-          {user.rankLabel}
-        </span>
-        <span>
-          <span className="text-text-dim">STATUS: </span>
-          <span className={statusClass}>{user.status}</span>
-        </span>
-      </div>
-      <p className="mt-2 text-[11px] tracking-[0.12em] text-text-dim">
-        {designTokens.manifesto.join(" ")}
+      <p className="truncate text-[12px] text-text">{user.displayName}</p>
+      <p className="mt-0.5 truncate text-[11px] text-text-dim">
+        {user.publicId}
+        <span className="mx-1.5 text-border-strong">·</span>
+        {user.rankLabel}
+        <span className="mx-1.5 text-border-strong">·</span>
+        <span className={statusClass}>{user.status}</span>
       </p>
     </div>
   );
@@ -155,7 +127,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
   const navLinkClass = (active: boolean) =>
     [
-      "inline-flex items-center gap-2 rounded-[6px] px-3.5 py-2.5 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
+      "inline-flex items-center gap-2 rounded-[6px] px-3 py-2 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
       active
         ? "bg-selected text-text"
         : "text-text-muted hover:bg-surface-elevated hover:text-text",
@@ -164,45 +136,24 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
   return (
     <>
       <header className="shrink-0 border-b border-border bg-bg/95 backdrop-blur-sm">
-        {/* Desktop / tablet top bar */}
-        <div className="hidden md:block">
-          <div className="flex items-start justify-between gap-6 px-5 py-3 xl:px-6 xl:py-4">
-            <div className="flex min-w-0 flex-1 items-start gap-8 xl:gap-10">
-              <Link href="/cases" className="shrink-0 pt-0.5">
-                <span className="block font-mono text-[15px] font-semibold tracking-[0.12em] text-text xl:text-[16px]">
-                  {designTokens.brand}
-                </span>
-                <span className="mt-1 block font-mono text-[11px] uppercase tracking-[0.1em] text-text-muted">
-                  {designTokens.tagline}
-                </span>
-              </Link>
-              <UserIdentity user={guestUser} />
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-1.5 pt-0.5">
-              <span className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted">
-                SYSTEM: ONLINE
-                <span className="size-2 rounded-full bg-online motion-pulse-online" />
-              </span>
-              <time
-                className="font-mono text-[12px] tracking-[0.12em] text-text-dim"
-                suppressHydrationWarning
-              >
-                {clock || "—"}
-              </time>
-              {!user ? (
-                <Link
-                  href="/login"
-                  className="mt-1 font-mono text-[12px] uppercase tracking-[0.12em] text-text-muted hover:text-text"
-                >
-                  Login →
-                </Link>
-              ) : null}
+        {/* Desktop / tablet — single topmost nav row */}
+        <div className="relative hidden items-center gap-4 px-5 py-3 md:flex xl:gap-6 xl:px-8 xl:py-3.5">
+          <div className="z-10 flex min-w-0 max-w-[34%] shrink items-center gap-3">
+            <Link
+              href="/cases"
+              className="shrink-0 font-mono text-[13px] font-semibold tracking-[0.12em] text-text"
+            >
+              {designTokens.brand}
+            </Link>
+            <span className="hidden h-6 w-px bg-border lg:block" aria-hidden />
+            <div className="hidden min-w-0 lg:block">
+              <UserChip user={guestUser} />
             </div>
           </div>
 
           <nav
             aria-label="Main terminal"
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border px-4 py-2.5 xl:gap-x-5 xl:px-6"
+            className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-wrap items-center justify-center gap-x-2 gap-y-1 xl:gap-x-4"
           >
             {primaryNav.map((item) => {
               const active = isActive(item.label, pathname, focus);
@@ -229,14 +180,35 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
               );
             })}
           </nav>
+
+          <div className="z-10 ml-auto flex shrink-0 flex-col items-end gap-1">
+            <span className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">
+              ONLINE
+              <span className="size-2 rounded-full bg-online motion-pulse-online" />
+            </span>
+            <time
+              className="font-mono text-[11px] tracking-[0.1em] text-text-dim"
+              suppressHydrationWarning
+            >
+              {clock || "—"}
+            </time>
+            {!user ? (
+              <Link
+                href="/login"
+                className="font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted hover:text-text"
+              >
+                Login →
+              </Link>
+            ) : null}
+          </div>
         </div>
 
-        {/* Mobile top bar */}
-        <div className="flex items-start justify-between gap-3 px-4 py-3 md:hidden">
-          <div className="flex min-w-0 items-start gap-3">
+        {/* Mobile — topmost bar only */}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 md:hidden">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               onClick={() => setMenuOpen((v) => !v)}
@@ -247,33 +219,17 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                 <Menu className="size-5" strokeWidth={1.5} aria-hidden />
               )}
             </button>
-            <div className="min-w-0 pt-1">
-              <Link href="/cases" className="block">
-                <span className="block font-mono text-[16px] font-semibold tracking-[0.12em] text-text">
-                  {designTokens.brand}
-                </span>
-              </Link>
-              <div className="mt-2">
-                <UserIdentity user={guestUser} compact />
-              </div>
-            </div>
+            <UserChip user={guestUser} />
           </div>
-          <div className="shrink-0 pt-1 text-right">
+          <div className="shrink-0 text-right">
             <p className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-text-muted">
               <span className="size-2 rounded-full bg-online motion-pulse-online" />
               ONLINE
             </p>
-            <time
-              className="mt-1 block font-mono text-[11px] tracking-[0.08em] text-text-dim"
-              suppressHydrationWarning
-            >
-              {clock || "—"}
-            </time>
           </div>
         </div>
       </header>
 
-      {/* Mobile collapse panel */}
       {menuOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
@@ -282,9 +238,17 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             aria-label="Close menu overlay"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="relative z-10 flex max-h-[85vh] w-full flex-col border-b border-border bg-bg shadow-2xl">
+          <div className="relative z-10 mx-3 mt-3 flex max-h-[85vh] flex-col rounded-[6px] border border-border bg-bg shadow-2xl">
             <div className="border-b border-border px-4 py-4">
-              <UserIdentity user={guestUser} />
+              <p className="font-mono text-[13px] font-semibold tracking-[0.12em] text-text">
+                {designTokens.brand}
+              </p>
+              <div className="mt-3">
+                <UserChip user={guestUser} />
+              </div>
+              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim">
+                {designTokens.manifesto.join(" ")}
+              </p>
               {!user ? (
                 <Link
                   href="/login"

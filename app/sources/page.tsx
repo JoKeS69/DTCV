@@ -68,7 +68,7 @@ const sources = [
 
 export default function SourcesPage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
+    <main className="mx-auto w-full max-w-6xl px-5 py-8 md:px-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href="/cases" className="hover:text-text">
           ← Case database

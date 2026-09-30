@@ -13,21 +13,26 @@ export function RegisterForm() {
   return (
     <form action={action} className="auth-stack">
       <div className="auth-block">
-        <label className="auth-field">
-          <span className="auth-field-icon" aria-hidden>
-            <UserIcon />
+        <div className="flex items-center gap-2">
+          <label className="auth-field min-w-0 flex-1">
+            <span className="auth-field-icon" aria-hidden>
+              <UserIcon />
+            </span>
+            <input
+              name="username"
+              autoComplete="username"
+              placeholder="Username"
+              aria-label="Username"
+              required
+              minLength={3}
+              pattern="[a-z0-9_]+"
+              className="auth-input"
+            />
+          </label>
+          <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-text-dim normal-case">
+            No real names..
           </span>
-          <input
-            name="username"
-            autoComplete="username"
-            placeholder="Username"
-            aria-label="Username"
-            required
-            minLength={3}
-            pattern="[a-z0-9_]+"
-            className="auth-input"
-          />
-        </label>
+        </div>
       </div>
 
       <div className="auth-block">
