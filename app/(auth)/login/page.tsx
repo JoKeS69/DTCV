@@ -12,7 +12,7 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <div className="mx-auto flex w-full max-w-[360px] flex-col items-stretch">
+    <div className="w-full">
       <div className="mb-8 text-center">
         <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text md:text-[1.75rem]">
           CASE//NET

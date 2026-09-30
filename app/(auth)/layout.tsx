@@ -11,7 +11,9 @@ export default function AuthLayout({
       <HudMapBackground />
       <AuthHudChrome />
       <div className="relative z-10 flex min-h-svh items-center justify-center px-4 py-24">
-        {children}
+        <div className="flex w-full max-w-[360px] flex-col items-stretch">
+          {children}
+        </div>
       </div>
     </div>
   );
