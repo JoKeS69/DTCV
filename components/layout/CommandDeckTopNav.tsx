@@ -155,7 +155,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
   const navLinkClass = (active: boolean) =>
     [
-      "inline-flex items-center gap-2 rounded-[6px] px-3 py-2 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
+      "inline-flex items-center gap-2 rounded-[6px] px-3.5 py-2.5 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
       active
         ? "bg-selected text-text"
         : "text-text-muted hover:bg-surface-elevated hover:text-text",
@@ -202,7 +202,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
           <nav
             aria-label="Main terminal"
-            className="flex flex-wrap items-center gap-x-1 gap-y-1 border-t border-border px-4 py-2 xl:gap-x-2 xl:px-5"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border px-4 py-2.5 xl:gap-x-5 xl:px-6"
           >
             {primaryNav.map((item) => {
               const active = isActive(item.label, pathname, focus);
