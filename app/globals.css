@@ -147,6 +147,46 @@ a {
   }
 }
 
+@keyframes casenet-map-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-1.2%, 0.8%, 0) scale(1.02);
+  }
+}
+
+@keyframes casenet-scan-sweep {
+  0% {
+    transform: translate3d(0, -20%, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.55;
+  }
+  45% {
+    opacity: 0.35;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 120%, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes casenet-node-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 @keyframes casenet-sheet-in {
   from {
     opacity: 0;
@@ -183,6 +223,128 @@ a {
   animation: casenet-sheet-in var(--duration) var(--ease) both;
 }
 
+/* ── CASE//NET atmosphere (site / auth backdrop) ── */
+.casenet-atmosphere {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #07090b;
+  color: #5c6a76;
+}
+
+.casenet-atmosphere--local {
+  position: absolute;
+}
+
+.casenet-atmosphere--auth {
+  background: #050505;
+  color: #6b7280;
+}
+
+.casenet-atmosphere__grid {
+  position: absolute;
+  inset: -10%;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.55;
+  animation: casenet-grid-drift 90s linear infinite;
+  will-change: background-position;
+}
+
+.casenet-atmosphere--auth .casenet-atmosphere__grid {
+  opacity: 0.85;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  animation-duration: 80s;
+}
+
+.casenet-atmosphere__map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.14;
+}
+
+.casenet-atmosphere--auth .casenet-atmosphere__map {
+  opacity: 0.22;
+}
+
+.casenet-atmosphere__map-drift {
+  transform-origin: 50% 45%;
+  animation: casenet-map-float 48s ease-in-out infinite;
+  will-change: transform;
+}
+
+.casenet-atmosphere__map-labels {
+  opacity: 0.35;
+}
+
+.casenet-atmosphere__nodes {
+  color: #4ade80;
+  animation: casenet-node-pulse 5.5s ease-in-out infinite;
+}
+
+.casenet-atmosphere__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 18%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgb(138 153 173 / 0.05) 45%,
+    rgb(74 222 128 / 0.04) 50%,
+    rgb(138 153 173 / 0.03) 55%,
+    transparent 100%
+  );
+  animation: casenet-scan-sweep 22s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.casenet-atmosphere--auth .casenet-atmosphere__scan {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgb(138 153 173 / 0.07) 45%,
+    rgb(74 222 128 / 0.05) 50%,
+    rgb(138 153 173 / 0.04) 55%,
+    transparent 100%
+  );
+}
+
+.casenet-atmosphere__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 28%, rgb(0 0 0 / 0.72) 100%),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.4) 0%,
+      transparent 18%,
+      transparent 82%,
+      rgb(0 0 0 / 0.5) 100%
+    );
+}
+
+.casenet-atmosphere--auth .casenet-atmosphere__vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgb(0 0 0 / 0.75) 100%),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.35) 0%,
+      transparent 20%,
+      transparent 80%,
+      rgb(0 0 0 / 0.45) 100%
+    );
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-fade-up,
   .motion-fade-up-delay-1,
@@ -191,8 +353,17 @@ a {
   .motion-pulse-online,
   .motion-cursor-blink,
   .motion-grid-drift,
-  .motion-sheet-in {
+  .motion-sheet-in,
+  .casenet-atmosphere__grid,
+  .casenet-atmosphere__map-drift,
+  .casenet-atmosphere__scan,
+  .casenet-atmosphere__nodes,
+  .auth-map-grid {
     animation: none !important;
+  }
+
+  .casenet-atmosphere__scan {
+    opacity: 0 !important;
   }
 
   *,

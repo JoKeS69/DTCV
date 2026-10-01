@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { logoutAction, updateProfileAction } from "@/app/actions/auth";
-import { ProfileForm } from "@/components/auth/ProfileForm";
+import { logoutAction } from "@/app/actions/auth";
 import { AchievementsGrid } from "@/components/progression/AchievementsGrid";
 import { DetectiveIdentityCard } from "@/components/progression/DetectiveIdentityCard";
 import { InvestigationHistory } from "@/components/progression/InvestigationHistory";
@@ -104,13 +103,6 @@ export default async function ProfilePage() {
       </section>
 
       <div className="deck-actions">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-dim">
-          Display name
-        </p>
-        <ProfileForm
-          action={updateProfileAction}
-          defaultDisplayName={dossier.displayName ?? dossier.username}
-        />
         <form action={logoutAction}>
           <button type="submit" className="deck-btn-sm">
             LOGOUT
