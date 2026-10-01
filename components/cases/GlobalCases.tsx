@@ -22,7 +22,7 @@ export function GlobalCases({
             markers={markers}
             className="min-h-[120px] md:min-h-[130px] xl:absolute xl:inset-0 xl:min-h-0"
           />
-          <p className="pointer-events-none absolute bottom-2 left-3 right-3 z-[500] flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-text-dim">
+          <p className="pointer-events-none absolute bottom-2 left-3 z-[500] flex max-w-[90%] flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-text-dim">
             <span>
               <span className="text-online" aria-hidden>
                 ●

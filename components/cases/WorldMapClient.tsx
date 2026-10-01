@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import {
   CircleMarker,
@@ -21,8 +22,6 @@ const STATUS_COLOR: Record<HudCaseStatus, string> = {
 
 const DARK_TILES =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
-const TILE_ATTR =
-  "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ";
 
 function MapResizeGuard() {
   const map = useMap();
@@ -92,10 +91,11 @@ export function WorldMapClient({
         scrollWheelZoom={false}
         worldCopyJump
         className="casenet-world-map absolute inset-0 z-0 h-full w-full bg-[#050505]"
-        attributionControl
+        attributionControl={false}
         zoomControl
       >
-        <TileLayer attribution={TILE_ATTR} url={DARK_TILES} />
+        <TileLayer attribution="" url={DARK_TILES} />
+
         <MapResizeGuard />
         <FitMarkers markers={safeMarkers} />
         {safeMarkers.map((m) => {
@@ -138,6 +138,12 @@ export function WorldMapClient({
           No geolocated cases yet
         </p>
       ) : null}
+
+      <p className="pointer-events-none absolute right-2 top-2 z-[450] max-w-[55%] text-right font-mono text-[9px] uppercase leading-snug tracking-[0.08em] text-text-dim/70">
+        <Link href="/sources" className="pointer-events-auto text-text-dim/80 hover:text-text-muted">
+          Map © Esri · Leaflet
+        </Link>
+      </p>
 
       {/* Visually hidden keyboard list for markers (CircleMarkers are pointer-first) */}
       {safeMarkers.length > 0 ? (

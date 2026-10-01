@@ -950,14 +950,9 @@ a {
   background: #050505;
   font-family: var(--font-mono), ui-monospace, monospace;
 }
+/* Hide Leaflet default attribution (credit lives on /sources + tiny map caption). */
 .casenet-world-map .leaflet-control-attribution {
-  background: rgb(5 5 5 / 0.72);
-  color: var(--text-dim);
-  font-size: 10px;
-  max-width: min(100%, 280px);
-}
-.casenet-world-map .leaflet-control-attribution a {
-  color: var(--text-muted);
+  display: none !important;
 }
 .casenet-world-map .leaflet-control-zoom a {
   background: var(--surface-elevated);

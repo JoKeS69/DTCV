@@ -145,6 +145,32 @@ export default function SourcesPage() {
           </section>
         ))}
       </div>
+
+      <footer className="mt-8 border-t border-border pt-5 font-mono text-[11px] text-text-dim">
+        <p className="uppercase tracking-[0.14em]">Map basemap</p>
+        <p className="mt-2 normal-case tracking-normal leading-relaxed text-text-muted">
+          GLOBAL CASES uses{" "}
+          <a
+            href="https://leafletjs.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-cta underline-offset-2 hover:underline"
+          >
+            Leaflet
+          </a>{" "}
+          with Esri World Dark Gray Base tiles. Map tiles © Esri — Esri,
+          DeLorme, NAVTEQ. Full tile service:{" "}
+          <a
+            href="https://www.arcgis.com/home/item.html?id=a28196e4d4b049b594c1edd55d7eae76"
+            target="_blank"
+            rel="noreferrer"
+            className="break-all text-cta underline-offset-2 hover:underline"
+          >
+            Esri Canvas / World Dark Gray Base
+          </a>
+          .
+        </p>
+      </footer>
     </main>
   );
 }
