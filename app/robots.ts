@@ -14,6 +14,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin",
           "/admin/",
+          "/pb-case",
+          "/pb-case/",
           "/api/",
           "/billing",
           "/billing/",
