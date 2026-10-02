@@ -56,10 +56,14 @@ export default async function PbCaseDetailPage({
           <h2 className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim">
             Research
           </h2>
+          <p className="mt-1 font-mono text-[10px] text-text-dim">
+            Queues a job in the cases DB. The external Python worker polls and
+            runs LLM/search — keys stay off this web app. Never publishes.
+          </p>
           <div className="mt-2">
             <ResearchButton caseId={caseFile.id} />
           </div>
-            <ul className="mt-3 space-y-1 font-mono text-[10px] text-text-muted">
+          <ul className="mt-3 space-y-1 font-mono text-[10px] text-text-muted">
             {caseFile.researchRuns.map((r) => (
               <li key={r.id}>
                 {r.status} · steps {r.stepsUsed} · pages {r.pagesFetched} · cost{" "}

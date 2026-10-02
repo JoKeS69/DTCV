@@ -81,8 +81,8 @@ describe("extract schema", () => {
   });
 });
 
-describe("openai / brave env wiring", () => {
-  it("maps model roles to OPENAI_MODEL_* env keys", () => {
+describe("openai / brave env wiring (worker-only keys documented)", () => {
+  it("maps model roles to OPENAI_MODEL_* env keys for worker docs", () => {
     expect(openAiModelEnvKey("extract")).toBe("OPENAI_MODEL_EXTRACT");
     expect(openAiModelEnvKey("verify")).toBe("OPENAI_MODEL_VERIFY");
     expect(openAiModelEnvKey("light")).toBe("OPENAI_MODEL_LIGHT");
@@ -112,11 +112,10 @@ describe("legal policy version", () => {
   });
 });
 
-describe("research agent never publishes", () => {
-  it("pipeline module documents pending_review terminal state", async () => {
+describe("research control plane never publishes / never LLMs", () => {
+  it("exports queueCaseResearch and does not export publish", async () => {
     const src = await import("@/lib/research/pipeline");
-    expect(typeof src.runCaseResearch).toBe("function");
-    // Static guarantee: publish is not exported from pipeline.
+    expect(typeof src.queueCaseResearch).toBe("function");
     expect(
       Object.keys(src).includes("publishCase") ||
         Object.keys(src).includes("publish"),

@@ -36,6 +36,13 @@ yarn-debug.log*
 .env
 .env.*
 !.env.example
+!research-worker/.env.example
+
+# python research worker local venv / caches
+research-worker/.venv/
+research-worker/**/__pycache__/
+research-worker/**/*.egg-info/
+research-worker/.pytest_cache/
 
 # vercel
 .vercel

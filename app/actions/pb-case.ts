@@ -9,7 +9,7 @@ import {
   assertCanEnableWorldDomination,
   WORLD_DOMINATION_MAX,
 } from "@/lib/pb-case/world-domination";
-import { runCaseResearch } from "@/lib/research/pipeline";
+import { queueCaseResearch } from "@/lib/research/pipeline";
 
 function slugify(title: string): string {
   return title
@@ -58,11 +58,16 @@ export async function createCaseAction(formData: FormData) {
   return { ok: true as const, id: created.id };
 }
 
+/**
+ * Admin-only: queue a research job in the cases DB.
+ * External Python worker polls `research_runs` (status=queued).
+ * Web app never calls OpenAI / Brave.
+ */
 export async function startResearchAction(caseId: string) {
   const gate = await requirePbCaseAdminAction();
   if (!gate.ok) return { ok: false as const, error: gate.error };
 
-  const result = await runCaseResearch({
+  const result = await queueCaseResearch({
     caseId,
     actor: gate.admin.username,
   });

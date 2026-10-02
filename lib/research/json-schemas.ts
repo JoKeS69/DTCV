@@ -1,6 +1,7 @@
 /**
- * OpenAI structured-output JSON Schemas (strict mode).
- * Kept in sync with zod validators in schema.ts.
+ * OpenAI structured-output JSON Schemas — reference copy for docs/tests.
+ * Authoritative live schemas live in research-worker/research_worker/schema.py.
+ * Next.js does not call OpenAI.
  */
 
 export const EXTRACT_JSON_SCHEMA = {

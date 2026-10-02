@@ -13,7 +13,7 @@ function authorize(req: Request): boolean {
   return (req.headers.get("x-cron-secret") ?? "") === secret;
 }
 
-/** TRENDING_CRON — candidates only; no deep research/publish. */
+/** Trending cron stub — LLM/search runs on python research-worker, not Next.js. */
 export async function GET(req: Request) {
   if (!authorize(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

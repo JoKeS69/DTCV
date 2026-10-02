@@ -74,23 +74,37 @@ Admin overrides (hide/note) live in `CaseAdminOverride` and are never overwritte
 | `app/pb-case/` | Admin research desk (username `abed` only → else 404) |
 | `app/research-cases/` | Published research case files (consent + 18+) |
 | `app/legal/` | Terms, Privacy, Disclaimer, Copyright, AUP, Cookies |
-| `lib/research/` | Research agent pipeline (never publishes) |
+| `lib/research/` | Control plane: queue research jobs (LLM runs in `research-worker/`) |
+| `research-worker/` | External Python worker (OpenAI + Brave; polls cases DB) |
 
-## Case research agent (`/pb-case`)
+## Case research agent (`/pb-case` + `research-worker/`)
 
 Dedicated **cases database** (`CASES_DATABASE_URL`) separate from the main site DB.
 The research agent writes only to the cases DB — never users/auth/settings.
 
-### Providers
+### Security model (confirmed)
 
-- **LLM:** OpenAI official SDK — `OPENAI_API_KEY` (gitignored `.env.local` only)
-- **Models (env only, no hardcoded names in code):**
-  - `OPENAI_MODEL_EXTRACT` — claim extraction
-  - `OPENAI_MODEL_VERIFY` — verification (use your strongest model name here)
-  - `OPENAI_MODEL_LIGHT` — cheap trending scoring
+1. **Worker is not on the public website** — no public HTTP API; worker **polls** `research_runs` with `status=queued`.
+2. **Only the worker holds** `OPENAI_API_KEY` / Brave keys. Next.js never calls OpenAI and never exposes the worker.
+3. **Worker DB:** cases DB only, restricted role — cannot touch main auth/users DB.
+4. **Admin-on-command:** `/pb-case` queues a DB job; end-users cannot trigger or talk to the agent.
+
+### Architecture
+
+| Layer | Role |
+| --- | --- |
+| Next.js / PB CASE | Control plane: admin queues jobs, monitors run status from DB |
+| `research-worker/` (Python) | Holds keys; polls DB; plan→search→extract→verify→assemble → `pending_review` |
+
+### Providers (worker-only — see `research-worker/.env.example`)
+
+- **LLM:** OpenAI official Python SDK — `OPENAI_API_KEY`
+- **Models (env only):** `OPENAI_MODEL_EXTRACT`, `OPENAI_MODEL_VERIFY`, `OPENAI_MODEL_LIGHT`
 - **Search:** Brave Search API — `BRAVE_API_KEY`
 
-See [`.env.example`](./.env.example) and [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md).
+Web app needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI/Brave for research.
+
+See [`.env.example`](./.env.example), [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md), and [`research-worker/README.md`](./research-worker/README.md).
 
 ```bash
 # Generate both Prisma clients
@@ -103,31 +117,35 @@ BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="$CASES_DATABASE_URL_MIGRATE" \
 
 # Seed three unpublished World Domination stubs (title+date only)
 npm run db:cases:seed
+
+# Start external research worker (separate process / host)
+cd research-worker && pip install -e ".[dev]" && python -m research_worker worker
 ```
 
 **Admin access:** NextAuth user with `role=ADMIN` **and** `username` matching
 `ADMIN_USERNAME` (default `abed`). Everyone else gets **404**. Robots Disallow `/pb-case`.
 
-**Workflow:** create/open case → Run research → review claims/people → publish gate
-(all shown claims approved + wording linter + sources) → Publish. Agent stops at
-`pending_review` and **never** publishes. Token usage is recorded per research run.
+**Workflow:** create/open case → **Run research** (queues DB job) → worker completes →
+review claims/people → publish gate → Publish. Agent stops at `pending_review` and
+**never** publishes. Token usage is recorded per research run.
 
 **World Domination:** max 3 cases (DB + UI). Homepage/deck section lists published WD
 cases only. **Seed stubs stay unpublished** until researched, approved, and published
 by an admin.
 
-**Trending:** `GET /api/cron/trending-discovery` (Bearer `CRON_SECRET`) writes
-candidates only. **Re-verify stub:** `GET /api/cron/reverify-flags`.
+**Trending:** schedule `python -m research_worker trending` on the **worker host**.
+The Next.js `/api/cron/trending-discovery` route is a no-LLM stub (defers to worker).
+**Re-verify stub:** `GET /api/cron/reverify-flags` (DB-only flags).
 
 **Legal:** Footer links under `/legal/*` (**DRAFT** lawyer banner + placeholders).
 **Lawyer review required before public launch.** First-visit consent modal before
 research case pages; `consent_log` lives in the **main** DB. No UGC/comments/tip forms.
 
-**Env (placeholders in `.env.example`):** `CASES_DATABASE_URL`,
-`CASES_DATABASE_URL_MIGRATE`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
-`SESSION_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL_EXTRACT`, `OPENAI_MODEL_VERIFY`,
-`OPENAI_MODEL_LIGHT`, `BRAVE_API_KEY`, `RESEARCH_MAX_STEPS`, `RESEARCH_MAX_PAGES`,
-`RESEARCH_MAX_COST`, `TRENDING_CRON`.
+**Env — web app:** `CASES_DATABASE_URL`, `CASES_DATABASE_URL_MIGRATE`, `ADMIN_USERNAME`,
+`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, optional display-only `RESEARCH_MAX_*`.
+
+**Env — worker only:** `OPENAI_API_KEY`, `OPENAI_MODEL_*`, `BRAVE_API_KEY`,
+`CASES_DATABASE_URL` (restricted role), `RESEARCH_MAX_STEPS` / `PAGES` / `COST`.
 
 ### Cases DB CI/CD (`db:deploy:cases`)
 

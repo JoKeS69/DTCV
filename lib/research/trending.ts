@@ -1,114 +1,41 @@
 /**
  * Trending discovery — candidates only.
- * No deep research / publish until admin accepts.
- * Uses Brave search + OPENAI_MODEL_LIGHT for cheap scoring when configured.
+ *
+ * LLM + Brave scoring runs on the external Python worker
+ * (`python -m research_worker trending`), not in Next.js.
+ * This module keeps the re-verify flag job (DB-only, no LLM).
  */
 
 import { getCasesPrisma } from "@/lib/cases-db";
 import { writeAuditLog } from "@/lib/pb-case/audit";
-import {
-  createOpenAiClientAdapter,
-  createSearchAdapter,
-} from "@/lib/research/adapters";
-import { isUrlAllowlisted } from "@/lib/research/fetch";
-import { parseTrendingScoreStrict } from "@/lib/research/schema";
 
-const SEED_QUERIES = [
-  "unsolved case official investigation",
-  "cold case court filing",
-  "missing persons public alert",
-];
-
-async function scoreCandidate(input: {
-  title: string;
-  snippet?: string;
-  url: string;
-}): Promise<{ score: number; rationale: string }> {
-  const llm = createOpenAiClientAdapter();
-  if (!llm.configured) {
-    return {
-      score: 0.5,
-      rationale: input.snippet?.slice(0, 500) || "Discovered via trending search",
-    };
-  }
-  try {
-    const result = await llm.complete({
-      role: "light",
-      schemaMode: "trending_score",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Score trending case candidates 0..1 for public-interest cold/unsolved investigations. Prefer official sources. JSON only. Never invent facts.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            title: input.title,
-            snippet: input.snippet ?? "",
-            url: input.url,
-          }),
-        },
-      ],
-    });
-    return parseTrendingScoreStrict(result.content);
-  } catch {
-    return {
-      score: 0.5,
-      rationale: input.snippet?.slice(0, 500) || "Scoring unavailable",
-    };
-  }
-}
-
+/**
+ * Stub for the web cron: does not call OpenAI/Brave.
+ * Schedule trending on the research-worker host instead.
+ */
 export async function runTrendingDiscovery(actor = "cron:trending"): Promise<{
   created: number;
+  deferredToWorker: true;
+  message: string;
 }> {
-  const db = getCasesPrisma();
-  const search = createSearchAdapter();
-  let created = 0;
-
-  for (const q of SEED_QUERIES) {
-    const hits = await search.search(q, 5);
-    for (const hit of hits) {
-      if (!isUrlAllowlisted(hit.url)) continue;
-      const existing = await db.candidate.findFirst({
-        where: {
-          title: hit.title,
-          status: { in: ["new", "accepted"] },
-        },
-      });
-      if (existing) continue;
-
-      const scored = await scoreCandidate({
-        title: hit.title,
-        snippet: hit.snippet,
-        url: hit.url,
-      });
-
-      await db.candidate.create({
-        data: {
-          title: hit.title.slice(0, 300),
-          rationale: scored.rationale.slice(0, 500),
-          score: scored.score,
-          status: "new",
-          sourceUrls: [hit.url],
-        },
-      });
-      created += 1;
-    }
-  }
-
   await writeAuditLog({
     actor,
-    action: "trending.discovery",
+    action: "trending.discovery.deferred",
     entityType: "candidate",
-    meta: { created },
+    meta: {
+      created: 0,
+      note: "Trending LLM/search runs on python research-worker only",
+    },
   });
-
-  return { created };
+  return {
+    created: 0,
+    deferredToWorker: true,
+    message:
+      "Trending discovery runs on the external Python research worker (DB/cron). Next.js does not hold OpenAI/Brave keys.",
+  };
 }
 
-/** Weekly re-verify flag job stub — marks published cases needing review. */
+/** Weekly re-verify flag job — marks published cases needing review (DB only). */
 export async function flagCasesForReverify(actor = "cron:reverify"): Promise<{
   flagged: number;
 }> {
