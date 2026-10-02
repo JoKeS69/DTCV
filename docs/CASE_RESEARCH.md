@@ -79,15 +79,33 @@ Social: official APIs only or skip (currently skip).
 
 ## How to start the Python worker
 
+**Folder only exists after syncing tip `de90d68+`** (`cursor/case-research-agent-6548`). An older laptop handoff will not have `research-worker/` until you pull/checkout that tip (or apply the store bundle).
+
+### macOS / Linux
+
 ```bash
 cd research-worker
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env   # set CASES_DATABASE_URL + OpenAI + Brave
-python -m research_worker worker       # long-running poll loop
-# or: python -m research_worker run-once
-# trending cron on worker host: python -m research_worker trending
+python -m research_worker worker
 ```
+
+### Windows (PowerShell)
+
+```powershell
+git fetch origin cursor/case-research-agent-6548
+git checkout cursor/case-research-agent-6548
+cd research-worker
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+Copy-Item .env.example .env
+notepad .env   # fill secrets
+python -m research_worker worker
+```
+
+Install Python 3.11+ from python.org with **Add to PATH**. Do not use `source` / `cp` in CMD — those are Unix commands.
 
 Restricted role SQL: `research-worker/sql/restricted_role.sql`.
 Full worker docs: [`research-worker/README.md`](../research-worker/README.md).
