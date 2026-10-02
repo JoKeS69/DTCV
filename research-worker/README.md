@@ -57,18 +57,20 @@ REM 1) MUST enter research-worker — pip from repo root fails (no pyproject.tom
 cd research-worker
 dir pyproject.toml
 
-REM 2) One-shot setup (venv + pip + copy .env.example)
-REM    Re-run after pulling tip so pg8000 replaces any old psycopg install.
-setup-windows.cmd
+REM 2) One-shot setup — use .\ prefix in CMD
+dir *.cmd
+.\setup-windows.cmd
 
 REM 3) Edit secrets (OpenAI + cases DB — Brave NOT required)
 notepad .env
 
 REM 4) Run with venv Python (do NOT use Store `python -m ...`)
-run-worker.cmd
+.\run-worker.cmd
 ```
 
-If you previously saw `psycopg` / `DLL load failed` / `Application Control policy`: that is Store Python + native DLL. **Use `run-worker.cmd`** after `setup-windows.cmd` (installs pure-Python **pg8000**).
+If `dir *.cmd` is empty, sync tip `6e4a253+` first, **or** skip the helpers and use the manual block below.
+
+If you previously saw `psycopg` / `DLL load failed` / `Application Control policy`: that is Store Python + native DLL. **Use `.\run-worker.cmd`** after `.\setup-windows.cmd` (installs pure-Python **pg8000**).
 
 Manual CMD (same folder requirement):
 
