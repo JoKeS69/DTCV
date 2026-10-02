@@ -10,10 +10,13 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-# Load research-worker/.env when present (does not override already-set env).
-load_dotenv()
+# Always load research-worker/.env (override stale CMD `set CASES_DATABASE_URL=...`).
+_env_file = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(_env_file, override=True)
 
 
 class ConfigError(RuntimeError):
@@ -21,14 +24,21 @@ class ConfigError(RuntimeError):
 
 
 def _req(name: str) -> str:
-    value = (os.environ.get(name) or "").strip()
+    value = _strip_env(os.environ.get(name) or "")
     if not value:
         raise ConfigError(f"{name} is not set (required for live research worker).")
     return value
 
 
+def _strip_env(value: str) -> str:
+    v = value.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+        v = v[1:-1].strip()
+    return v
+
+
 def _opt(name: str, default: str = "") -> str:
-    return (os.environ.get(name) or default).strip()
+    return _strip_env(os.environ.get(name) or default)
 
 
 def _num(name: str, default: float) -> float:
