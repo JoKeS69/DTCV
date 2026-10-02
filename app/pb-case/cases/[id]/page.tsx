@@ -59,11 +59,12 @@ export default async function PbCaseDetailPage({
           <div className="mt-2">
             <ResearchButton caseId={caseFile.id} />
           </div>
-          <ul className="mt-3 space-y-1 font-mono text-[10px] text-text-muted">
+            <ul className="mt-3 space-y-1 font-mono text-[10px] text-text-muted">
             {caseFile.researchRuns.map((r) => (
               <li key={r.id}>
                 {r.status} · steps {r.stepsUsed} · pages {r.pagesFetched} · cost{" "}
-                {r.costUnits}
+                {r.costUnits.toFixed(4)} · tokens {r.totalTokens} (in{" "}
+                {r.promptTokens}/out {r.completionTokens})
                 {r.errorMessage ? ` · ${r.errorMessage}` : ""}
               </li>
             ))}

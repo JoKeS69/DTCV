@@ -2,6 +2,9 @@
  * Seed ONLY three unpublished World Domination stubs.
  * Title + date only — no fabricated narrative, claims, or people.
  * Never publishes. Never invents case content.
+ *
+ * Decision (confirmed): stubs remain unpublished until researched,
+ * approved, and published by an admin via /pb-case.
  */
 import "dotenv/config";
 import { getCasesPrisma } from "@/lib/cases-db";
@@ -56,7 +59,8 @@ async function main() {
         eventDateText: stub.eventDateText,
         eventDate: stub.eventDate,
         location: stub.location,
-        // Never auto-publish on seed.
+        // Never auto-publish on seed. Do not touch status/publishedAt —
+        // admin research → approve → publish is the only publish path.
         worldDomination: true,
         labels: ["world_domination"],
       },

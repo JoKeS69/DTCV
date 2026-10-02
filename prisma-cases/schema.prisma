@@ -165,8 +165,12 @@ model ResearchRun {
   stepsLog      Json?
   pagesFetched  Int               @default(0)
   stepsUsed     Int               @default(0)
-  /// Estimated cost units (provider-defined).
+  /// Estimated cost units (provider-defined / token-derived).
   costUnits     Float             @default(0)
+  /// OpenAI token usage for PB CASE cost visibility (never log API keys).
+  promptTokens      Int           @default(0)
+  completionTokens  Int           @default(0)
+  totalTokens       Int           @default(0)
   errorMessage  String?
   startedAt     DateTime?
   finishedAt    DateTime?

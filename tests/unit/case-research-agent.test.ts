@@ -4,10 +4,15 @@ import {
   wordingPassesPublishGate,
 } from "@/lib/pb-case/wording-linter";
 import { isUrlAllowlisted, sanitizeFetchedText } from "@/lib/research/fetch";
-import { parseExtractResult } from "@/lib/research/schema";
+import {
+  parseExtractResult,
+  parseExtractResultStrict,
+} from "@/lib/research/schema";
 import { WORLD_DOMINATION_MAX } from "@/lib/pb-case/world-domination";
 import { getAdminUsername, isPbCaseAdminUsername } from "@/lib/pb-case/admin-username";
 import { LEGAL_POLICY_VERSION } from "@/lib/legal/policy";
+import { isRetryableError } from "@/lib/research/backoff";
+import { openAiModelEnvKey } from "@/lib/research/models";
 
 describe("wording linter", () => {
   it("blocks guilt declarations", () => {
@@ -66,9 +71,26 @@ describe("extract schema", () => {
     expect(parsed.claims).toHaveLength(1);
   });
 
-  it("falls back on invalid JSON", () => {
+  it("soft-parses invalid JSON to empty", () => {
     const parsed = parseExtractResult("not-json");
     expect(parsed.claims).toEqual([]);
+  });
+
+  it("strict parse rejects malformed JSON", () => {
+    expect(() => parseExtractResultStrict("not-json")).toThrow(/Malformed JSON/);
+  });
+});
+
+describe("openai / brave env wiring", () => {
+  it("maps model roles to OPENAI_MODEL_* env keys", () => {
+    expect(openAiModelEnvKey("extract")).toBe("OPENAI_MODEL_EXTRACT");
+    expect(openAiModelEnvKey("verify")).toBe("OPENAI_MODEL_VERIFY");
+    expect(openAiModelEnvKey("light")).toBe("OPENAI_MODEL_LIGHT");
+  });
+
+  it("treats 429 as retryable", () => {
+    expect(isRetryableError({ status: 429, message: "rate limit" })).toBe(true);
+    expect(isRetryableError({ status: 400, message: "bad request" })).toBe(false);
   });
 });
 

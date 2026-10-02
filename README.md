@@ -81,12 +81,27 @@ Admin overrides (hide/note) live in `CaseAdminOverride` and are never overwritte
 Dedicated **cases database** (`CASES_DATABASE_URL`) separate from the main site DB.
 The research agent writes only to the cases DB — never users/auth/settings.
 
+### Providers
+
+- **LLM:** OpenAI official SDK — `OPENAI_API_KEY` (gitignored `.env.local` only)
+- **Models (env only, no hardcoded names in code):**
+  - `OPENAI_MODEL_EXTRACT` — claim extraction
+  - `OPENAI_MODEL_VERIFY` — verification (use your strongest model name here)
+  - `OPENAI_MODEL_LIGHT` — cheap trending scoring
+- **Search:** Brave Search API — `BRAVE_API_KEY`
+
+See [`.env.example`](./.env.example) and [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md).
+
 ```bash
 # Generate both Prisma clients
 npm run db:generate:all
 
-# Migrate + seed three unpublished World Domination stubs (title+date only)
-npm run db:deploy:cases
+# Main site migrate, THEN cases migrate (separate credential recommended)
+npm run db:deploy
+BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="$CASES_DATABASE_URL_MIGRATE" \
+  npm run db:deploy:cases:safe
+
+# Seed three unpublished World Domination stubs (title+date only)
 npm run db:cases:seed
 ```
 
@@ -95,24 +110,39 @@ npm run db:cases:seed
 
 **Workflow:** create/open case → Run research → review claims/people → publish gate
 (all shown claims approved + wording linter + sources) → Publish. Agent stops at
-`pending_review` and **never** publishes.
+`pending_review` and **never** publishes. Token usage is recorded per research run.
 
 **World Domination:** max 3 cases (DB + UI). Homepage/deck section lists published WD
-cases only. Seed stubs stay unpublished.
+cases only. **Seed stubs stay unpublished** until researched, approved, and published
+by an admin.
 
 **Trending:** `GET /api/cron/trending-discovery` (Bearer `CRON_SECRET`) writes
 candidates only. **Re-verify stub:** `GET /api/cron/reverify-flags`.
 
-**Legal:** Footer links under `/legal/*` (DRAFT lawyer banner + placeholders).
-First-visit consent modal before research case pages; `consent_log` lives in the
-**main** DB. No UGC/comments/tip forms on research cases.
+**Legal:** Footer links under `/legal/*` (**DRAFT** lawyer banner + placeholders).
+**Lawyer review required before public launch.** First-visit consent modal before
+research case pages; `consent_log` lives in the **main** DB. No UGC/comments/tip forms.
 
-**Env (placeholders in `.env.example`):** `CASES_DATABASE_URL`, `ADMIN_USERNAME`,
-`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `LLM_API_KEY`, `LLM_MODEL`,
-`SEARCH_API_KEY`, `RESEARCH_MAX_STEPS`, `RESEARCH_MAX_PAGES`, `RESEARCH_MAX_COST`,
-`TRENDING_CRON`.
+**Env (placeholders in `.env.example`):** `CASES_DATABASE_URL`,
+`CASES_DATABASE_URL_MIGRATE`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
+`SESSION_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL_EXTRACT`, `OPENAI_MODEL_VERIFY`,
+`OPENAI_MODEL_LIGHT`, `BRAVE_API_KEY`, `RESEARCH_MAX_STEPS`, `RESEARCH_MAX_PAGES`,
+`RESEARCH_MAX_COST`, `TRENDING_CRON`.
 
-See [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md) for architecture notes.
+### Cases DB CI/CD (`db:deploy:cases`)
+
+Separate step **after** main migrate, **before** traffic hits the new app version:
+
+1. Backup / PITR snapshot the cases Postgres DB.
+2. Run migrate with a **migration-only** credential (`CASES_DATABASE_URL_MIGRATE`) —
+   not the research-agent restricted role.
+3. Use deploy-mode only (`prisma migrate deploy` via `scripts/deploy-cases-db.sh`).
+4. Never migrate on app boot. Fail the pipeline if migrate errors.
+5. Example workflow: [`.github/workflows/deploy-cases-db.yml.example`](./.github/workflows/deploy-cases-db.yml.example).
+
+```bash
+BACKUP_OK=1 bash scripts/deploy-cases-db.sh
+```
 
 ## Production prep (Phase 14)
 
@@ -120,9 +150,15 @@ Full runbook: [`docs/PRODUCTION.md`](./docs/PRODUCTION.md) · design lock: [`doc
 
 ```bash
 npm run lint && npm run build
-npm run db:deploy          # prisma migrate deploy (staging/prod)
+npm run db:deploy          # prisma migrate deploy (staging/prod main DB)
+BACKUP_OK=1 npm run db:deploy:cases:safe   # cases DB — after backup
 npm run db:prod-check      # connectivity + counts
 ```
+
+**Launch checklist (legal):**
+
+- [ ] **Lawyer review of `/legal/*` DRAFT pages before public launch**
+- [ ] Replace placeholders `[COMPANY/OWNER NAME]`, `[CONTACT EMAIL]`, `[GOVERNING LAW/JURISDICTION]`
 
 - `vercel.json` — Vercel framework + migrate-on-build (manual promote only)
 - Observability placeholders: `lib/observability/{monitoring,analytics}.ts`

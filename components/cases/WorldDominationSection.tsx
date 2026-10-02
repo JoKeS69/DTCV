@@ -26,8 +26,8 @@ export async function WorldDominationSection() {
       </header>
       {cases.length === 0 ? (
         <p className="px-3 py-4 font-mono text-[11px] text-text-dim">
-          No published World Domination cases yet. Admin stubs remain unpublished
-          until researched and approved.
+          No published World Domination cases yet. Seed stubs stay unpublished
+          until an admin researches, approves claims/people, and publishes.
         </p>
       ) : (
         <ul className="divide-y divide-border">

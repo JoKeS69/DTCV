@@ -47,6 +47,8 @@ Optional placeholders (no-op until set):
 
 ## Database migrations
 
+### Main site DB
+
 Migrations live under `prisma/migrations/`. Production apply:
 
 ```bash
@@ -56,14 +58,32 @@ npm run db:seed          # production-safe — achievements only; NEVER real-cri
 # Do NOT run db:seed:dev against production
 ```
 
-Vercel `buildCommand` in `vercel.json` runs `prisma migrate deploy` before `next build`.
+Vercel `buildCommand` in `vercel.json` runs main `prisma migrate deploy` before `next build`.
+
+### Cases research DB (separate)
+
+`CASES_DATABASE_URL` / `prisma-cases/` — **not** applied on app boot.
+
+Order: **backup → main migrate → cases migrate → start/promote new app version**.
+
+```bash
+# Prefer migration-only credential (DDL), not the research-agent writer role
+BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="postgresql://migrate_user:..." \
+  bash scripts/deploy-cases-db.sh
+```
+
+Example GitHub Actions: `.github/workflows/deploy-cases-db.yml.example`.
+Fail the deploy if this script exits non-zero.
 
 **Readiness checklist**
 
-- [ ] Backup / PITR enabled on Postgres
+- [ ] Backup / PITR enabled on Postgres (main **and** cases)
 - [ ] `prisma migrate deploy` succeeds against staging clone
+- [ ] Cases migrate succeeds with `BACKUP_OK=1` + migrate-only credential
 - [ ] Seed passwords (`demo_detective`, `admin_ops`) **disabled or rotated** if seed runs outside local
 - [ ] No `$queryRaw` in app code (Prisma parameterized only)
+- [ ] **Lawyer review of `/legal/*` DRAFT pages before public launch**
+- [ ] Legal placeholders replaced (`[COMPANY/OWNER NAME]`, `[CONTACT EMAIL]`, `[GOVERNING LAW/JURISDICTION]`)
 
 ## Vercel deploy (manual)
 

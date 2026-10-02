@@ -8,9 +8,13 @@ import { getCasesPrisma } from "@/lib/cases-db";
 import { writeAuditLog } from "@/lib/pb-case/audit";
 import { lintCaseWording } from "@/lib/pb-case/wording-linter";
 import {
-  createLlmAdapter,
+  addUsage,
+  costUnitsFromTokens,
+  createOpenAiClientAdapter,
   createSearchAdapter,
+  emptyUsage,
   getResearchLimits,
+  type TokenUsage,
 } from "@/lib/research/adapters";
 import {
   fetchAllowlistedPage,
@@ -18,9 +22,12 @@ import {
   sanitizeFetchedText,
 } from "@/lib/research/fetch";
 import {
-  parseExtractResult,
+  parseExtractResultStrict,
+  parseVerifyResultStrict,
   RESEARCH_SYSTEM_PROMPT,
+  VERIFY_SYSTEM_PROMPT,
   type ExtractResult,
+  type VerifyResult,
 } from "@/lib/research/schema";
 
 export type ResearchStep = {
@@ -30,7 +37,12 @@ export type ResearchStep = {
   url?: string;
 };
 
-function pushStep(log: ResearchStep[], step: string, detail?: string, url?: string) {
+function pushStep(
+  log: ResearchStep[],
+  step: string,
+  detail?: string,
+  url?: string,
+) {
   log.push({
     at: new Date().toISOString(),
     step,
@@ -39,23 +51,52 @@ function pushStep(log: ResearchStep[], step: string, detail?: string, url?: stri
   });
 }
 
-async function withRetries<T>(
-  fn: () => Promise<T>,
-  retries: number,
-): Promise<T> {
-  let last: unknown;
-  for (let i = 0; i <= retries; i++) {
+/**
+ * Call model + validate with our schema; reject + retry malformed (max schemaRetries).
+ * Network/429 backoff is handled inside the OpenAI adapter.
+ */
+async function completeValidated<T>(opts: {
+  llm: ReturnType<typeof createOpenAiClientAdapter>;
+  role: "extract" | "verify";
+  schemaMode: "extract" | "verify";
+  messages: { role: "system" | "user" | "assistant"; content: string }[];
+  parse: (raw: string) => T;
+  schemaRetries: number;
+  steps: ResearchStep[];
+  stepName: string;
+}): Promise<{ value: T; usage: TokenUsage; model: string }> {
+  let lastErr: unknown;
+  let usage = emptyUsage();
+  let model = "";
+  for (let attempt = 0; attempt <= opts.schemaRetries; attempt++) {
+    const result = await opts.llm.complete({
+      role: opts.role,
+      messages: opts.messages,
+      schemaMode: opts.schemaMode,
+    });
+    usage = addUsage(usage, result.usage);
+    model = result.model;
     try {
-      return await fn();
+      const value = opts.parse(result.content);
+      return { value, usage, model };
     } catch (err) {
-      last = err;
+      lastErr = err;
+      pushStep(
+        opts.steps,
+        opts.stepName,
+        `schema_reject attempt=${attempt + 1}: ${
+          err instanceof Error ? err.message.slice(0, 160) : "invalid"
+        }`,
+      );
     }
   }
-  throw last;
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error(`${opts.stepName}_schema_failed`);
 }
 
 /**
- * Run research for a case. Idempotent queue: creates a ResearchRun row.
+ * Run research for a case. Creates a ResearchRun row.
  * Does not publish. Leaves case in pending_review on success.
  */
 export async function runCaseResearch(input: {
@@ -64,7 +105,9 @@ export async function runCaseResearch(input: {
 }): Promise<{ runId: string; status: "completed" | "failed" }> {
   const db = getCasesPrisma();
   const limits = getResearchLimits();
-  const caseFile = await db.caseFile.findUnique({ where: { id: input.caseId } });
+  const caseFile = await db.caseFile.findUnique({
+    where: { id: input.caseId },
+  });
   if (!caseFile) {
     throw new Error("Case not found");
   }
@@ -88,9 +131,10 @@ export async function runCaseResearch(input: {
   let pagesFetched = 0;
   let stepsUsed = 0;
   let costUnits = 0;
+  let tokenUsage = emptyUsage();
 
   try {
-    const llm = createLlmAdapter();
+    const llm = createOpenAiClientAdapter();
     const search = createSearchAdapter();
 
     // 1) Plan
@@ -104,14 +148,14 @@ export async function runCaseResearch(input: {
       .filter(Boolean)
       .join(" ");
 
-    // 2) Search
-    pushStep(steps, "search", planQuery);
+    // 2) Search (Brave)
+    pushStep(steps, "search", `brave: ${planQuery}`);
     stepsUsed += 1;
-    const hits = await withRetries(
-      () => search.search(planQuery, Math.min(8, limits.maxPages)),
-      limits.retries,
+    const hits = await search.search(
+      planQuery,
+      Math.min(8, limits.maxPages),
     );
-    costUnits += 0.1;
+    costUnits += 0.05;
 
     const pages: { url: string; text: string }[] = [];
     for (const hit of hits) {
@@ -129,7 +173,7 @@ export async function runCaseResearch(input: {
         continue;
       }
       pagesFetched += 1;
-      costUnits += 0.05;
+      costUnits += 0.02;
       pages.push({
         url: fetched.url,
         text: sanitizeFetchedText(fetched.text),
@@ -137,75 +181,119 @@ export async function runCaseResearch(input: {
       pushStep(steps, "fetch_ok", `chars=${fetched.text.length}`, fetched.url);
     }
 
-    // Social: official APIs only or skip — we skip social scrape entirely.
+    // Social: official APIs only or skip.
     pushStep(steps, "social", "skipped_no_official_api");
 
-    // 3) Extract
+    // 3) Extract (OPENAI_MODEL_EXTRACT) — structured output + zod validate + retry
     pushStep(steps, "extract", `pages=${pages.length}`);
     stepsUsed += 1;
-    const extractRaw = await withRetries(
-      () =>
-        llm.complete(
-          [
-            { role: "system", content: RESEARCH_SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: JSON.stringify({
-                caseTitle: caseFile.title,
-                eventDateText: caseFile.eventDateText,
-                location: caseFile.location,
-                pages: pages.map((p) => ({
-                  url: p.url,
-                  text: p.text.slice(0, 6000),
-                })),
-                instruction:
-                  "Extract paraphrased claims/people/sources as JSON. Prefer official sources.",
-              }),
-            },
-          ],
-          { json: true },
-        ),
-      limits.retries,
+    const extractOut = await completeValidated<ExtractResult>({
+      llm,
+      role: "extract",
+      schemaMode: "extract",
+      schemaRetries: limits.schemaRetries,
+      steps,
+      stepName: "extract",
+      parse: parseExtractResultStrict,
+      messages: [
+        { role: "system", content: RESEARCH_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: JSON.stringify({
+            caseTitle: caseFile.title,
+            eventDateText: caseFile.eventDateText,
+            location: caseFile.location,
+            pages: pages.map((p) => ({
+              url: p.url,
+              text: p.text.slice(0, 6000),
+            })),
+            instruction:
+              "Extract paraphrased claims/people/sources as JSON. Prefer official sources.",
+          }),
+        },
+      ],
+    });
+    tokenUsage = addUsage(tokenUsage, extractOut.usage);
+    costUnits += costUnitsFromTokens(extractOut.usage);
+    pushStep(
+      steps,
+      "extract_ok",
+      `model=${extractOut.model} tokens=${extractOut.usage.totalTokens}`,
     );
-    costUnits += 0.5;
-    const extracted: ExtractResult = parseExtractResult(extractRaw);
 
-    // 4) Verify (wording + source URL allowlist)
+    // 4) Verify (OPENAI_MODEL_VERIFY) — strongest model from env
     pushStep(steps, "verify");
     stepsUsed += 1;
-    const verifiedClaims = extracted.claims.filter((c) => {
+    const verifyOut = await completeValidated<VerifyResult>({
+      llm,
+      role: "verify",
+      schemaMode: "verify",
+      schemaRetries: limits.schemaRetries,
+      steps,
+      stepName: "verify",
+      parse: parseVerifyResultStrict,
+      messages: [
+        { role: "system", content: VERIFY_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: JSON.stringify({
+            caseTitle: caseFile.title,
+            extract: extractOut.value,
+            allowlistedHostsHint:
+              "Keep only https sources that look official/reputable; mark disputed claims.",
+          }),
+        },
+      ],
+    });
+    tokenUsage = addUsage(tokenUsage, verifyOut.usage);
+    costUnits += costUnitsFromTokens(verifyOut.usage);
+    pushStep(
+      steps,
+      "verify_ok",
+      `model=${verifyOut.model} tokens=${verifyOut.usage.totalTokens}`,
+    );
+
+    // Local wording + allowlist pass after model verify
+    const verifiedClaims = verifyOut.value.claims.filter((c) => {
       const lint = lintCaseWording(c.text);
       return !lint.some((f) => f.severity === "error");
     });
-    const verifiedSources = extracted.sources.filter((s) =>
+    const verifiedSources = verifyOut.value.sources.filter((s) =>
       isUrlAllowlisted(s.url),
     );
+    const verifiedPeople = verifyOut.value.people;
 
-    // 5) Corroborate — claims with 2+ sources preferred
+    // 5) Corroborate
     pushStep(steps, "corroborate");
     stepsUsed += 1;
     const corroborated = verifiedClaims.map((c) => ({
       ...c,
       confidence:
-        c.confidence ??
-        Math.min(1, (c.sources?.length ?? 0) / 2),
+        c.confidence ?? Math.min(1, (c.sources?.length ?? 0) / 2),
     }));
 
     // 6) Assemble draft → pending_review (NEVER publish)
     pushStep(steps, "assemble");
     const draftContent = {
-      summary: extracted.summary,
+      summary: verifyOut.value.summary || extractOut.value.summary,
       assembledAt: new Date().toISOString(),
       pageCount: pages.length,
+      verifyNotes: verifyOut.value.notes,
+      tokenUsage,
       note: "Draft from research agent — pending admin review. Not published.",
     };
+
+    const summary =
+      verifyOut.value.summary ||
+      extractOut.value.summary ||
+      caseFile.summary;
 
     await db.$transaction(async (tx) => {
       await tx.caseFile.update({
         where: { id: caseFile.id },
         data: {
           status: "pending_review",
-          summary: extracted.summary || caseFile.summary,
+          summary,
           draftContent,
           sources: verifiedSources,
           lastReviewedAt: null,
@@ -218,7 +306,7 @@ export async function runCaseResearch(input: {
             caseId: caseFile.id,
             text: claim.text,
             disputed: claim.disputed,
-            confidence: claim.confidence,
+            confidence: claim.confidence ?? undefined,
             sources: claim.sources,
             status: claim.disputed ? "disputed" : "pending",
             showOnPublish: true,
@@ -226,7 +314,7 @@ export async function runCaseResearch(input: {
         });
       }
 
-      for (const person of extracted.people) {
+      for (const person of verifiedPeople) {
         await tx.person.create({
           data: {
             caseId: caseFile.id,
@@ -247,7 +335,7 @@ export async function runCaseResearch(input: {
           snapshot: {
             draftContent,
             claims: corroborated,
-            people: extracted.people,
+            people: verifiedPeople,
             sources: verifiedSources,
           },
         },
@@ -262,10 +350,17 @@ export async function runCaseResearch(input: {
           pagesFetched,
           stepsUsed,
           costUnits,
+          promptTokens: tokenUsage.promptTokens,
+          completionTokens: tokenUsage.completionTokens,
+          totalTokens: tokenUsage.totalTokens,
           plan: {
             title: caseFile.title,
             queries: [planQuery],
             hitCount: hits.length,
+            models: {
+              extract: extractOut.model,
+              verify: verifyOut.model,
+            },
           },
         },
       });
@@ -276,23 +371,35 @@ export async function runCaseResearch(input: {
       action: "research.completed",
       entityType: "case",
       entityId: caseFile.id,
-      meta: { runId: run.id, pagesFetched, stepsUsed, costUnits },
+      meta: {
+        runId: run.id,
+        pagesFetched,
+        stepsUsed,
+        costUnits,
+        totalTokens: tokenUsage.totalTokens,
+      },
     });
 
     return { runId: run.id, status: "completed" };
   } catch (err) {
     const message = err instanceof Error ? err.message : "research_failed";
-    pushStep(steps, "error", message);
+    const safeMessage = message
+      .replace(/sk-[a-zA-Z0-9._-]+/g, "[redacted]")
+      .slice(0, 500);
+    pushStep(steps, "error", safeMessage);
     await db.researchRun.update({
       where: { id: run.id },
       data: {
         status: "failed",
         finishedAt: new Date(),
-        errorMessage: message.slice(0, 500),
+        errorMessage: safeMessage,
         stepsLog: steps,
         pagesFetched,
         stepsUsed,
         costUnits,
+        promptTokens: tokenUsage.promptTokens,
+        completionTokens: tokenUsage.completionTokens,
+        totalTokens: tokenUsage.totalTokens,
       },
     });
     await db.caseFile.update({
@@ -304,7 +411,7 @@ export async function runCaseResearch(input: {
       action: "research.failed",
       entityType: "case",
       entityId: caseFile.id,
-      meta: { runId: run.id, error: message },
+      meta: { runId: run.id, error: safeMessage },
     });
     return { runId: run.id, status: "failed" };
   }

@@ -1,0 +1,35 @@
+# Example CI step: cases DB migrations as a SEPARATE job after main migrate,
+# before promoting/starting the new app version. Copy into a real workflow and
+# wire secrets. Never run migrations on Next.js boot.
+#
+# Required secrets:
+#   CASES_DATABASE_URL_MIGRATE — migration-only role (DDL), not the agent writer role
+#   (Optional) CASES_DATABASE_URL — only if migrate URL unset
+#
+# Operator must take a backup first; this job refuses without BACKUP_OK=1.
+
+name: deploy-cases-db
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_ok:
+        description: "Set to 1 only AFTER a cases-DB backup/PITR snapshot exists"
+        required: true
+        default: "0"
+
+jobs:
+  migrate-cases:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Deploy cases migrations
+        env:
+          CASES_DATABASE_URL_MIGRATE: ${{ secrets.CASES_DATABASE_URL_MIGRATE }}
+          BACKUP_OK: ${{ github.event.inputs.backup_ok }}
+        run: bash scripts/deploy-cases-db.sh
