@@ -85,7 +85,7 @@ The research agent writes only to the cases DB — never users/auth/settings.
 ### Security model (confirmed)
 
 1. **Worker is not on the public website** — no public HTTP API; worker **polls** `research_runs` with `status=queued`.
-2. **Only the worker holds** `OPENAI_API_KEY` / Brave keys. Next.js never calls OpenAI and never exposes the worker.
+2. **Only the worker holds** `OPENAI_API_KEY`. Next.js never calls OpenAI and never exposes the worker. **Search API key not required.**
 3. **Worker DB:** cases DB only, restricted role — cannot touch main auth/users DB.
 4. **Admin-on-command:** `/pb-case` queues a DB job; end-users cannot trigger or talk to the agent.
 
@@ -94,15 +94,15 @@ The research agent writes only to the cases DB — never users/auth/settings.
 | Layer | Role |
 | --- | --- |
 | Next.js / PB CASE | Control plane: admin queues jobs, monitors run status from DB |
-| `research-worker/` (Python) | Holds keys; polls DB; plan→search→extract→verify→assemble → `pending_review` |
+| `research-worker/` (Python) | Holds OpenAI key; keyless Wikipedia discovery; polls DB → `pending_review` |
 
 ### Providers (worker-only — see `research-worker/.env.example`)
 
 - **LLM:** OpenAI official Python SDK — `OPENAI_API_KEY`
 - **Models (env only):** `OPENAI_MODEL_EXTRACT`, `OPENAI_MODEL_VERIFY`, `OPENAI_MODEL_LIGHT`
-- **Search:** Brave Search API — `BRAVE_API_KEY`
+- **Search:** keyless (Wikipedia + allowlisted DDG HTML); `BRAVE_API_KEY` optional
 
-Web app needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI/Brave for research.
+Web app needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI for research.
 
 See [`.env.example`](./.env.example), [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md), and [`research-worker/README.md`](./research-worker/README.md).
 
@@ -146,7 +146,7 @@ research case pages; `consent_log` lives in the **main** DB. No UGC/comments/tip
 **Env — web app:** `CASES_DATABASE_URL`, `CASES_DATABASE_URL_MIGRATE`, `ADMIN_USERNAME`,
 `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, optional display-only `RESEARCH_MAX_*`.
 
-**Env — worker only:** `OPENAI_API_KEY`, `OPENAI_MODEL_*`, `BRAVE_API_KEY`,
+**Env — worker only:** `OPENAI_API_KEY`, `OPENAI_MODEL_*`, optional `BRAVE_API_KEY`,
 `CASES_DATABASE_URL` (restricted role), `RESEARCH_MAX_STEPS` / `PAGES` / `COST`.
 
 ### Cases DB CI/CD (`db:deploy:cases`)

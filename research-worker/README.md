@@ -5,7 +5,7 @@ External case-research agent for DETECTIVE / CASE//NET.
 ## Security model (confirmed)
 
 1. **Not on the public website.** This worker has **no public HTTP API**. It does not sit behind a public URL on the Next.js app. Prefer DB polling only.
-2. **Keys stay on the worker.** Only this process holds `OPENAI_API_KEY`, `OPENAI_MODEL_*`, and `BRAVE_API_KEY`. The Next.js site never calls OpenAI and never exposes this worker.
+2. **Keys stay on the worker.** Only this process holds `OPENAI_API_KEY` / `OPENAI_MODEL_*`. The Next.js site never calls OpenAI and never exposes this worker. **No search-engine API key is required** (Wikipedia + allowlisted discovery by default).
 3. **Cases DB only.** Connect with a **restricted Postgres role** (`sql/restricted_role.sql`) that can update `research_runs` / claims / people / case drafts as designed. It **cannot** touch the main auth/users DB.
 4. **Admin-on-command only.** An admin in `/pb-case` clicks **Run research** → Next.js inserts a `research_runs` row with `status = queued`. This worker polls, claims, runs the pipeline, and writes results back. **End-users cannot trigger or talk to the agent.**
 
@@ -15,7 +15,7 @@ External case-research agent for DETECTIVE / CASE//NET.
                                     | poll / claim / write
                             [Python research-worker]
                                     |
-                            OpenAI + Brave (worker secrets)
+                            OpenAI (+ optional Brave) / keyless Wikipedia discovery
 ```
 
 ## Pipeline
@@ -58,14 +58,17 @@ cd research-worker
 dir pyproject.toml
 
 REM 2) One-shot setup (venv + pip + copy .env.example)
+REM    Re-run after pulling tip so pg8000 replaces any old psycopg install.
 setup-windows.cmd
 
-REM 3) Edit secrets
+REM 3) Edit secrets (OpenAI + cases DB — Brave NOT required)
 notepad .env
 
-REM 4) Run
+REM 4) Run with venv Python (do NOT use Store `python -m ...`)
 run-worker.cmd
 ```
+
+If you previously saw `psycopg` / `DLL load failed` / `Application Control policy`: that is Store Python + native DLL. **Use `run-worker.cmd`** after `setup-windows.cmd` (installs pure-Python **pg8000**).
 
 Manual CMD (same folder requirement):
 
@@ -77,7 +80,7 @@ python -m pip install -U pip
 pip install -e ".[dev]"
 copy .env.example .env
 notepad .env
-python -m research_worker worker
+.venv\Scripts\python.exe -m research_worker worker
 ```
 
 ### Windows (PowerShell)
@@ -144,11 +147,12 @@ docker run --env-file .env --rm detective-research-worker worker
 | `OPENAI_MODEL_EXTRACT` | Extract model name (env only) |
 | `OPENAI_MODEL_VERIFY` | Verify model name (strongest) |
 | `OPENAI_MODEL_LIGHT` | Trending scoring |
-| `BRAVE_API_KEY` | Brave Search |
+| `BRAVE_API_KEY` | **Optional** — not required; default search is keyless |
 | `RESEARCH_MAX_STEPS` / `PAGES` / `COST` | Hard limits |
 | `WORKER_POLL_INTERVAL_SEC` | Poll cadence |
 
-See `.env.example`. Optional `RESEARCH_WORKER_TOKEN` is reserved for a **private** internal webhook if you ever add one — **not** required; prefer DB as source of truth. Do not expose it on the public site.
+See `.env.example`. Search uses Wikipedia OpenSearch (+ allowlisted DDG HTML) with no API key.
+Postgres driver is **pg8000** (pure Python) so Windows Application Control does not block native DLLs.
 
 ## Tests
 

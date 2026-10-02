@@ -1,5 +1,7 @@
 @echo off
-REM Start the research worker (DB poll loop). Run from research-worker\.
+REM Start the research worker (DB poll loop). ALWAYS use this on Windows.
+REM Do NOT run: python -m research_worker worker  with Microsoft Store Python —
+REM that hits user site-packages / blocked native DLLs. This script uses .venv.
 setlocal
 cd /d "%~dp0"
 
@@ -12,5 +14,6 @@ if not exist ".env" (
   exit /b 1
 )
 
+echo Using: %CD%\.venv\Scripts\python.exe
 ".venv\Scripts\python.exe" -m research_worker worker %*
 endlocal

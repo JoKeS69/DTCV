@@ -52,9 +52,9 @@ if not exist ".env" (
 )
 
 echo.
+echo IMPORTANT: always start the worker with run-worker.cmd
+echo   (uses .venv\Scripts\python.exe — not Store Python / user site-packages)
 echo Setup OK. Next:
 echo   1^) notepad .env
 echo   2^) run-worker.cmd
-echo Or now:
-echo   .venv\Scripts\python.exe -m research_worker worker
 endlocal

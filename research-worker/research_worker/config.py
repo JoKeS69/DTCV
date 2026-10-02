@@ -1,6 +1,7 @@
 """
 Worker configuration from environment.
-OpenAI / Brave keys live here — never in the Next.js web app for research.
+OpenAI keys live here — never in the Next.js web app for research.
+Search is keyless by default (Wikipedia + allowlisted DDG HTML). BRAVE_API_KEY is optional.
 """
 
 from __future__ import annotations
@@ -71,8 +72,8 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings(*, require_keys: bool = True) -> Settings:
     """
-    Load settings. When require_keys=False (unit tests / dry docs), OpenAI/Brave
-    may be empty — pipeline will refuse live LLM calls.
+    Load settings. When require_keys=False (unit tests), OpenAI may be empty.
+    BRAVE_API_KEY is never required.
     """
     cases_url = _opt("CASES_DATABASE_URL")
     if require_keys and not cases_url:
@@ -83,13 +84,13 @@ def get_settings(*, require_keys: bool = True) -> Settings:
         extract = _req("OPENAI_MODEL_EXTRACT")
         verify = _req("OPENAI_MODEL_VERIFY")
         light = _req("OPENAI_MODEL_LIGHT")
-        brave = _req("BRAVE_API_KEY")
     else:
         openai_key = _opt("OPENAI_API_KEY")
         extract = _opt("OPENAI_MODEL_EXTRACT", "gpt-4o-mini")
         verify = _opt("OPENAI_MODEL_VERIFY", "gpt-4o")
         light = _opt("OPENAI_MODEL_LIGHT", "gpt-4o-mini")
-        brave = _opt("BRAVE_API_KEY")
+
+    brave = _opt("BRAVE_API_KEY")  # optional
 
     extra = tuple(
         h.strip().lower()

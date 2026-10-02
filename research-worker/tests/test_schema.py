@@ -2,6 +2,7 @@ from research_worker.fetch import is_url_allowlisted, sanitize_fetched_text
 from research_worker.schema import parse_extract_strict, parse_verify_strict
 from research_worker.wording import lint_case_wording
 from research_worker.backoff import is_retryable_error, RetryableProviderError
+from research_worker.config import get_settings
 
 
 def test_allowlist():
@@ -69,4 +70,12 @@ def test_wording_blocks_guilt():
 
 def test_429_retryable():
     assert is_retryable_error(RetryableProviderError("rate", status=429))
-    assert not is_retryable_error(RetryableProviderError("bad", status=400, retryable=False))
+    assert not is_retryable_error(
+        RetryableProviderError("bad", status=400, retryable=False)
+    )
+
+
+def test_brave_not_required():
+    get_settings.cache_clear()
+    s = get_settings(require_keys=False)
+    assert s.brave_api_key == ""

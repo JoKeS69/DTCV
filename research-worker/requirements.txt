@@ -1,6 +1,6 @@
-# Pin ranges for the research worker. Prefer: pip install -e ".[dev]"
+# Prefer: pip install -e ".[dev]"
 openai>=1.60.0
-psycopg[binary]>=3.2.0
+pg8000>=1.31.0
 pydantic>=2.10.0
 httpx>=0.28.0
 python-dotenv>=1.0.0

@@ -1,6 +1,6 @@
 """
 Trending discovery — candidates only. Runs on the worker host (cron), not Next.js.
-Uses Brave + OPENAI_MODEL_LIGHT. Never deep-researches or publishes.
+Uses keyless search + OPENAI_MODEL_LIGHT. Never deep-researches or publishes.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import logging
 
-from research_worker.brave import BraveSearchClient
+from research_worker.search import ResearchSearchClient
 from research_worker.config import get_settings
 from research_worker import db as cases_db
 from research_worker.fetch import is_url_allowlisted
@@ -26,7 +26,7 @@ SEED_QUERIES = [
 
 def run_trending_discovery(actor: str = "cron:trending") -> dict[str, int]:
     settings = get_settings(require_keys=True)
-    search = BraveSearchClient(settings)
+    search = ResearchSearchClient(settings)
     llm = OpenAiResearchClient(settings)
     created = 0
 

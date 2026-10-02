@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-from research_worker.brave import BraveSearchClient
+from research_worker.search import ResearchSearchClient
 from research_worker.config import Settings, get_settings, redact_secrets
 from research_worker import db as cases_db
 from research_worker.fetch import (
@@ -116,7 +116,7 @@ def run_claimed_research(
 
     try:
         llm = OpenAiResearchClient(settings)
-        search = BraveSearchClient(settings)
+        search = ResearchSearchClient(settings)
 
         title = claimed["title"]
         _push(steps, "plan", f"Research plan for: {title}")
@@ -131,7 +131,7 @@ def run_claimed_research(
             if p
         )
 
-        _push(steps, "search", f"brave: {plan_query}")
+        _push(steps, "search", f"{search.id}: {plan_query}")
         steps_used += 1
         hits = search.search(plan_query, min(8, limits.max_pages))
         cost_units += 0.05

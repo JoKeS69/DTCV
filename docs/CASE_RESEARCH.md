@@ -3,7 +3,7 @@
 ## Security model (confirmed)
 
 1. **Python research worker is not on the public website.** No public HTTP API is required for the agent. The worker **polls** the cases DB for `research_runs` with `status = queued` (created when an admin clicks Research in PB CASE), then writes results back. Do **not** put the worker behind a public URL on the web app.
-2. **Only the worker holds** `OPENAI_API_KEY` / Brave keys. The Next.js site **never** calls OpenAI and **never** exposes the worker.
+2. **Only the worker holds** `OPENAI_API_KEY`. The Next.js site **never** calls OpenAI and **never** exposes the worker. **No search-engine API key is required** (Wikipedia / allowlisted discovery by default; Brave optional).
 3. **Worker DB access:** cases DB only, restricted role (`research-worker/sql/restricted_role.sql`) that can update `research_runs` / claims / people / case drafts as designed — **cannot** touch the main auth/users DB.
 4. **“On command”** = admin action in `/pb-case` inserts/queues a job in the DB; worker picks it up. **No end-user** can trigger or talk to the agent.
 
@@ -13,7 +13,7 @@ Admin (/pb-case) ──insert queued──► cases DB (research_runs)
                                          │ poll / claim / write results
                                   Python research-worker
                                          │
-                                  OpenAI + Brave (worker secrets only)
+                                  OpenAI + keyless Wikipedia discovery
 ```
 
 ## Databases
@@ -31,21 +31,20 @@ Research agent **must not** write to users/auth/settings tables.
 | --- | --- | --- |
 | Queue research | Next.js `/pb-case` | Creates `research_runs` `queued` only |
 | Monitor status | Next.js PB CASE | Reads steps, pages, tokens, errors, URLs from DB |
-| LLM + Brave + fetch | `research-worker/` | Holds keys; polls DB; never publishes |
+| LLM + fetch + discovery | `research-worker/` | Holds OpenAI key; keyless Wikipedia search; polls DB; never publishes |
 | Publish | Admin only in PB CASE | Publish gate — agent never publishes |
 
-## Providers (worker-only)
+## Providers (worker)
 
-| Concern | Provider | Env (on **worker** host / secrets manager) |
+| Concern | Provider | Env |
 | --- | --- | --- |
-| LLM | **OpenAI** (official Python SDK) | `OPENAI_API_KEY` |
-| Extract model | from env only | `OPENAI_MODEL_EXTRACT` |
-| Verify model | from env only (strongest) | `OPENAI_MODEL_VERIFY` |
-| Light model | trending scoring | `OPENAI_MODEL_LIGHT` |
-| Search | **Brave Search API** | `BRAVE_API_KEY` |
+| LLM | **OpenAI** (official Python SDK) | `OPENAI_API_KEY` (worker only) |
+| Extract / verify / light models | from env only | `OPENAI_MODEL_*` |
+| Search | **Keyless** Wikipedia OpenSearch (+ allowlisted DDG HTML) | none required |
+| Search (optional) | Brave Search API | `BRAVE_API_KEY` optional |
 
-Web app `.env.local` needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI/Brave for research.
-Worker secrets: see `research-worker/.env.example`. Never hardcode, commit, or log API keys.
+Web app `.env.local` needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI for research.
+Worker secrets: see `research-worker/.env.example`. Postgres via **pg8000** (pure Python; Windows-friendly).
 
 ### Changing models
 
