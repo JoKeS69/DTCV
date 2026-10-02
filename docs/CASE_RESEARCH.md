@@ -91,6 +91,22 @@ cp .env.example .env   # set CASES_DATABASE_URL + OpenAI + Brave
 python -m research_worker worker
 ```
 
+### Windows (CMD — your prompt looks like `C:\...>`)
+
+```bat
+REM From clone ROOT — first sync tip if research-worker is missing:
+git fetch origin cursor/case-research-agent-6548
+git checkout cursor/case-research-agent-6548
+dir research-worker
+
+cd research-worker
+setup-windows.cmd
+notepad .env
+run-worker.cmd
+```
+
+If `dir research-worker` fails, apply the store bundle first. Do **not** run `pip install -e ".[dev]"` from the repo root (that error means wrong folder). Do **not** use `Copy-Item` in CMD — use `copy` or `setup-windows.cmd`.
+
 ### Windows (PowerShell)
 
 ```powershell
@@ -101,7 +117,7 @@ py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 Copy-Item .env.example .env
-notepad .env   # fill secrets
+notepad .env
 python -m research_worker worker
 ```
 

@@ -42,6 +42,44 @@ pip install -e ".[dev]"
 cp .env.example .env   # fill secrets — never commit .env
 ```
 
+### Windows — Command Prompt (CMD)
+
+You are in **CMD** if the prompt looks like `C:\...\>` (not `PS C:\...>`).
+`Copy-Item` / `source` will fail in CMD — use the commands below (or the `.cmd` helpers).
+
+```bat
+REM 0) Sync tip so research-worker\ exists (from Portfolio / handoff clone ROOT)
+git fetch origin cursor/case-research-agent-6548
+git checkout cursor/case-research-agent-6548
+dir research-worker
+
+REM 1) MUST enter research-worker — pip from repo root fails (no pyproject.toml)
+cd research-worker
+dir pyproject.toml
+
+REM 2) One-shot setup (venv + pip + copy .env.example)
+setup-windows.cmd
+
+REM 3) Edit secrets
+notepad .env
+
+REM 4) Run
+run-worker.cmd
+```
+
+Manual CMD (same folder requirement):
+
+```bat
+cd research-worker
+py -3 -m venv .venv
+.venv\Scripts\activate.bat
+python -m pip install -U pip
+pip install -e ".[dev]"
+copy .env.example .env
+notepad .env
+python -m research_worker worker
+```
+
 ### Windows (PowerShell)
 
 Install [Python 3.11+](https://www.python.org/downloads/) and check **“Add python.exe to PATH”**. Close and reopen the terminal, then:
@@ -70,9 +108,10 @@ notepad .env
 python -m research_worker worker
 ```
 
-Notes for CMD (not PowerShell): use `research-worker\.venv\Scripts\activate.bat` instead of `Activate.ps1`. There is no `source` or `cp` in CMD — use `Copy-Item` / `copy`.
-
+Notes: There is no `source` or `cp` in CMD — use `copy` or `setup-windows.cmd`.
 If PowerShell blocks activation: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+**Common mistake:** running `pip install -e ".[dev]"` in `detective-laptop-handoff-full\` (repo root). That directory is the Next.js app — the Python project is only under `research-worker\`.
 
 Apply the restricted DB role (as migrate admin) using `sql/restricted_role.sql`.
 
