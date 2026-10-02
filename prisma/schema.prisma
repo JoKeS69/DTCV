@@ -791,3 +791,21 @@ model UserAchievement {
   @@unique([userId, achievementId])
   @@index([achievementId])
 }
+
+// ─── Legal consent (main site DB — not cases DB) ─────────────────────────────
+
+/// First-visit Terms+Privacy consent. Re-prompt when policyVersion changes.
+model ConsentLog {
+  id            String   @id @default(cuid())
+  /// Opaque visitor key (cookie id) — not a user account id.
+  visitorKey    String
+  policyVersion String
+  /// Optional HMAC/hash of IP — never store raw IP.
+  ipHash        String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([visitorKey, policyVersion])
+  @@index([createdAt])
+  @@map("consent_log")
+}
