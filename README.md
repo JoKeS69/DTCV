@@ -68,7 +68,51 @@ Admin overrides (hide/note) live in `CaseAdminOverride` and are never overwritte
 | `app/actions/` | Server Actions |
 | `components/*` | UI by domain |
 | `lib/db.ts` | Prisma client wiring |
-| `prisma/` | Schema & migrations |
+| `lib/cases-db.ts` | Dedicated cases-research Prisma client |
+| `prisma/` | Main site schema & migrations |
+| `prisma-cases/` | Cases research DB schema, migrations, seed |
+| `app/pb-case/` | Admin research desk (username `abed` only → else 404) |
+| `app/research-cases/` | Published research case files (consent + 18+) |
+| `app/legal/` | Terms, Privacy, Disclaimer, Copyright, AUP, Cookies |
+| `lib/research/` | Research agent pipeline (never publishes) |
+
+## Case research agent (`/pb-case`)
+
+Dedicated **cases database** (`CASES_DATABASE_URL`) separate from the main site DB.
+The research agent writes only to the cases DB — never users/auth/settings.
+
+```bash
+# Generate both Prisma clients
+npm run db:generate:all
+
+# Migrate + seed three unpublished World Domination stubs (title+date only)
+npm run db:deploy:cases
+npm run db:cases:seed
+```
+
+**Admin access:** NextAuth user with `role=ADMIN` **and** `username` matching
+`ADMIN_USERNAME` (default `abed`). Everyone else gets **404**. Robots Disallow `/pb-case`.
+
+**Workflow:** create/open case → Run research → review claims/people → publish gate
+(all shown claims approved + wording linter + sources) → Publish. Agent stops at
+`pending_review` and **never** publishes.
+
+**World Domination:** max 3 cases (DB + UI). Homepage/deck section lists published WD
+cases only. Seed stubs stay unpublished.
+
+**Trending:** `GET /api/cron/trending-discovery` (Bearer `CRON_SECRET`) writes
+candidates only. **Re-verify stub:** `GET /api/cron/reverify-flags`.
+
+**Legal:** Footer links under `/legal/*` (DRAFT lawyer banner + placeholders).
+First-visit consent modal before research case pages; `consent_log` lives in the
+**main** DB. No UGC/comments/tip forms on research cases.
+
+**Env (placeholders in `.env.example`):** `CASES_DATABASE_URL`, `ADMIN_USERNAME`,
+`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `LLM_API_KEY`, `LLM_MODEL`,
+`SEARCH_API_KEY`, `RESEARCH_MAX_STEPS`, `RESEARCH_MAX_PAGES`, `RESEARCH_MAX_COST`,
+`TRENDING_CRON`.
+
+See [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md) for architecture notes.
 
 ## Production prep (Phase 14)
 

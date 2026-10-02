@@ -1,13 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "buildCommand": "npm run db:generate:all && prisma migrate deploy && next build",
   "installCommand": "npm ci",
   "regions": ["iad1"],
   "crons": [
     {
       "path": "/api/cron/sync-cases",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/trending-discovery",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/reverify-flags",
+      "schedule": "0 6 * * 1"
     }
   ]
 }
