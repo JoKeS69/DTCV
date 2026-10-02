@@ -59,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             displayName: user.displayName,
             emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
             sessionVersion: user.sessionVersion,
+            role: user.role,
           };
         } catch (error) {
           console.error("[auth] authorize failed", error);
@@ -79,6 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ).emailVerifiedAt;
         token.sessionVersion =
           (user as { sessionVersion?: number }).sessionVersion ?? 0;
+        token.role = (user as { role?: "USER" | "MODERATOR" | "ADMIN" }).role;
         delete (token as { email?: unknown }).email;
       }
 
@@ -86,7 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const row = await getPrisma().user.findUnique({
             where: { id: token.sub },
-            select: { sessionVersion: true, suspendedAt: true },
+            select: { sessionVersion: true, suspendedAt: true, role: true },
           });
           if (!row || row.suspendedAt) {
             return {};
@@ -94,6 +96,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (row.sessionVersion !== token.sessionVersion) {
             return {};
           }
+          // Keep chrome role in sync with DB (role changes should not require re-login).
+          token.role = row.role;
         } catch {
           // keep token if DB briefly unavailable
         }

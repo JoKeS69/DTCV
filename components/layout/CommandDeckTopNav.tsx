@@ -11,6 +11,7 @@ import {
   Menu,
   MessageSquare,
   Search,
+  Shield,
   User,
   X,
 } from "lucide-react";
@@ -68,6 +69,41 @@ function isActive(label: string, pathname: string, focus: string | null) {
   }
 }
 
+function AdminBadge({ canAccessPbCase }: { canAccessPbCase: boolean }) {
+  const className = [
+    "inline-flex size-8 shrink-0 items-center justify-center rounded-[6px] border border-border text-text-muted transition-colors",
+    canAccessPbCase
+      ? "hover:border-border-strong hover:bg-surface-elevated hover:text-text"
+      : "",
+  ].join(" ");
+
+  const icon = <Shield className="size-3.5" strokeWidth={1.5} aria-hidden />;
+
+  if (canAccessPbCase) {
+    return (
+      <Link
+        href="/pb-case"
+        className={className}
+        aria-label="Admin research desk"
+        title="Admin · research desk"
+      >
+        {icon}
+      </Link>
+    );
+  }
+
+  return (
+    <span
+      className={className}
+      aria-label="Administrator"
+      title="Administrator"
+      role="img"
+    >
+      {icon}
+    </span>
+  );
+}
+
 function UserChip({
   user,
 }: {
@@ -107,7 +143,11 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
     publicId: "DET-GUEST000",
     rankLabel: "NOVICE",
     status: "ACTIVE" as const,
+    role: "USER" as const,
+    canAccessPbCase: false,
   };
+  const isAdmin = user?.role === "ADMIN";
+  const canAccessPbCase = user?.canAccessPbCase === true;
 
   useEffect(() => {
     const tick = () => setClock(formatHudClock(new Date()));
@@ -145,6 +185,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             >
               {designTokens.brand}
             </Link>
+            {isAdmin ? <AdminBadge canAccessPbCase={canAccessPbCase} /> : null}
             <span className="hidden h-6 w-px bg-border lg:block" aria-hidden />
             <div className="hidden min-w-0 lg:block">
               <UserChip user={guestUser} />
@@ -205,7 +246,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
         {/* Mobile — topmost bar only */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 md:hidden">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
             <button
               type="button"
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"
@@ -219,6 +260,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                 <Menu className="size-5" strokeWidth={1.5} aria-hidden />
               )}
             </button>
+            {isAdmin ? <AdminBadge canAccessPbCase={canAccessPbCase} /> : null}
             <UserChip user={guestUser} />
           </div>
           <div className="shrink-0 text-right">
@@ -243,7 +285,10 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
               <p className="font-mono text-[13px] font-semibold tracking-[0.12em] text-text">
                 {designTokens.brand}
               </p>
-              <div className="mt-3">
+              <div className="mt-3 flex items-center gap-2.5">
+                {isAdmin ? (
+                  <AdminBadge canAccessPbCase={canAccessPbCase} />
+                ) : null}
                 <UserChip user={guestUser} />
               </div>
               {!user ? (

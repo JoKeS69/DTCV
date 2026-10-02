@@ -49,6 +49,7 @@ export const authConfig = {
         ).emailVerifiedAt;
         token.sessionVersion =
           (user as { sessionVersion?: number }).sessionVersion ?? 0;
+        token.role = (user as { role?: "USER" | "MODERATOR" | "ADMIN" }).role;
         delete (token as { email?: unknown }).email;
       }
       return token;
@@ -63,6 +64,8 @@ export const authConfig = {
           (token.emailVerifiedAt as string | null | undefined) ?? null;
         session.user.sessionVersion =
           (token.sessionVersion as number | undefined) ?? 0;
+        session.user.role =
+          (token.role as "USER" | "MODERATOR" | "ADMIN" | undefined) ?? "USER";
         // Never expose email on the session surface (AEAD / private).
         (session.user as { email?: string | null }).email = null;
       }

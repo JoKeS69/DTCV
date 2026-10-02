@@ -3,6 +3,7 @@ import { CommandDeckShell } from "@/components/layout/CommandDeckShell";
 import type { DeckUser } from "@/components/layout/deck-user";
 import { getCaseStatsCached } from "@/lib/cases/dashboard";
 import { getPrisma } from "@/lib/db";
+import { isPbCaseAdminUsername } from "@/lib/pb-case/admin-username";
 
 export async function CommandDeckServer({
   children,
@@ -24,22 +25,31 @@ export async function CommandDeckServer({
           publicId: true,
           detectiveRank: true,
           suspendedAt: true,
+          role: true,
         },
       });
       if (row && !row.suspendedAt) {
+        const role = row.role;
         user = {
           displayName: "DETECTIVE",
           publicId: row.publicId,
           rankLabel: row.detectiveRank || "NOVICE",
           status: "ACTIVE",
+          role,
+          canAccessPbCase:
+            role === "ADMIN" && isPbCaseAdminUsername(row.username),
         };
       }
     } catch {
+      const role = session.user.role ?? "USER";
       user = {
         displayName: "DETECTIVE",
         publicId: "DET-LOCALDEV",
         rankLabel: "NOVICE",
         status: "ACTIVE",
+        role,
+        canAccessPbCase:
+          role === "ADMIN" && isPbCaseAdminUsername(session.user.username),
       };
     }
   }
