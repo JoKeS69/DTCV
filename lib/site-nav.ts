@@ -1,9 +1,7 @@
 export const primaryNav = [
   { href: "/cases", label: "Cases" },
-  { href: "/cases?focus=search", label: "Search" },
   { href: "/cases?focus=evidence", label: "Evidence" },
   { href: "/fictional/rankings", label: "Intel" },
-  { href: "/cases?focus=discussions", label: "Forum" },
   { href: "/fictional", label: "Training" },
   { href: "/profile", label: "Profile" },
 ] as const;

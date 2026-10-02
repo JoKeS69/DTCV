@@ -9,8 +9,6 @@ import {
   FolderSearch,
   GraduationCap,
   Menu,
-  MessageSquare,
-  Search,
   Shield,
   User,
   X,
@@ -19,12 +17,10 @@ import type { DeckUser } from "@/components/layout/deck-user";
 import { designTokens } from "@/lib/design-tokens";
 import { primaryNav } from "@/lib/site-nav";
 
-const ICONS: Record<string, typeof Search> = {
+const ICONS: Record<string, typeof BookOpen> = {
   Cases: BookOpen,
-  Search,
   Evidence: FolderSearch,
   Intel: FileSearch,
-  Forum: MessageSquare,
   Training: GraduationCap,
   Profile: User,
 };
@@ -52,8 +48,6 @@ function isActive(label: string, pathname: string, focus: string | null) {
         focus !== "evidence" &&
         focus !== "discussions"
       );
-    case "Search":
-      return focus === "search";
     case "Evidence":
       return focus === "evidence";
     case "Training":
@@ -62,8 +56,6 @@ function isActive(label: string, pathname: string, focus: string | null) {
       return pathname.includes("rankings");
     case "Profile":
       return pathname.startsWith("/profile");
-    case "Forum":
-      return pathname.startsWith("/discussions") || focus === "discussions";
     default:
       return false;
   }
