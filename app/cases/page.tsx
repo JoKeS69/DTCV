@@ -6,6 +6,7 @@ import { CaseTable } from "@/components/cases/CaseTable";
 import { CasesToolbar } from "@/components/cases/CasesToolbar";
 import { GlobalCases } from "@/components/cases/GlobalCases";
 import { RecentActivity } from "@/components/cases/RecentActivity";
+import { WorldDominationSection } from "@/components/cases/WorldDominationSection";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
 import {
   toHudActivity,
@@ -173,6 +174,8 @@ export default async function CasesPage({
           <GlobalCases stats={stats} markers={mapMarkers} />
           <RecentActivity items={activity} />
         </div>
+
+        <WorldDominationSection />
       </div>
 
       {showTabletDrawer && selected ? (
