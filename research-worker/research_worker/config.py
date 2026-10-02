@@ -86,8 +86,19 @@ def get_settings(*, require_keys: bool = True) -> Settings:
     BRAVE_API_KEY is never required.
     """
     cases_url = _opt("CASES_DATABASE_URL")
-    if require_keys and not cases_url:
-        raise ConfigError("CASES_DATABASE_URL is required (cases DB only).")
+    discrete = all(
+        _opt(k)
+        for k in (
+            "CASES_DB_USER",
+            "CASES_DB_PASSWORD",
+            "CASES_DB_HOST",
+            "CASES_DB_NAME",
+        )
+    )
+    if require_keys and not cases_url and not discrete:
+        raise ConfigError(
+            "Set CASES_DATABASE_URL or CASES_DB_USER/PASSWORD/HOST/NAME (cases DB only)."
+        )
 
     if require_keys:
         openai_key = _req("OPENAI_API_KEY")

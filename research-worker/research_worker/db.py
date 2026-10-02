@@ -50,6 +50,30 @@ def _parse_dsn(url: str) -> dict[str, Any]:
     }
 
 
+def _connect_params(settings: Settings) -> dict[str, Any]:
+    """
+    Prefer discrete CASES_DB_* env vars (avoids URL quoting issues on Windows).
+    Fall back to parsing CASES_DATABASE_URL.
+    """
+    import os
+
+    user = (os.environ.get("CASES_DB_USER") or "").strip().strip("\"'")
+    password = (os.environ.get("CASES_DB_PASSWORD") or "").strip().strip("\"'")
+    host = (os.environ.get("CASES_DB_HOST") or "").strip().strip("\"'")
+    port_raw = (os.environ.get("CASES_DB_PORT") or "").strip().strip("\"'")
+    database = (os.environ.get("CASES_DB_NAME") or "").strip().strip("\"'")
+
+    if user and password and host and database:
+        return {
+            "user": user,
+            "password": password,
+            "host": host,
+            "port": int(port_raw or "5432"),
+            "database": database,
+        }
+    return _parse_dsn(settings.cases_database_url)
+
+
 def _row_dict(cur: Any, row: tuple[Any, ...] | None) -> dict[str, Any] | None:
     if row is None:
         return None
@@ -60,9 +84,12 @@ def _row_dict(cur: Any, row: tuple[Any, ...] | None) -> dict[str, Any] | None:
 @contextmanager
 def connect(settings: Settings | None = None) -> Iterator[Any]:
     settings = settings or get_settings(require_keys=True)
-    if not settings.cases_database_url:
-        raise RuntimeError("CASES_DATABASE_URL required (cases DB only)")
-    params = _parse_dsn(settings.cases_database_url)
+    params = _connect_params(settings)
+    if not params.get("user") or not params.get("database"):
+        raise RuntimeError(
+            "Set CASES_DB_USER/CASES_DB_PASSWORD/CASES_DB_HOST/CASES_DB_NAME "
+            "or CASES_DATABASE_URL (cases DB only)"
+        )
     conn = pg8000.dbapi.connect(**params)
     try:
         yield conn
