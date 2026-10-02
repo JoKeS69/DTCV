@@ -119,7 +119,9 @@ BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="$CASES_DATABASE_URL_MIGRATE" \
 npm run db:cases:seed
 
 # Start external research worker (separate process / host)
+# Sync tip first so research-worker/ exists. Windows: see research-worker/README.md
 cd research-worker && pip install -e ".[dev]" && python -m research_worker worker
+# Windows PowerShell: py -3 -m venv .venv; .\.venv\Scripts\Activate.ps1; Copy-Item .env.example .env
 ```
 
 **Admin access:** NextAuth user with `role=ADMIN` **and** `username` matching
