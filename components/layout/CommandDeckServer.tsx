@@ -30,26 +30,30 @@ export async function CommandDeckServer({
       });
       if (row && !row.suspendedAt) {
         const role = row.role;
+        const canAccessPbCase =
+          role === "ADMIN" && isPbCaseAdminUsername(row.username);
         user = {
           displayName: "DETECTIVE",
           publicId: row.publicId,
           rankLabel: row.detectiveRank || "NOVICE",
           status: "ACTIVE",
           role,
-          canAccessPbCase:
-            role === "ADMIN" && isPbCaseAdminUsername(row.username),
+          // Link chrome only when server-side /pb-case username gate would pass.
+          canAccessPbCase,
         };
       }
     } catch {
+      // DB briefly unavailable: fall back to session role + username (JWT keeps both fresh).
       const role = session.user.role ?? "USER";
+      const canAccessPbCase =
+        role === "ADMIN" && isPbCaseAdminUsername(session.user.username);
       user = {
         displayName: "DETECTIVE",
         publicId: "DET-LOCALDEV",
         rankLabel: "NOVICE",
         status: "ACTIVE",
         role,
-        canAccessPbCase:
-          role === "ADMIN" && isPbCaseAdminUsername(session.user.username),
+        canAccessPbCase,
       };
     }
   }

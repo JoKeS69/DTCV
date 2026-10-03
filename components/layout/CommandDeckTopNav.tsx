@@ -62,33 +62,28 @@ function isActive(label: string, pathname: string, focus: string | null) {
 }
 
 function AdminBadge({ canAccessPbCase }: { canAccessPbCase: boolean }) {
-  const className = [
-    "inline-flex size-8 shrink-0 items-center justify-center rounded-[6px] border border-border text-text-muted transition-colors",
-    canAccessPbCase
-      ? "hover:border-border-strong hover:bg-surface-elevated hover:text-text"
-      : "",
-  ].join(" ");
-
-  const icon = <Shield className="size-3.5" strokeWidth={1.5} aria-hidden />;
+  const icon = <Shield className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />;
 
   if (canAccessPbCase) {
     return (
       <Link
         href="/pb-case"
-        className={className}
-        aria-label="Admin research desk"
-        title="Admin · research desk"
+        className="relative z-20 inline-flex min-h-10 min-w-10 cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted pointer-events-auto transition-colors hover:border-border-strong hover:bg-surface-elevated hover:text-text"
+        aria-label="PB CASE admin research desk"
+        title="PB CASE · research desk"
       >
         {icon}
+        <span>PB CASE</span>
       </Link>
     );
   }
 
+  // ADMIN role chrome only — not a link (username fails /pb-case gate).
   return (
     <span
-      className={className}
-      aria-label="Administrator"
-      title="Administrator"
+      className="relative z-20 inline-flex min-h-10 min-w-10 cursor-default items-center justify-center rounded-[6px] border border-border/70 px-2.5 py-1.5 text-text-dim pointer-events-auto"
+      aria-label="Administrator (research desk not available)"
+      title="Administrator — research desk locked for this account"
       role="img"
     >
       {icon}
@@ -167,10 +162,10 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
   return (
     <>
-      <header className="shrink-0 border-b border-border bg-bg/95 backdrop-blur-sm">
+      <header className="relative z-20 shrink-0 border-b border-border bg-bg/95 pointer-events-auto backdrop-blur-sm">
         {/* Desktop / tablet — single topmost nav row, links truly centered */}
         <div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-5 py-3 md:grid xl:gap-6 xl:px-8 xl:py-3.5">
-          <div className="flex min-w-0 items-center gap-3 justify-self-start">
+          <div className="relative z-20 flex min-w-0 items-center gap-3 justify-self-start">
             <Link
               href="/cases"
               className="shrink-0 font-mono text-[13px] font-semibold tracking-[0.12em] text-text"
@@ -238,7 +233,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
         {/* Mobile — topmost bar only */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 md:hidden">
-          <div className="flex min-w-0 items-center gap-2.5">
+          <div className="relative z-20 flex min-w-0 items-center gap-2.5">
             <button
               type="button"
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"

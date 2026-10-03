@@ -234,6 +234,15 @@ a {
   color: #5c6a76;
 }
 
+/* Atmosphere layers must never intercept top-nav / badge clicks */
+.casenet-atmosphere__grid,
+.casenet-atmosphere__map,
+.casenet-atmosphere__scan,
+.casenet-atmosphere__vignette,
+.casenet-atmosphere .hud-corner {
+  pointer-events: none;
+}
+
 .casenet-atmosphere--local {
   position: absolute;
 }

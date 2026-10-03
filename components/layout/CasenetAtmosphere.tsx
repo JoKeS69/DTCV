@@ -14,16 +14,16 @@ export function CasenetAtmosphere({
     <div
       aria-hidden
       className={[
-        "casenet-atmosphere",
+        "casenet-atmosphere pointer-events-none",
         local ? "casenet-atmosphere--local casenet-atmosphere--auth" : null,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="casenet-atmosphere__grid" />
+      <div className="casenet-atmosphere__grid pointer-events-none" />
 
       <svg
-        className="casenet-atmosphere__map"
+        className="casenet-atmosphere__map pointer-events-none"
         viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMid slice"
       >
@@ -75,15 +75,15 @@ export function CasenetAtmosphere({
         </g>
       </svg>
 
-      <div className="casenet-atmosphere__scan" />
-      <div className="casenet-atmosphere__vignette" />
+      <div className="casenet-atmosphere__scan pointer-events-none" />
+      <div className="casenet-atmosphere__vignette pointer-events-none" />
 
       {local ? (
         <>
-          <span className="hud-corner hud-corner-tl" />
-          <span className="hud-corner hud-corner-tr" />
-          <span className="hud-corner hud-corner-bl" />
-          <span className="hud-corner hud-corner-br" />
+          <span className="hud-corner hud-corner-tl pointer-events-none" />
+          <span className="hud-corner hud-corner-tr pointer-events-none" />
+          <span className="hud-corner hud-corner-bl pointer-events-none" />
+          <span className="hud-corner hud-corner-br pointer-events-none" />
         </>
       ) : null}
     </div>

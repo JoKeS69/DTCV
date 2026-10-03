@@ -26,7 +26,7 @@ export function CommandDeckShell({
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-transparent">
       <CasenetAtmosphere variant="app" />
-      <div className="relative z-10 flex h-full min-h-0 flex-col">
+      <div className="relative z-10 flex h-full min-h-0 flex-col pointer-events-auto">
         <Suspense
           fallback={
             <div className="h-14 shrink-0 border-b border-border bg-bg/90 md:h-[3.75rem]" />
