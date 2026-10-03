@@ -46,6 +46,8 @@ Research agent **must not** write to users/auth/settings tables.
 Web app `.env.local` needs `CASES_DATABASE_URL=file:./data/detective_cases.db` for admin/UI — **not** OpenAI for research.
 Worker secrets: see `research-worker/.env.example`. Cases DB is **SQLite** (stdlib `sqlite3` — no Postgres password).
 
+**Site deps for cases DB:** `package.json` includes `@prisma/adapter-libsql` and `@libsql/client`. After pulling tip, always run `npm install` from the repo root or Next will fail with `Can't resolve '@prisma/adapter-libsql'`.
+
 ### Changing models
 
 Edit the **worker** env (or secrets manager):

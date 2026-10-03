@@ -104,7 +104,35 @@ The research agent writes only to the cases DB — never users/auth/settings.
 
 Web app needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI for research.
 
+**After every tip sync on Windows, run `npm install` from the repo root** (installs `@prisma/adapter-libsql` + `@libsql/client` used by `lib/cases-db.ts`). Skipping this causes `Module not found: Can't resolve '@prisma/adapter-libsql'`.
+
 See [`.env.example`](./.env.example), [`docs/CASE_RESEARCH.md`](./docs/CASE_RESEARCH.md), and [`research-worker/README.md`](./research-worker/README.md).
+
+### Windows laptop — sync tip + install (DTCV folder)
+
+Your long-term repo is **DTCV**. Fetch the latest tip once from Portfolio into that folder, then stay on DTCV:
+
+```bat
+cd C:\Users\abded\OneDrive\Desktop\dtcv\detective-laptop-handoff\detective-laptop-handoff-full
+
+git config user.email "abded@local"
+git config user.name "abded"
+
+git remote add portfolio https://github.com/JoKeS69/Portfolio.git
+git fetch portfolio cursor/case-research-agent-6548
+git checkout cursor/case-research-agent-6548
+git reset --hard portfolio/cursor/case-research-agent-6548
+
+npm install
+
+set CASES_DATABASE_URL=file:./data/detective_cases.db
+npx prisma migrate deploy --config prisma-cases.config.ts
+npm run db:cases:seed
+
+npm run dev
+```
+
+Confirm packages exist: `dir node_modules\@prisma\adapter-libsql` and `dir node_modules\@libsql\client`.
 
 ```bash
 # Generate both Prisma clients
