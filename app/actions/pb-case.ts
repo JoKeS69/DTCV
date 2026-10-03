@@ -1,16 +1,30 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getCasesPrisma } from "@/lib/cases-db";
 import { asStringArray } from "@/lib/cases/json-arrays";
 import { writeAuditLog } from "@/lib/pb-case/audit";
 import { requirePbCaseAdminAction } from "@/lib/pb-case/auth";
 import { evaluatePublishGate } from "@/lib/pb-case/publish-gate";
 import {
+  syncResearchCaseToPublic,
+  unpublishPublicCase,
+} from "@/lib/pb-case/sync-public-case";
+import {
   assertCanEnableWorldDomination,
   WORLD_DOMINATION_MAX,
 } from "@/lib/pb-case/world-domination";
 import { queueCaseResearch } from "@/lib/research/pipeline";
+
+function revalidatePublicCases(slug?: string) {
+  revalidatePath("/cases");
+  revalidatePath("/");
+  revalidateTag("cases-public", "max");
+  if (slug) {
+    revalidatePath(`/cases/${slug}`);
+    revalidatePath(`/research-cases/${slug}`);
+  }
+}
 
 function slugify(title: string): string {
   return title
@@ -134,45 +148,107 @@ export async function publishCaseAction(caseId: string) {
   if (!check.ok) return { ok: false as const, error: check.errors.join(" ") };
 
   const db = getCasesPrisma();
+  const previous = await db.caseFile.findUnique({
+    where: { id: caseId },
+    select: { status: true, publishedAt: true, publishedBy: true, slug: true },
+  });
+  if (!previous) return { ok: false as const, error: "Case not found" };
+
+  const publishedAt = new Date();
   await db.caseFile.update({
     where: { id: caseId },
     data: {
       status: "published",
-      publishedAt: new Date(),
+      publishedAt,
       publishedBy: gate.admin.username,
-      lastReviewedAt: new Date(),
+      lastReviewedAt: publishedAt,
       needsReverify: false,
     },
   });
+
+  // Promote into main Postgres Case so /cases list + detail show this file.
+  // Workers never call this path — only explicit admin Publish.
+  let sync: Awaited<ReturnType<typeof syncResearchCaseToPublic>>;
+  try {
+    sync = await syncResearchCaseToPublic(caseId, {
+      published: true,
+      publishedBy: gate.admin.username,
+    });
+  } catch (err) {
+    await db.caseFile.update({
+      where: { id: caseId },
+      data: {
+        status: previous.status,
+        publishedAt: previous.publishedAt,
+        publishedBy: previous.publishedBy,
+      },
+    });
+    const message =
+      err instanceof Error ? err.message : "Public cases sync failed";
+    return { ok: false as const, error: `Publish aborted: ${message}` };
+  }
+
+  if (!sync.ok) {
+    await db.caseFile.update({
+      where: { id: caseId },
+      data: {
+        status: previous.status,
+        publishedAt: previous.publishedAt,
+        publishedBy: previous.publishedBy,
+      },
+    });
+    return { ok: false as const, error: `Publish aborted: ${sync.error}` };
+  }
+
   await writeAuditLog({
     actor: gate.admin.username,
     action: "case.publish",
     entityType: "case",
     entityId: caseId,
+    meta: { publicCaseId: sync.publicCaseId, publicSlug: sync.slug },
   });
   revalidatePath("/pb-case");
   revalidatePath(`/pb-case/cases/${caseId}`);
-  revalidatePath("/");
-  return { ok: true as const };
+  revalidatePublicCases(sync.slug || previous.slug);
+  return { ok: true as const, publicSlug: sync.slug };
 }
 
 export async function unpublishCaseAction(caseId: string) {
   const gate = await requirePbCaseAdminAction();
   if (!gate.ok) return { ok: false as const, error: gate.error };
 
-  await getCasesPrisma().caseFile.update({
+  const db = getCasesPrisma();
+  const previous = await db.caseFile.findUnique({
+    where: { id: caseId },
+    select: { slug: true },
+  });
+
+  await db.caseFile.update({
     where: { id: caseId },
     data: { status: "unpublished", publishedAt: null },
   });
+
+  let publicSlug = previous?.slug ?? "";
+  try {
+    const sync = await unpublishPublicCase(caseId);
+    if (sync.ok && sync.slug) publicSlug = sync.slug;
+  } catch (err) {
+    // Research DB already unpublished; surface sync failure so admin can retry.
+    const message =
+      err instanceof Error ? err.message : "Public cases unpublish failed";
+    return { ok: false as const, error: message };
+  }
+
   await writeAuditLog({
     actor: gate.admin.username,
     action: "case.unpublish",
     entityType: "case",
     entityId: caseId,
+    meta: { publicSlug },
   });
   revalidatePath("/pb-case");
   revalidatePath(`/pb-case/cases/${caseId}`);
-  revalidatePath("/");
+  revalidatePublicCases(publicSlug || undefined);
   return { ok: true as const };
 }
 

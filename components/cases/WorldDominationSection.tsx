@@ -34,7 +34,7 @@ export async function WorldDominationSection() {
           {cases.slice(0, WORLD_DOMINATION_MAX).map((c) => (
             <li key={c.id}>
               <Link
-                href={`/research-cases/${c.slug}`}
+                href={`/cases/${c.slug}`}
                 className="block px-3 py-3 hover:bg-surface/40"
               >
                 <p className="font-mono text-[13px] text-text">{c.title}</p>

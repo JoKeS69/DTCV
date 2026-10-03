@@ -204,8 +204,10 @@ export default async function CaseDetailPage({ params }: Props) {
 
       <Section title="Disclaimer">
         <p className="font-mono text-[11px] leading-relaxed text-text-dim normal-case tracking-normal">
-          Listings are republished from attributed public sources and may change
-          or be removed upstream. No guilt declarations. See{" "}
+          {caseFile.source === "pb_case"
+            ? "This file was curated via PB CASE research and published by an admin. Claims are reported or disputed — never guilt declarations. Named persons are presumed innocent unless convicted in a court of law. "
+            : "Listings are republished from attributed public sources and may change or be removed upstream. No guilt declarations. "}
+          See{" "}
           <Link href="/sources" className="text-cta hover:underline">
             Sources and terms
           </Link>

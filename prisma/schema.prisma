@@ -77,6 +77,8 @@ enum CaseDataSource {
   namus
   europol
   manual
+  /// Promoted from /pb-case research SQLite (CASES_DATABASE_URL) on admin Publish.
+  pb_case
 }
 
 /// Normalized public status for sourced cases (maps onto CaseStatus for legacy filters).

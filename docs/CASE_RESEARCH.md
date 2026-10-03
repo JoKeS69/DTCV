@@ -32,7 +32,7 @@ Research agent **must not** write to users/auth/settings tables.
 | Queue research | Next.js `/pb-case` | Creates `research_runs` `queued` only |
 | Monitor status | Next.js PB CASE | Reads steps, pages, tokens, errors, URLs from DB |
 | LLM + fetch + discovery | `research-worker/` | Holds OpenAI key; keyless Wikipedia search; polls DB; never publishes |
-| Publish | Admin only in PB CASE | Publish gate — agent never publishes |
+| Publish | Admin only in PB CASE | Publish gate — agent never publishes. On Publish, syncs a `source=pb_case` row into main `Case` so `/cases` list + detail show it. Unpublish clears `published` on that row. |
 
 ## Providers (worker)
 

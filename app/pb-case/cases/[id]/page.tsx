@@ -88,6 +88,23 @@ export default async function PbCaseDetailPage({
             <div className="mt-2">
               <PublishControls caseId={caseFile.id} status={caseFile.status} />
             </div>
+            {caseFile.status === "published" ? (
+              <p className="mt-2 font-mono text-[11px] text-text-muted">
+                Public:{" "}
+                <Link
+                  href={`/cases/${caseFile.slug}`}
+                  className="text-cta underline-offset-2 hover:underline"
+                >
+                  /cases/{caseFile.slug}
+                </Link>
+              </p>
+            ) : (
+              <p className="mt-2 font-mono text-[10px] text-text-dim">
+                Publish syncs this file into the public Cases database
+                (`/cases`). Unpublished and World Domination stubs stay off the
+                public list.
+              </p>
+            )}
           </div>
           <WorldDominationToggle
             caseId={caseFile.id}
