@@ -788,6 +788,7 @@ def complete_run_success(
     event_date_text: str | None = None,
     location: str | None = None,
     legal_status_note: str | None = None,
+    generated_title: str | None = None,
 ) -> None:
     """Assemble draft → pending_review. NEVER publishes."""
     now = _now()
@@ -805,7 +806,7 @@ def complete_run_success(
         existing_date = row["eventDateText"] if row else None
         existing_loc = row["location"] if row else None
         existing_note = row["legalStatusNote"] if row else None
-        title = row["title"] if row else ""
+        existing_title = str(row["title"] if row else "") or ""
         existing_labels = _loads_json(row["labels"]) if row else []
         if not isinstance(existing_labels, list):
             existing_labels = []
@@ -821,10 +822,20 @@ def complete_run_success(
             event_type=event_token,
         )
 
+        # Default: overwrite seed title with worker generatedTitle unless locked.
+        title_locked = any(
+            str(l).lower().replace("-", "_").replace(" ", "_") == "title_locked"
+            for l in existing_labels
+        )
+        new_title = existing_title
+        proposed = (generated_title or meta.get("generatedTitle") or "").strip()
+        if proposed and not title_locked:
+            new_title = proposed[:200]
+
         new_date = event_date_text or existing_date
         new_loc = location or existing_loc
         # Avoid title-as-location pollution
-        if new_loc and title and new_loc.strip().lower() == title.strip().lower():
+        if new_loc and new_title and new_loc.strip().lower() == new_title.strip().lower():
             new_loc = existing_loc if existing_loc != new_loc else None
         new_note = legal_status_note or existing_note
 
@@ -832,6 +843,7 @@ def complete_run_success(
             """
             UPDATE cases
             SET status = 'pending_review',
+                title = ?,
                 summary = ?,
                 draftContent = ?,
                 sources = ?,
@@ -844,6 +856,7 @@ def complete_run_success(
             WHERE id = ?
             """,
             (
+                new_title,
                 summary,
                 _json(draft_content),
                 _json(sources),
@@ -875,6 +888,9 @@ def complete_run_success(
                         "claims": claims,
                         "people": people,
                         "sources": sources,
+                        "title": new_title,
+                        "seedTitle": existing_title,
+                        "titleLocked": title_locked,
                         "upsert": {
                             "superseded": superseded,
                             "claims": claim_stats,

@@ -7,6 +7,7 @@ from research_worker.quality import (
     fix_spelling,
     is_instruction_leak,
     looks_like_title_as_location,
+    normalize_case_title,
     normalize_metadata,
     normalize_people,
     normalize_role,
@@ -191,3 +192,43 @@ def test_hariri_event_type_assassination():
     )
     assert meta["eventType"] == "assassination"
     assert meta["investigativeStatus"] == "closed"
+
+
+def test_normalize_case_title_fixes_kennedy_typo():
+    title = normalize_case_title(
+        "kennedy assasination",
+        seed_title="kennedy assasination",
+        event_type="assassination",
+        people=[{"name": "John F. Kennedy", "role": "victim"}],
+    )
+    assert "assassination" in title.lower()
+    assert "Kennedy" in title
+    assert "assasination" not in title.lower()
+
+
+def test_normalize_case_title_builds_hariri_from_victim():
+    title = normalize_case_title(
+        None,
+        seed_title="hariri 2005",
+        event_type="assassination",
+        people=[{"name": "Rafik Hariri", "role": "victim"}],
+    )
+    assert title == "Assassination of Rafik Hariri"
+
+
+def test_metadata_includes_generated_title():
+    meta = normalize_metadata(
+        {
+            "year": "2005",
+            "investigativeStatus": "closed",
+            "statusEvidence": "STL judgments.",
+            "eventType": "assassination",
+            "generatedTitle": "assassination of rafik hariri",
+        },
+        title="hariri bomb",
+        existing_event_date="14 February 2005",
+        existing_location="Beirut",
+        people=[{"name": "Rafik Hariri", "role": "victim"}],
+    )
+    assert meta["generatedTitle"] == "Assassination of Rafik Hariri"
+

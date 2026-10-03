@@ -85,6 +85,8 @@ class CaseMetadataOut(BaseModel):
     investigativeStatus: InvestigativeStatus = "open"
     statusEvidence: str | None = Field(default=None, max_length=400)
     eventType: EventType = "other"
+    # Concise professional display title (overwrites seed title on assemble).
+    generatedTitle: str | None = Field(default=None, max_length=120)
 
 
 class ExtractResult(BaseModel):
@@ -163,6 +165,7 @@ _METADATA_SCHEMA: dict[str, Any] = {
                 "other",
             ],
         },
+        "generatedTitle": {"type": ["string", "null"]},
     },
     "required": [
         "year",
@@ -174,6 +177,7 @@ _METADATA_SCHEMA: dict[str, Any] = {
         "investigativeStatus",
         "statusEvidence",
         "eventType",
+        "generatedTitle",
     ],
 }
 
@@ -278,13 +282,16 @@ Rules:
 - People.role MUST be one of: victim | subject | witness | investigator | official | other.
   Example: John F. Kennedy in his assassination case → role=victim, legalStatus=deceased.
   Example: hijackers / organizers / alleged perpetrators (e.g. Mohammed Atta, Osama bin Laden in a 9/11 case) → role=subject — NEVER victim, even if deceased.
-- Fill metadata accurately from sources: year, eventDateText, city/region/country, location, investigativeStatus, eventType.
+- Fill metadata accurately from sources: year, eventDateText, city/region/country, location, investigativeStatus, eventType, generatedTitle.
   investigativeStatus MUST be exactly one of: open | closed | dropped.
   - open = investigation ongoing / active / unresolved with active inquiry
   - closed = official findings issued, prosecution concluded, or matter formally closed (e.g. Warren Commission; STL judgments)
   - dropped = inquiry abandoned / charges dropped / no longer pursued without a closed resolution
   NEVER use unsolved, unknown, official_finding, or disputed as status values — map those into open/closed/dropped and explain in statusEvidence.
   eventType: assassination when the event is a targeted killing of a public/political figure (Hariri, JFK, etc.); else homicide / terrorist / kidnapping / disappearance / missing / other.
+  generatedTitle: concise professional case title with correct spelling and notable proper names
+  (e.g. "Assassination of Rafik Hariri", "Assassination of John F. Kennedy", "September 11 attacks").
+  Never leave seed typos like "kennedy assasination". Keep under ~80 characters.
 - NEVER copy system/prompt/UI instructions into summary, claims, people, or sources (e.g. do not write "Disputed claims must appear in a clearly labeled Disputed section").
 - Prefer primary/official sources: government, court, archive, commission reports, wire services.
 - REJECT off-topic sources from a different case/event. Spell "assassination" correctly.
@@ -295,9 +302,10 @@ Rules:
 
 VERIFY_SYSTEM_PROMPT = """You verify research extracts for DETECTIVE / CASE//NET.
 Rules:
-- Correct metadata (year, location city/region/country, investigativeStatus, eventType) using on-topic sources.
+- Correct metadata (year, location city/region/country, investigativeStatus, eventType, generatedTitle) using on-topic sources.
   investigativeStatus must be open | closed | dropped only — never unsolved/unknown.
   eventType=assassination for Hariri/JFK-style targeted political killings.
+  generatedTitle must be a short professional display title (fix spelling; include notable names).
 - Drop any claim/person/source text that looks like pipeline instructions or UI chrome.
 - Classify people correctly: victims of the event vs subjects (attackers/organizers/accused).
 - Victims/deceased of the event (e.g. JFK): legalStatus=deceased, role=victim — not "other".

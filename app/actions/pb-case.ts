@@ -43,7 +43,7 @@ export async function createCaseAction(formData: FormData) {
   if (!gate.ok) return { ok: false as const, error: gate.error };
 
   const title = String(formData.get("title") || "").trim();
-  if (title.length < 3) return { ok: false as const, error: "Title required" };
+  if (title.length < 3) return { ok: false as const, error: "Seed title required" };
 
   const eventDateText = String(formData.get("eventDateText") || "").trim() || null;
   const location = String(formData.get("location") || "").trim() || null;

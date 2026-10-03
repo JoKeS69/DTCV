@@ -28,11 +28,13 @@ export function CreateCaseForm() {
       }}
     >
       <label className="grid gap-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-dim">
-        Title
+        Seed title
         <input
           name="title"
           required
           minLength={3}
+          placeholder="e.g. hariri 2005"
+          title="Working seed only — research run replaces this with a professional title"
           className="border border-border bg-bg px-2 py-1.5 text-[12px] text-text normal-case tracking-normal"
         />
       </label>

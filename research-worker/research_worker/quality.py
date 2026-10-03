@@ -392,12 +392,118 @@ def looks_like_title_as_location(location: str | None, title: str | None) -> boo
     return False
 
 
+_SMALL_TITLE_WORDS = {
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "by",
+    "for",
+    "from",
+    "in",
+    "of",
+    "on",
+    "or",
+    "the",
+    "to",
+    "vs",
+    "via",
+}
+
+
+def _title_case_words(text: str) -> str:
+    parts = re.split(r"(\s+|-|/)", text.strip())
+    out: list[str] = []
+    word_i = 0
+    for part in parts:
+        if not part or part.isspace() or part in {"-", "/"}:
+            out.append(part)
+            continue
+        low = part.lower()
+        if word_i > 0 and low in _SMALL_TITLE_WORDS:
+            out.append(low)
+        else:
+            # Preserve initials like "J.F.K." / "F."
+            if re.fullmatch(r"[A-Za-z]\.([A-Za-z]\.)+", part):
+                out.append(part.upper())
+            elif re.fullmatch(r"[A-Za-z]\.", part):
+                out.append(part.upper())
+            else:
+                out.append(part[:1].upper() + part[1:].lower() if part else part)
+        word_i += 1
+    return "".join(out)
+
+
+def normalize_case_title(
+    raw: str | None,
+    *,
+    seed_title: str,
+    event_type: str | None = None,
+    people: list[dict[str, Any]] | None = None,
+    year: str | None = None,
+) -> str:
+    """
+    Produce a concise professional display title.
+    Fixes spelling; prefers notable victim names; keeps short.
+    """
+    candidate = fix_spelling(str(raw or "").strip())
+    if is_instruction_leak(candidate):
+        candidate = ""
+    seed = fix_spelling(str(seed_title or "").strip())
+
+    # Prefer model title when it looks substantive
+    title = candidate if len(candidate) >= 8 else seed
+
+    # Build from event type + primary victim when seed/model is weak/typo-ish
+    victim_name = None
+    for p in people or []:
+        role = str(p.get("role") or "").lower()
+        name = str(p.get("name") or "").strip()
+        if role == "victim" and name and not is_instruction_leak(name):
+            victim_name = name
+            break
+
+    weak = (
+        not title
+        or len(title) < 8
+        or title.lower() in {"case", "new case", "untitled", "test"}
+    )
+    # Seed/model missing assassination framing despite event type + victim
+    needs_assassination_form = (
+        event_type == "assassination"
+        and victim_name
+        and "assassination" not in title.lower()
+    )
+    if (weak or needs_assassination_form) and event_type == "assassination" and victim_name:
+        title = f"Assassination of {victim_name}"
+    elif weak and event_type == "terrorist" and seed:
+        title = seed
+    elif not title:
+        title = seed or "Untitled case"
+
+    title = fix_spelling(title)
+    title = re.sub(r"\s+", " ", title).strip(" .")
+    # Light title-case when the string is mostly lowercase / messy seed
+    letters = [c for c in title if c.isalpha()]
+    if letters and sum(1 for c in letters if c.islower()) / len(letters) > 0.7:
+        title = _title_case_words(title)
+
+    # Append year only when short and year known and not already present
+    if year and year not in title and len(title) < 50 and event_type == "assassination":
+        # Prefer without year for classic style ("Assassination of Rafik Hariri")
+        pass
+
+    return title[:120]
+
+
 def normalize_metadata(
     meta: dict[str, Any] | None,
     *,
     title: str,
     existing_event_date: str | None,
     existing_location: str | None,
+    people: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     meta = dict(meta or {})
     year = meta.get("year")
@@ -471,6 +577,14 @@ def normalize_metadata(
         status_evidence=status_evidence,
     )
 
+    generated_title = normalize_case_title(
+        meta.get("generatedTitle"),
+        seed_title=title,
+        event_type=event_type,
+        people=people,
+        year=year,
+    )
+
     note_map = {
         "open": "Investigation reported as open / ongoing.",
         "closed": "Matter reported closed or resolved with official findings in cited sources.",
@@ -488,5 +602,6 @@ def normalize_metadata(
         "investigativeStatus": status,
         "statusEvidence": status_evidence,
         "eventType": event_type,
+        "generatedTitle": generated_title,
         "legalStatusNote": legal_note[:500],
     }

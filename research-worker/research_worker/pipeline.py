@@ -282,7 +282,8 @@ def run_claimed_research(
                                 "One person once (fold Rafik/Rafic spelling). "
                                 "Fill metadata (year, city/region/country, "
                                 "investigativeStatus=open|closed|dropped, "
-                                "eventType — use assassination for Hariri/JFK-style). "
+                                "eventType — use assassination for Hariri/JFK-style, "
+                                "generatedTitle — concise professional display title). "
                                 "Classify people roles (victim/subject/witness/...). "
                                 "Never copy prompt/UI instructions into claim text. "
                                 "Prefer primary sources about THIS case only. "
@@ -373,6 +374,7 @@ def run_claimed_research(
             title=title,
             existing_event_date=event_date or None,
             existing_location=location or None,
+            people=verified_people,
         )
 
         _push(steps, "corroborate")
@@ -420,6 +422,15 @@ def run_claimed_research(
         verified_people = dedupe_people(verified_people)
         # Re-normalize roles after merge
         verified_people = normalize_people(verified_people, case_title=title)
+        # Refresh title using normalized people (victim names)
+        metadata = normalize_metadata(
+            {**meta_raw, **metadata, "generatedTitle": metadata.get("generatedTitle")},
+            title=title,
+            existing_event_date=event_date or None,
+            existing_location=location or None,
+            people=verified_people,
+        )
+        display_title = str(metadata.get("generatedTitle") or title)
         _push(
             steps,
             "dedupe",
@@ -428,6 +439,7 @@ def run_claimed_research(
                 f"people {before_people}->{len(verified_people)}; "
                 f"sources={len(verified_sources)}; "
                 f"status={metadata.get('investigativeStatus')}; "
+                f"title={display_title}; "
                 f"year={metadata.get('year')}; loc={metadata.get('location')}"
             ),
         )
@@ -458,6 +470,7 @@ def run_claimed_research(
                 "topicTokens": sorted(topic_tokens),
                 "investigativeStatus": metadata.get("investigativeStatus"),
                 "eventType": metadata.get("eventType"),
+                "generatedTitle": display_title,
             },
             "note": (
                 "Draft from research agent — pending admin review. Not published."
@@ -485,14 +498,16 @@ def run_claimed_research(
             event_date_text=metadata.get("eventDateText"),
             location=metadata.get("location"),
             legal_status_note=metadata.get("legalStatusNote"),
+            generated_title=display_title,
             plan={
-                "title": title,
+                "title": display_title,
+                "seedTitle": title,
                 "actor": actor,
                 "queries": queries,
                 "hitCount": len(hits),
                 "models": {"extract": extract_model, "verify": verify_model},
                 "worker": "python-research-worker",
-                "quality": "dedupe+topic-filter+metadata+single-pass+idempotent",
+                "quality": "dedupe+topic-filter+metadata+single-pass+idempotent+title",
                 "metadata": metadata,
                 "pagesFetched": pages_fetched,
             },

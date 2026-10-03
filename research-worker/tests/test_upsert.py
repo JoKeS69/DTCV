@@ -203,3 +203,173 @@ def test_upsert_claims_merges_hariri_car_bomb_twins():
     rows = list(cur.execute("SELECT text FROM claims WHERE caseId=?", (case_id,)))
     assert len(rows) == 1
     assert stats["updated"] >= 1
+
+
+def test_complete_run_overwrites_seed_title():
+    from research_worker.db import complete_run_success
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(
+        """
+        CREATE TABLE cases (
+          id TEXT PRIMARY KEY, title TEXT, summary TEXT, status TEXT,
+          draftContent TEXT, sources TEXT, eventDateText TEXT, location TEXT,
+          legalStatusNote TEXT, labels TEXT, lastReviewedAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE claims (
+          id TEXT PRIMARY KEY, caseId TEXT, text TEXT, disputed INTEGER,
+          confidence REAL, sources TEXT, status TEXT, showOnPublish INTEGER,
+          createdAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE people (
+          id TEXT PRIMARY KEY, caseId TEXT, name TEXT, role TEXT,
+          legalStatus TEXT, sources TEXT, status TEXT, presumptionNote TEXT,
+          createdAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE case_revisions (
+          id TEXT PRIMARY KEY, caseId TEXT, snapshot TEXT, note TEXT,
+          createdBy TEXT, createdAt TEXT
+        );
+        CREATE TABLE research_runs (
+          id TEXT PRIMARY KEY, caseId TEXT, status TEXT, finishedAt TEXT,
+          stepsLog TEXT, pagesFetched INTEGER, stepsUsed INTEGER, costUnits REAL,
+          promptTokens INTEGER, completionTokens INTEGER, totalTokens INTEGER,
+          plan TEXT, updatedAt TEXT, errorMessage TEXT
+        );
+        CREATE TABLE audit_log (
+          id TEXT PRIMARY KEY, actor TEXT, action TEXT, entityType TEXT,
+          entityId TEXT, meta TEXT, createdAt TEXT
+        );
+        """
+    )
+    now = "2026-01-01T00:00:00+00:00"
+    conn.execute(
+        """
+        INSERT INTO cases (id, title, summary, status, labels, updatedAt)
+        VALUES ('c1', 'kennedy assasination', '', 'draft', '[]', ?)
+        """,
+        (now,),
+    )
+    conn.execute(
+        """
+        INSERT INTO research_runs (id, caseId, status, pagesFetched, stepsUsed,
+          costUnits, promptTokens, completionTokens, totalTokens, updatedAt)
+        VALUES ('r1', 'c1', 'running', 0, 0, 0, 0, 0, 0, ?)
+        """,
+        (now,),
+    )
+    conn.commit()
+    complete_run_success(
+        conn,
+        run_id="r1",
+        case_id="c1",
+        actor="test",
+        summary="Summary",
+        draft_content={
+            "metadata": {
+                "investigativeStatus": "closed",
+                "eventType": "assassination",
+                "generatedTitle": "Assassination of John F. Kennedy",
+            }
+        },
+        sources=[],
+        claims=[],
+        people=[],
+        steps_log=[],
+        pages_fetched=1,
+        steps_used=3,
+        cost_units=0.1,
+        prompt_tokens=1,
+        completion_tokens=1,
+        total_tokens=2,
+        plan={},
+        generated_title="Assassination of John F. Kennedy",
+    )
+    row = conn.execute("SELECT title FROM cases WHERE id='c1'").fetchone()
+    assert row["title"] == "Assassination of John F. Kennedy"
+
+
+def test_complete_run_respects_title_locked():
+    from research_worker.db import complete_run_success
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(
+        """
+        CREATE TABLE cases (
+          id TEXT PRIMARY KEY, title TEXT, summary TEXT, status TEXT,
+          draftContent TEXT, sources TEXT, eventDateText TEXT, location TEXT,
+          legalStatusNote TEXT, labels TEXT, lastReviewedAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE claims (
+          id TEXT PRIMARY KEY, caseId TEXT, text TEXT, disputed INTEGER,
+          confidence REAL, sources TEXT, status TEXT, showOnPublish INTEGER,
+          createdAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE people (
+          id TEXT PRIMARY KEY, caseId TEXT, name TEXT, role TEXT,
+          legalStatus TEXT, sources TEXT, status TEXT, presumptionNote TEXT,
+          createdAt TEXT, updatedAt TEXT
+        );
+        CREATE TABLE case_revisions (
+          id TEXT PRIMARY KEY, caseId TEXT, snapshot TEXT, note TEXT,
+          createdBy TEXT, createdAt TEXT
+        );
+        CREATE TABLE research_runs (
+          id TEXT PRIMARY KEY, caseId TEXT, status TEXT, finishedAt TEXT,
+          stepsLog TEXT, pagesFetched INTEGER, stepsUsed INTEGER, costUnits REAL,
+          promptTokens INTEGER, completionTokens INTEGER, totalTokens INTEGER,
+          plan TEXT, updatedAt TEXT, errorMessage TEXT
+        );
+        CREATE TABLE audit_log (
+          id TEXT PRIMARY KEY, actor TEXT, action TEXT, entityType TEXT,
+          entityId TEXT, meta TEXT, createdAt TEXT
+        );
+        """
+    )
+    now = "2026-01-01T00:00:00+00:00"
+    conn.execute(
+        """
+        INSERT INTO cases (id, title, summary, status, labels, updatedAt)
+        VALUES ('c1', 'Admin Locked Title', '', 'draft', ?, ?)
+        """,
+        ('["title_locked"]', now),
+    )
+    conn.execute(
+        """
+        INSERT INTO research_runs (id, caseId, status, pagesFetched, stepsUsed,
+          costUnits, promptTokens, completionTokens, totalTokens, updatedAt)
+        VALUES ('r1', 'c1', 'running', 0, 0, 0, 0, 0, 0, ?)
+        """,
+        (now,),
+    )
+    conn.commit()
+    complete_run_success(
+        conn,
+        run_id="r1",
+        case_id="c1",
+        actor="test",
+        summary="Summary",
+        draft_content={
+            "metadata": {
+                "investigativeStatus": "closed",
+                "eventType": "assassination",
+                "generatedTitle": "Assassination of John F. Kennedy",
+            }
+        },
+        sources=[],
+        claims=[],
+        people=[],
+        steps_log=[],
+        pages_fetched=1,
+        steps_used=3,
+        cost_units=0.1,
+        prompt_tokens=1,
+        completion_tokens=1,
+        total_tokens=2,
+        plan={},
+        generated_title="Assassination of John F. Kennedy",
+    )
+    row = conn.execute("SELECT title FROM cases WHERE id='c1'").fetchone()
+    assert row["title"] == "Admin Locked Title"

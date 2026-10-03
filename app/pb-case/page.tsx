@@ -21,7 +21,7 @@ export default async function PbCaseIndexPage() {
   return (
     <PbCaseShell
       title="Cases"
-      subtitle="Create stubs, run research (never auto-publishes), review claims/people, then publish."
+      subtitle="Create with a seed title, run research (worker sets the display title; never auto-publishes), review, then publish."
       current="/pb-case"
     >
       <CreateCaseForm />

@@ -32,7 +32,8 @@ def test_extract_schema_ok():
             "location": "New York, United States",
             "investigativeStatus": "closed",
             "statusEvidence": "Multiple official investigations published findings.",
-            "eventType": "terrorist"
+            "eventType": "terrorist",
+            "generatedTitle": "September 11 attacks"
           },
           "claims": [
             {
@@ -77,7 +78,8 @@ def test_verify_schema_requires_notes():
         "location": null,
         "investigativeStatus": "open",
         "statusEvidence": null,
-        "eventType": "other"
+        "eventType": "other",
+        "generatedTitle": null
       },
       "claims": [],
       "people": [],
