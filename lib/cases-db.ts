@@ -1,6 +1,10 @@
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@/lib/generated/prisma-cases/client";
 import path from "node:path";
+import {
+  attachInvestigationDelegates,
+  hasPrismaInvestigationDelegates,
+} from "@/lib/investigation/libsql-delegates";
 
 /**
  * Dedicated cases-research Prisma client (SQLite file).
@@ -10,10 +14,19 @@ import path from "node:path";
  * CASES_DATABASE_URL examples:
  *   file:./data/detective_cases.db
  *   file:/absolute/path/to/detective_cases.db
+ *
+ * Investigation Mode models (`investigationCase`) may be missing from a stale
+ * generated client (pull without `db:generate:cases`, or Next HMR singleton).
+ * We invalidate/recreate when needed and attach LibSQL shims as a fallback so
+ * fictional generate keeps working end-to-end after migrate.
  */
+
+/** Bump when cases-schema models change so HMR singletons are discarded. */
+export const CASES_PRISMA_CLIENT_GEN = 2;
 
 const globalForCases = globalThis as unknown as {
   casesPrisma: PrismaClient | undefined;
+  casesPrismaGen: number | undefined;
 };
 
 function resolveSqliteUrl(raw: string): string {
@@ -43,13 +56,26 @@ function createCasesPrismaClient(): PrismaClient {
 
   const url = resolveSqliteUrl(connectionString);
   const adapter = new PrismaLibSql({ url });
-  return new PrismaClient({ adapter });
+  const client = new PrismaClient({ adapter });
+  // Always ensure Investigation Mode delegates exist (native Prisma or LibSQL shim).
+  attachInvestigationDelegates(client);
+  return client;
 }
 
 export function getCasesPrisma(): PrismaClient {
-  if (!globalForCases.casesPrisma) {
+  const staleGen = globalForCases.casesPrismaGen !== CASES_PRISMA_CLIENT_GEN;
+  const staleModels =
+    !globalForCases.casesPrisma ||
+    !hasPrismaInvestigationDelegates(globalForCases.casesPrisma);
+
+  if (!globalForCases.casesPrisma || staleGen || staleModels) {
+    // Drop stale HMR singleton from before Investigation Mode models existed.
     globalForCases.casesPrisma = createCasesPrismaClient();
+    globalForCases.casesPrismaGen = CASES_PRISMA_CLIENT_GEN;
   }
+
+  // Re-attach if somehow stripped (defensive).
+  attachInvestigationDelegates(globalForCases.casesPrisma);
   return globalForCases.casesPrisma;
 }
 

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "npm run db:generate:cases",
     "build": "npm run db:generate:all && next build",
     "start": "next start",
     "lint": "eslint",
