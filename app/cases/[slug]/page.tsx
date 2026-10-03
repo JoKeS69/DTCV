@@ -88,7 +88,17 @@ export default async function CaseDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <dl className="grid gap-3 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.12em] sm:grid-cols-2 md:grid-cols-4">
+            <dl className="grid gap-3 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.12em] sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+              <div>
+                <dt className="text-text-dim">Case ID</dt>
+                <dd className="mt-1 text-text">{caseFile.caseCode}</dd>
+              </div>
+              <div>
+                <dt className="text-text-dim">Type</dt>
+                <dd className="mt-1 text-text">
+                  {caseFile.type.replaceAll("_", " ")}
+                </dd>
+              </div>
               <div>
                 <dt className="text-text-dim">Location</dt>
                 <dd className="mt-1 text-text">{caseFile.location ?? "—"}</dd>

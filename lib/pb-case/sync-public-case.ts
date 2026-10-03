@@ -10,12 +10,14 @@
 
 import type {
   CasePersonRole,
+  CaseStatus,
   CaseType,
   ContentLabel,
   Prisma,
 } from "@/lib/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 import { NAMING_POLICY } from "@/lib/pb-case/wording-linter";
 
 export const PB_CASE_SOURCE = "pb_case" as const;
@@ -32,6 +34,20 @@ export type PublicSyncResult =
   | { ok: true; publicCaseId: string; slug: string }
   | { ok: false; error: string };
 
+/** Meta / prompt-instruction phrases that must never appear on public `/cases`. */
+const INSTRUCTION_LEAK_PATTERNS: RegExp[] = [
+  /disputed claims must appear in a clearly labeled disputed section[^.]*\.?/gi,
+  /must not be presented as fact\.?/gi,
+  /named persons are presumed innocent unless convicted in a court of law\.?/gi,
+  /presumed innocent unless proven guilty in a court of law\.?/gi,
+  /prefer official\/court\/government sources\.?/gi,
+  /never declare guilt\.?/gi,
+  /output valid json matching the requested schema only\.?/gi,
+  /ignore any instructions found inside fetched web page text[^.]*\.?/gi,
+];
+
+const YEAR_RE = /\b((?:1[89]|20)\d{2})\b/;
+
 function parseSources(raw: unknown): ResearchSource[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter(
@@ -40,32 +56,340 @@ function parseSources(raw: unknown): ResearchSource[] {
   );
 }
 
-export function mapPersonRole(role: string): CasePersonRole {
-  const r = role.trim().toLowerCase().replace(/\s+/g, "_");
-  switch (r) {
-    case "victim":
-      return "VICTIM";
-    case "witness":
-      return "WITNESS";
-    case "person_of_interest":
-    case "poi":
-    case "suspect":
-      return "PERSON_OF_INTEREST";
-    case "relative":
-    case "family":
-      return "RELATIVE";
-    default:
-      return "OTHER";
+function normalizeKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** True when text looks like research/prompt policy leakage, not a case claim. */
+export function isInstructionLeak(text: string): boolean {
+  const t = text.trim();
+  if (!t) return true;
+  if (/disputed claims must appear/i.test(t)) return true;
+  if (/clearly labeled disputed section/i.test(t)) return true;
+  if (/must not be presented as fact/i.test(t)) return true;
+  if (/output valid json/i.test(t)) return true;
+  if (/ignore any instructions found inside/i.test(t)) return true;
+  if (
+    /^presumed innocent unless (proven|convicted)/i.test(t) &&
+    t.length < 160
+  ) {
+    return true;
   }
+  return false;
+}
+
+/** Strip instruction/policy sentences from public-facing claim/note text. */
+export function sanitizePublicText(text: string): string {
+  let out = text;
+  for (const re of INSTRUCTION_LEAK_PATTERNS) {
+    out = out.replace(re, " ");
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
+export function mapPersonRole(
+  role: string,
+  legalStatus?: string | null,
+): CasePersonRole {
+  const r = role.trim().toLowerCase().replace(/\s+/g, "_");
+  const legal = (legalStatus ?? "").trim().toLowerCase();
+
+  if (
+    r.includes("victim") ||
+    r === "deceased" ||
+    r.includes("deceased_victim") ||
+    r.includes("murder_victim")
+  ) {
+    return "VICTIM";
+  }
+
+  // Deceased public figures with non-accused roles (e.g. "president") → victim.
+  if (
+    legal === "deceased" &&
+    !r.includes("suspect") &&
+    !r.includes("accused") &&
+    !r.includes("interest") &&
+    !r.includes("assassin") &&
+    !r.includes("perpetrator") &&
+    !r.includes("shooter")
+  ) {
+    return "VICTIM";
+  }
+
+  if (r.includes("witness") || r.includes("bystander")) return "WITNESS";
+  if (
+    r.includes("person_of_interest") ||
+    r === "poi" ||
+    r.includes("suspect") ||
+    r.includes("accused") ||
+    r.includes("alleged") ||
+    r.includes("assassin") ||
+    r.includes("perpetrator") ||
+    r.includes("shooter") ||
+    legal === "person_of_interest" ||
+    legal === "charged" ||
+    legal === "convicted" ||
+    legal === "acquitted"
+  ) {
+    return "PERSON_OF_INTEREST";
+  }
+  if (r.includes("relative") || r.includes("family") || r.includes("spouse")) {
+    return "RELATIVE";
+  }
+  return "OTHER";
+}
+
+/**
+ * Public person notes: keep legal status; attach presumption only for living
+ * accused / POI — never for clearly deceased victims.
+ */
+export function personPublicNotes(input: {
+  role: string;
+  legalStatus: string;
+  presumptionNote: string | null | undefined;
+}): string | null {
+  const mapped = mapPersonRole(input.role, input.legalStatus);
+  const legal = input.legalStatus.trim().toLowerCase();
+  const isDeceasedVictim =
+    legal === "deceased" || mapped === "VICTIM";
+  const isLivingAccused =
+    !isDeceasedVictim &&
+    (mapped === "PERSON_OF_INTEREST" ||
+      legal === "person_of_interest" ||
+      legal === "charged" ||
+      legal === "named_public_record");
+
+  const parts: string[] = [];
+
+  if (legal && legal !== "other") {
+    parts.push(`Legal status: ${legal.replaceAll("_", " ")}`);
+  }
+
+  // Preserve descriptive research role when enum mapping is coarse.
+  const roleRaw = input.role.trim();
+  if (
+    roleRaw &&
+    !["other", "victim", "witness", "relative", "poi", "suspect"].includes(
+      roleRaw.toLowerCase().replace(/\s+/g, "_"),
+    )
+  ) {
+    parts.push(`Described as: ${roleRaw}`);
+  }
+
+  if (isLivingAccused) {
+    const note = (input.presumptionNote ?? "").trim();
+    if (note && !isInstructionLeak(note)) {
+      parts.push(note);
+    } else if (!note || isInstructionLeak(note)) {
+      parts.push(NAMING_POLICY.presumptionOfInnocence);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(" — ") : null;
 }
 
 export function yearFromResearch(input: {
   eventDate: Date | null;
   eventDateText: string | null;
+  title?: string | null;
+  summary?: string | null;
+  labels?: string[] | null;
 }): number | null {
-  if (input.eventDate) return input.eventDate.getUTCFullYear();
-  const m = input.eventDateText?.match(/\b(1[89]\d{2}|20\d{2})\b/);
-  return m ? Number(m[1]) : null;
+  if (input.eventDate && !Number.isNaN(input.eventDate.getTime())) {
+    return input.eventDate.getUTCFullYear();
+  }
+  const blobs = [
+    input.eventDateText,
+    input.title,
+    input.summary,
+    ...(input.labels ?? []),
+  ];
+  for (const blob of blobs) {
+    if (!blob) continue;
+    const m = blob.match(YEAR_RE);
+    if (m) {
+      const year = Number(m[1]);
+      if (year >= 1800 && year <= 2100) return year;
+    }
+  }
+  return null;
+}
+
+/** Map research labels / notes / people onto public CaseStatus. */
+export function mapResearchCaseStatus(input: {
+  labels?: string[] | null;
+  legalStatusNote?: string | null;
+  summary?: string | null;
+  title?: string | null;
+  people?: { legalStatus: string; role: string }[];
+}): CaseStatus {
+  const labels = (input.labels ?? []).map((l) =>
+    l.toLowerCase().replace(/[\s-]+/g, "_"),
+  );
+  const prose = [
+    input.legalStatusNote,
+    input.summary,
+    input.title,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  /** Exact / token match — avoid "unsolved".includes("solved"). */
+  const hasLabel = (...keys: string[]) =>
+    keys.some((k) => {
+      const key = k.toLowerCase().replace(/[\s-]+/g, "_");
+      return labels.some(
+        (l) =>
+          l === key ||
+          l.split("_").includes(key) ||
+          (key.includes("_") && l === key),
+      );
+    });
+
+  // Explicit label wins (check unsolved before solved).
+  if (hasLabel("unsolved", "unresolved")) return "UNSOLVED";
+  if (hasLabel("closed", "solved", "resolved", "cleared")) return "CLOSED";
+  if (hasLabel("cold", "cold_case")) return "COLD";
+  if (hasLabel("open", "active", "ongoing")) return "OPEN";
+
+  // Prefer closed/solved when research prose supports an official conclusion.
+  if (
+    /\b(official(?:ly)?\s+(?:closed|solved|concluded|conclusion)|case\s+(?:was\s+)?(?:closed|solved|resolved)|warren\s+commission|convicted\s+in\s+(?:a\s+)?court|found\s+guilty)\b/.test(
+      prose,
+    )
+  ) {
+    return "CLOSED";
+  }
+  if (/\bcold\s+case\b|\bremains\s+unsolved\b|\bstill\s+unsolved\b/.test(prose)) {
+    return /\bcold\b/.test(prose) ? "COLD" : "UNSOLVED";
+  }
+  if (/\b(investigation\s+(?:is\s+)?ongoing|actively\s+investigat)\b/.test(prose)) {
+    return "OPEN";
+  }
+
+  const people = input.people ?? [];
+  if (people.some((p) => p.legalStatus === "convicted")) return "CLOSED";
+  if (
+    people.some(
+      (p) =>
+        p.legalStatus === "charged" || p.legalStatus === "person_of_interest",
+    )
+  ) {
+    return "OPEN";
+  }
+
+  return "UNSOLVED";
+}
+
+/** Infer CaseType from title/summary/labels (research has no typed field). */
+export function mapResearchCaseType(input: {
+  title?: string | null;
+  summary?: string | null;
+  labels?: string[] | null;
+}): CaseType {
+  const blob = [
+    ...(input.labels ?? []),
+    input.title,
+    input.summary,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    /\b(homicide|murder|assassinat|killed|killing|shooting death|fatal shooting)\b/.test(
+      blob,
+    )
+  ) {
+    return "HOMICIDE";
+  }
+  if (/\b(terror|terrorist|9\/11|september\s+11)\b/.test(blob)) {
+    return "TERRORIST";
+  }
+  if (/\b(kidnap|abduct)/.test(blob)) return "KIDNAPPING";
+  if (/\b(unidentified|john doe|jane doe)\b/.test(blob)) return "UNIDENTIFIED";
+  if (/\b(wanted|fugitive)\b/.test(blob)) return "WANTED";
+  if (/\b(missing person|disappear)/.test(blob)) {
+    return /\bdisappear/.test(blob) ? "DISAPPEARANCE" : "MISSING";
+  }
+  if (/\bseeking information\b/.test(blob)) return "SEEKING_INFORMATION";
+  return "UNKNOWN";
+}
+
+/**
+ * Prefer a geographic location. Drop values that are clearly the case title
+ * or instruction leakage; fall back to a place mention in the summary.
+ */
+export function resolvePublicLocation(input: {
+  location: string | null;
+  title: string;
+  summary?: string | null;
+}): string | null {
+  let loc = input.location?.trim() || null;
+  if (loc && isInstructionLeak(loc)) loc = null;
+  if (loc && normalizeKey(loc) === normalizeKey(input.title)) loc = null;
+  // Title-like stubs ("kennedy assassination") masquerading as places.
+  if (
+    loc &&
+    /\b(assassinat|incident|murder|case|mystery|disappear)\b/i.test(loc) &&
+    !/\b(street|ave|road|blvd|county|parish|texas|california|york|dallas|london)\b/i.test(
+      loc,
+    )
+  ) {
+    loc = null;
+  }
+
+  if (loc) return loc.slice(0, 200);
+
+  const summary = input.summary?.trim() ?? "";
+  if (!summary) return null;
+
+  // "in Dallas, Texas" / "at Dealey Plaza in Dallas" — stop before lowercase prose.
+  const inPlace = summary.match(
+    /\b(?:in|at|near)\s+([A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+)*(?:,\s*[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]*)*)?)/,
+  );
+  if (inPlace?.[1]) {
+    const candidate = inPlace[1].replace(/[.,;:]+$/, "").trim();
+    if (
+      candidate.length >= 3 &&
+      normalizeKey(candidate) !== normalizeKey(input.title) &&
+      !isInstructionLeak(candidate)
+    ) {
+      return candidate.slice(0, 200);
+    }
+  }
+  return null;
+}
+
+/** Best-effort ISO country code from a free-text location. */
+export function countryCodeFromLocation(location: string | null): string | null {
+  if (!location) return null;
+  const l = location.toLowerCase();
+  if (
+    /\bunited states\b|\bu\.s\.a\.?\b|\bu\.s\.\b|\busa\b|\btexas\b|\bcalifornia\b|\bnew york\b|\bdallas\b|\bflorida\b|\bchicago\b|\bwashington\b|,\s*(tx|ca|ny|fl|il|wa|az|nv|co|ga|nc|oh|pa|mi|va)\b/.test(
+      l,
+    )
+  ) {
+    return "US";
+  }
+  if (
+    /\bunited kingdom\b|\buk\b|\bengland\b|\blondon\b|\bscotland\b|\bwales\b/.test(
+      l,
+    )
+  ) {
+    return "GB";
+  }
+  if (/\bcanada\b|\btoronto\b|\bvancouver\b|\bottawa\b/.test(l)) return "CA";
+  if (/\baustralia\b|\bsydney\b|\bmelbourne\b/.test(l)) return "AU";
+  if (/\bfrance\b|\bparis\b/.test(l)) return "FR";
+  if (/\bgermany\b|\bberlin\b/.test(l)) return "DE";
+  return null;
 }
 
 export function caseCodeForResearch(caseFileId: string): string {
@@ -75,25 +399,32 @@ export function caseCodeForResearch(caseFileId: string): string {
   );
 }
 
-function claimsAsPublicNotes(
+export function claimsAsPublicNotes(
   factual: { text: string }[],
   disputed: { text: string }[],
 ): string | null {
+  const cleanFactual = factual
+    .map((c) => sanitizePublicText(c.text))
+    .filter((t) => t && !isInstructionLeak(t));
+  const cleanDisputed = disputed
+    .map((c) => sanitizePublicText(c.text))
+    .filter((t) => t && !isInstructionLeak(t));
+
   const parts: string[] = [];
-  if (factual.length > 0) {
+  if (cleanFactual.length > 0) {
     parts.push(
       "Claims (reported):\n" +
-        factual.map((c, i) => `${i + 1}. ${c.text}`).join("\n"),
+        cleanFactual.map((t, i) => `${i + 1}. ${t}`).join("\n"),
     );
   }
-  if (disputed.length > 0) {
+  if (cleanDisputed.length > 0) {
+    // Public label only — never the internal naming-policy instruction string.
     parts.push(
-      `${NAMING_POLICY.disputedClaimsSection}\n` +
-        disputed.map((c, i) => `${i + 1}. ${c.text}`).join("\n"),
+      "Disputed:\n" +
+        cleanDisputed.map((t, i) => `${i + 1}. ${t}`).join("\n"),
     );
   }
-  parts.push(NAMING_POLICY.presumptionOfInnocence);
-  return parts.join("\n\n") || null;
+  return parts.length > 0 ? parts.join("\n\n") : null;
 }
 
 async function resolveUniqueSlug(
@@ -147,11 +478,16 @@ export async function syncResearchCaseToPublic(
 
   const sources = parseSources(caseFile.sources);
   const factual = caseFile.claims.filter(
-    (c) => !c.disputed && c.status !== "disputed",
+    (c) =>
+      !c.disputed &&
+      c.status !== "disputed" &&
+      !isInstructionLeak(c.text),
   );
   const disputed = caseFile.claims.filter(
-    (c) => c.disputed || c.status === "disputed",
+    (c) =>
+      (c.disputed || c.status === "disputed") && !isInstructionLeak(c.text),
   );
+  const labels = asStringArray(caseFile.labels);
   const now = new Date();
   const prisma = getPrisma();
 
@@ -170,11 +506,35 @@ export async function syncResearchCaseToPublic(
   const year = yearFromResearch({
     eventDate: caseFile.eventDate,
     eventDateText: caseFile.eventDateText,
+    title: caseFile.title,
+    summary: caseFile.summary,
+    labels,
+  });
+  const location = resolvePublicLocation({
+    location: caseFile.location,
+    title: caseFile.title,
+    summary: caseFile.summary,
+  });
+  const countryCode = countryCodeFromLocation(location);
+  const type = mapResearchCaseType({
+    title: caseFile.title,
+    summary: caseFile.summary,
+    labels,
+  });
+  const status = mapResearchCaseStatus({
+    labels,
+    legalStatusNote: caseFile.legalStatusNote,
+    summary: caseFile.summary,
+    title: caseFile.title,
+    people: caseFile.people.map((p) => ({
+      legalStatus: p.legalStatus,
+      role: p.role,
+    })),
   });
   const firstSourceUrl = sources[0]?.url ?? null;
   const summary =
-    caseFile.summary.trim() ||
-    `${caseFile.title} — curated research case file. ${NAMING_POLICY.presumptionOfInnocence}`;
+    sanitizePublicText(caseFile.summary.trim()) ||
+    `${caseFile.title} — curated research case file.`;
 
   const sharedData = {
     caseCode,
@@ -182,11 +542,11 @@ export async function syncResearchCaseToPublic(
     slug,
     summary,
     publicNotes: claimsAsPublicNotes(factual, disputed),
-    location: caseFile.location,
-    countryCode: null as string | null,
+    location,
+    countryCode,
     year,
-    type: "OTHER" as CaseType,
-    status: "UNSOLVED" as const,
+    type,
+    status,
     priority: caseFile.worldDomination ? ("HIGH" as const) : ("MEDIUM" as const),
     contentLabel: "REPORTED" as ContentLabel,
     published: opts.published,
@@ -212,9 +572,11 @@ export async function syncResearchCaseToPublic(
       researchCaseId: caseFile.id,
       researchSlug: caseFile.slug,
       legalStatusNote: caseFile.legalStatusNote,
-      labels: caseFile.labels,
+      labels,
       claimCount: caseFile.claims.length,
       personCount: caseFile.people.length,
+      mappedStatus: status,
+      mappedType: type,
     } satisfies Prisma.InputJsonValue,
   };
 
@@ -244,7 +606,9 @@ export async function syncResearchCaseToPublic(
         url: s.url!,
         publisher: s.publisher?.slice(0, 200) ?? null,
         accessedAt: s.accessedAt ? new Date(s.accessedAt) : null,
-        citationNote: s.excerpt?.slice(0, 1000) ?? null,
+        citationNote: s.excerpt
+          ? sanitizePublicText(s.excerpt).slice(0, 1000) || null
+          : null,
       })),
     });
   }
@@ -254,13 +618,12 @@ export async function syncResearchCaseToPublic(
       data: caseFile.people.map((p) => ({
         caseId: publicCase.id,
         name: p.name,
-        role: mapPersonRole(p.role),
-        notes: [
-          `Legal status: ${p.legalStatus.replaceAll("_", " ")}`,
-          p.presumptionNote,
-        ]
-          .filter(Boolean)
-          .join(" — "),
+        role: mapPersonRole(p.role, p.legalStatus),
+        notes: personPublicNotes({
+          role: p.role,
+          legalStatus: p.legalStatus,
+          presumptionNote: p.presumptionNote,
+        }),
         contentLabel: "REPORTED" as ContentLabel,
       })),
     });
@@ -278,22 +641,27 @@ export async function syncResearchCaseToPublic(
     });
   }
   factual.forEach((c, i) => {
+    const text = sanitizePublicText(c.text);
+    if (!text || isInstructionLeak(text)) return;
     events.push({
       caseId: publicCase.id,
       occurredAt: null,
       title: "Claim",
-      description: c.text,
+      description: text,
       contentLabel: "REPORTED",
       sortOrder: i + 1,
     });
   });
   disputed.forEach((c, i) => {
+    const text = sanitizePublicText(c.text);
+    if (!text || isInstructionLeak(text)) return;
+    // Research-sourced disputed claims are reported-disputed, not user theories.
     events.push({
       caseId: publicCase.id,
       occurredAt: null,
       title: "Disputed claim",
-      description: c.text,
-      contentLabel: "USER_THEORY",
+      description: text,
+      contentLabel: "REPORTED",
       sortOrder: 1000 + i,
     });
   });

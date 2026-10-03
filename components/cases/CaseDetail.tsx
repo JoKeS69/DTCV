@@ -52,6 +52,10 @@ export function CaseDetail({
 
       <dl className="space-y-3 border-b border-border px-4 py-5 font-mono text-[13px] uppercase tracking-[0.08em] md:px-5 xl:px-6">
         <div className="flex items-start justify-between gap-4">
+          <dt className="shrink-0 text-text-dim">Case ID</dt>
+          <dd className="text-right text-text">{item.caseCode}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-text-dim">Location</dt>
           <dd className="text-right text-text">{item.location}</dd>
         </div>

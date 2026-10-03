@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   formatClock,
   formatRelativeLabel,
+  shortLocationLabel,
   toHudActivity,
   toHudCase,
   toHudDiscussions,
@@ -52,6 +53,33 @@ describe("hud-adapters date coercion", () => {
     });
     expect(hud.updatedAt).toBe("2026-10-03T15:00:00.000Z");
     expect(hud.updatedLabel).toBe("01 HRS AGO");
+  });
+
+  it("shortLocationLabel prefers geographic location over country code", () => {
+    expect(shortLocationLabel("Dallas, Texas", "US")).toBe("Dallas, Texas");
+    expect(shortLocationLabel(null, "US")).toBe("US");
+    expect(shortLocationLabel(null, null)).toBe("—");
+  });
+
+  it("toHudCase keeps caseCode/type and uses location for list column", () => {
+    const hud = toHudCase({
+      id: "1",
+      caseCode: "PB-jfk1963",
+      slug: "jfk-assassination",
+      title: "JFK assassination",
+      location: "Dallas, Texas",
+      countryCode: "US",
+      type: "HOMICIDE",
+      status: "CLOSED",
+      updatedAt: "2026-10-03T15:00:00.000Z",
+      priority: "HIGH",
+      summary: "Overview",
+    });
+    expect(hud.caseCode).toBe("PB-jfk1963");
+    expect(hud.title).toBe("JFK assassination");
+    expect(hud.locationShort).toBe("Dallas, Texas");
+    expect(hud.type).toBe("HOMICIDE");
+    expect(hud.status).toBe("CLOSED");
   });
 
   it("toHudActivity works when at is a string", () => {

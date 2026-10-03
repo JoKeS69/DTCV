@@ -28,6 +28,21 @@ export function formatClock(date: DateLike | null | undefined): string {
   return d.toISOString().slice(11, 19);
 }
 
+/** Short location for list columns — prefer place text over bare country code. */
+export function shortLocationLabel(
+  location: string | null | undefined,
+  countryCode: string | null | undefined,
+): string {
+  const loc = location?.trim();
+  if (loc) {
+    const primary = loc.split(/[;—]/)[0]?.trim() || loc;
+    if (primary.length <= 40) return primary;
+    return `${primary.slice(0, 37)}…`;
+  }
+  const cc = countryCode?.trim();
+  return cc || "—";
+}
+
 export function toHudCase(row: {
   id: string;
   caseCode: string;
@@ -47,14 +62,16 @@ export function toHudCase(row: {
   agency?: string | null;
 }): HudCase {
   const updated = coerceDate(row.updatedAt);
+  const caseCode = row.caseCode?.trim() || "—";
+  const type = row.type?.trim() || "UNKNOWN";
   return {
     id: row.id,
-    caseCode: row.caseCode,
+    caseCode,
     slug: row.slug,
     title: row.title,
     location: row.location?.trim() || row.countryCode || "—",
-    locationShort: row.countryCode?.trim() || "—",
-    type: row.type,
+    locationShort: shortLocationLabel(row.location, row.countryCode),
+    type,
     status: row.status as HudCaseStatus,
     updatedLabel: formatRelativeLabel(updated ?? row.updatedAt),
     updatedAt: updated ? updated.toISOString() : String(row.updatedAt),
