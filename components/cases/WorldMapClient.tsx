@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import {
   CircleMarker,
@@ -100,7 +99,7 @@ export function WorldMapClient({
         <FitMarkers markers={safeMarkers} />
         {safeMarkers.map((m) => {
           const color = STATUS_COLOR[m.status] ?? STATUS_COLOR.UNSOLVED;
-          const label = `${m.caseCode}: ${m.title} (${m.status})`;
+          const label = `${m.title} (${m.status})`;
           return (
             <CircleMarker
               key={m.id}
@@ -140,9 +139,7 @@ export function WorldMapClient({
       ) : null}
 
       <p className="pointer-events-none absolute right-2 top-2 z-[450] max-w-[55%] text-right font-mono text-[9px] uppercase leading-snug tracking-[0.08em] text-text-dim/70">
-        <Link href="/sources" className="pointer-events-auto text-text-dim/80 hover:text-text-muted">
-          Map © Esri · Leaflet
-        </Link>
+        Map © Esri · Leaflet
       </p>
 
       {/* Visually hidden keyboard list for markers (CircleMarkers are pointer-first) */}
@@ -150,8 +147,7 @@ export function WorldMapClient({
         <ul className="sr-only">
           {safeMarkers.map((m) => (
             <li key={`a11y-${m.id}`}>
-              {m.caseCode}: {m.title}, status {m.status}, coordinates {m.lat},{" "}
-              {m.lng}
+              {m.title}, status {m.status}, coordinates {m.lat}, {m.lng}
             </li>
           ))}
         </ul>

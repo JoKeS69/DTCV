@@ -88,7 +88,7 @@ export default async function CasesPage({
   const items: HudCase[] = list.items.map(toHudCase);
   const selected =
     items.find(
-      (c) => c.caseCode === sp.select || c.slug === sp.select,
+      (c) => c.slug === sp.select || c.caseCode === sp.select,
     ) ?? null;
 
   const stats = toHudStats(statsBundle.counts, statsBundle.topLocations);
@@ -97,14 +97,14 @@ export default async function CasesPage({
   const showMobileDetail = Boolean(sp.select) && Boolean(selected);
   const showTabletDrawer = Boolean(sp.select) && Boolean(selected);
 
-  const buildSelectHref = (caseCode: string) => {
+  const buildSelectHref = (selectKey: string) => {
     const params = new URLSearchParams();
     if (sp.q) params.set("q", sp.q);
     if (sp.type && sp.type !== "ALL") params.set("type", sp.type);
     if (sp.status && sp.status !== "ALL") params.set("status", sp.status);
     if (sp.sort) params.set("sort", sp.sort);
     if (sp.focus) params.set("focus", sp.focus);
-    params.set("select", caseCode);
+    params.set("select", selectKey);
     return `/cases?${params.toString()}`;
   };
 
@@ -152,14 +152,14 @@ export default async function CasesPage({
                 </p>
                 <p className="max-w-md text-[12px] text-text-dim">
                   {emptyDatabase
-                    ? "Connect a data source to publish case files."
+                    ? "Publish case files from the research desk."
                     : "Try broader search or filters."}
                 </p>
               </div>
             ) : (
               <CaseTable
                 items={items}
-                selectedCode={selected?.caseCode ?? null}
+                selectedCode={selected?.slug ?? null}
                 buildSelectHref={buildSelectHref}
               />
             )}

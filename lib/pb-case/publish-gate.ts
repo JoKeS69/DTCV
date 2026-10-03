@@ -71,7 +71,7 @@ export async function evaluatePublishGate(
   }
 
   if (!caseFile.sources || (Array.isArray(caseFile.sources) && caseFile.sources.length === 0)) {
-    errors.push("At least one source is required before publish.");
+    errors.push("Research metadata incomplete — cannot publish yet.");
   }
 
   if (errors.length > 0) {

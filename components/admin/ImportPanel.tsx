@@ -37,8 +37,8 @@ export function ImportPanel() {
         rows={12}
         placeholder={
           format === "json"
-            ? '[{"source":"europol","sourceId":"E-1","name":"…","sourceUrl":"https://…","summary":"…"}]'
-            : "source,sourceId,name,sourceUrl,summary,caseType,status\neuropol,E-1,Example,https://example.invalid,Summary,WANTED,ACTIVE"
+            ? '[{"name":"…","url":"https://…","summary":"…"}]'
+            : "name,url,summary,caseType,status\nExample,https://example.invalid,Summary,WANTED,ACTIVE"
         }
         className="w-full border border-border bg-bg px-3 py-2 font-mono text-[11px] text-text"
       />

@@ -16,7 +16,6 @@ export default async function AdminDashboardPage() {
     { label: "Fictional", value: overview.fictional, href: "/admin/fictional", meta: `${overview.publishedFictional} published` },
     { label: "Open reports", value: overview.reportsOpen, href: "/admin/moderation", meta: "moderation queue" },
     { label: "Discussions", value: overview.discussions, href: "/admin/moderation", meta: "live threads" },
-    { label: "Sources", value: overview.sources, href: "/admin/sources", meta: "citations" },
   ];
 
   return (

@@ -33,9 +33,9 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [values, setValues] = useState<CaseValues>({
+  const [values, setValues] = useState<CaseValues>(() => ({
     id: initial?.id,
-    caseCode: initial?.caseCode ?? "",
+    caseCode: initial?.caseCode ?? `MAN-${Date.now().toString(36).toUpperCase()}`,
     title: initial?.title ?? "",
     slug: initial?.slug ?? "",
     summary: initial?.summary ?? "",
@@ -50,7 +50,7 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
     priority: initial?.priority ?? "MEDIUM",
     contentLabel: initial?.contentLabel ?? "REPORTED",
     isDevStub: initial?.isDevStub ?? true,
-  });
+  }));
 
   function set<K extends keyof CaseValues>(key: K, value: CaseValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -92,15 +92,8 @@ export function CaseAdminForm({ initial }: { initial?: Partial<CaseValues> }) {
         });
       }}
     >
-      <Field label="Case code">
-        <input
-          className="mt-1 w-full border border-border bg-bg px-3 py-2 font-mono text-[12px] text-text"
-          value={values.caseCode}
-          onChange={(e) => set("caseCode", e.target.value)}
-          required
-        />
-      </Field>
       <Field label="Title">
+        <input type="hidden" value={values.caseCode} readOnly />
         <input
           className="mt-1 w-full border border-border bg-bg px-3 py-2 font-mono text-[12px] text-text"
           value={values.title}

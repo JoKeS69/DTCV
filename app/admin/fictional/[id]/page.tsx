@@ -31,7 +31,7 @@ export default async function AdminFictionalEditPage({ params }: Props) {
 
   return (
     <AdminShell
-      title={`Edit ${caseFile.caseCode}`}
+      title="Edit fictional case"
       subtitle="FICTIONAL training file — never present as real crime."
       current="/admin/fictional"
     >

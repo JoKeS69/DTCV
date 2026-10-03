@@ -8,7 +8,7 @@ export default function AdminNewCasePage() {
   return (
     <AdminShell
       title="New real case"
-      subtitle="Mark DEV stubs clearly. Cite sources after create."
+      subtitle="Mark DEV stubs clearly."
       current="/admin/cases"
     >
       <CaseAdminForm />

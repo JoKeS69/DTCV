@@ -52,7 +52,7 @@ export default async function AdminFictionalPage() {
                 href={`/admin/fictional/${c.id}`}
                 className="font-mono text-[11px] uppercase tracking-[0.12em] text-text hover:text-cta"
               >
-                {c.caseCode} · {c.title}
+                {c.title}
               </Link>
               <p className="mt-1 font-mono text-[10px] text-text-dim">
                 {c.difficulty} · {c.estimatedMinutes ?? "—"} min ·{" "}

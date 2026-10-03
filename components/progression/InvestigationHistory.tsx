@@ -46,7 +46,7 @@ export function InvestigationHistory({
                 href={href}
                 className="font-mono text-[11px] uppercase tracking-[0.12em] text-text hover:text-cta"
               >
-                {item.fictionalCase.caseCode} · {item.fictionalCase.title}
+                {item.fictionalCase.title}
               </Link>
               <p className="mt-1 font-mono text-[10px] text-text-dim">
                 {item.fictionalCase.difficulty} · {item.status}

@@ -49,7 +49,7 @@ export default function TwitterImage() {
               maxWidth: 800,
             }}
           >
-            Sourced case files · community · fictional training
+            Case files · community · fictional training
           </div>
         </div>
         <div

@@ -21,7 +21,7 @@ export function organizationJsonLd() {
     name: "DETECTIVE",
     url: absoluteUrlSafe(),
     description:
-      "Global detective investigation platform for sourced case files and fictional training.",
+      "Global detective investigation platform for case files and fictional training.",
   };
 }
 
@@ -46,7 +46,6 @@ function toIso(value: Date | string): string {
 }
 
 export function realCaseJsonLd(input: {
-  caseCode: string;
   title: string;
   summary: string;
   slug: string;
@@ -56,12 +55,11 @@ export function realCaseJsonLd(input: {
   contentLabel: string;
   /** May be a Date or ISO string after unstable_cache serialization. */
   updatedAt: Date | string;
-  sources: { title: string; url: string }[];
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: `${input.caseCode} · ${input.title}`,
+    headline: input.title,
     description: input.summary.slice(0, 300),
     url: `${absoluteUrlSafe()}/cases/${input.slug}`,
     dateModified: toIso(input.updatedAt),
@@ -73,11 +71,6 @@ export function realCaseJsonLd(input: {
     contentLocation: input.location
       ? { "@type": "Place", name: input.location }
       : undefined,
-    citation: input.sources.slice(0, 10).map((s) => ({
-      "@type": "CreativeWork",
-      name: s.title,
-      url: s.url,
-    })),
     isAccessibleForFree: true,
     publisher: {
       "@type": "Organization",

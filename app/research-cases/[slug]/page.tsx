@@ -52,13 +52,6 @@ export default async function ResearchCasePage({
     notFound();
   }
 
-  const sources = Array.isArray(caseFile.sources)
-    ? (caseFile.sources as {
-        url?: string;
-        title?: string;
-        excerpt?: string;
-      }[])
-    : [];
   const disputed = caseFile.claims.filter(
     (c) => c.disputed || c.status === "disputed",
   );
@@ -148,29 +141,7 @@ export default async function ResearchCasePage({
           ) : null}
 
           <section className="mt-8 border-t border-border pt-4">
-            <h2 className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-dim">
-              Sources
-            </h2>
-            <ul className="mt-2 space-y-1">
-              {sources.map((s, i) => (
-                <li key={`${s.url}-${i}`} className="font-mono text-[11px]">
-                  {s.url ? (
-                    <a
-                      href={s.url}
-                      className="text-text-muted underline hover:text-text"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      {s.title || s.url}
-                    </a>
-                  ) : null}
-                  {s.excerpt ? (
-                    <span className="block text-text-dim">“{s.excerpt}”</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 font-mono text-[10px] text-text-dim">
+            <p className="font-mono text-[10px] text-text-dim">
               Last reviewed:{" "}
               {caseFile.lastReviewedAt?.toISOString() ?? "not recorded"}
             </p>

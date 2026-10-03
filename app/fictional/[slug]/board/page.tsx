@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const caseFile = await getFictionalCaseBySlug(slug);
   if (!caseFile) return privatePageMetadata("Board not found");
-  return privatePageMetadata(`Board · ${caseFile.caseCode}`);
+  return privatePageMetadata(`Board · ${caseFile.title}`);
 }
 
 export default async function FictionalBoardPage({ params }: Props) {
@@ -53,7 +53,7 @@ export default async function FictionalBoardPage({ params }: Props) {
     <main className="deck-page deck-page--wide">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href={`/fictional/${slug}`} className="hover:text-text">
-          ← {caseFile.caseCode}
+          ← {caseFile.title}
         </Link>
         {" · "}
         <Link href="/fictional" className="hover:text-text">
@@ -64,7 +64,7 @@ export default async function FictionalBoardPage({ params }: Props) {
       <header className="mt-3 mb-3 flex flex-wrap items-end justify-between gap-3 border border-border bg-surface/60 px-4 py-3">
         <div>
           <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-            BOARD · {caseFile.caseCode}
+            BOARD
           </p>
           <h1 className="mt-1 font-mono text-lg font-semibold uppercase tracking-[0.08em] text-text md:text-xl">
             {caseFile.title}

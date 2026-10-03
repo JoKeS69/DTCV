@@ -45,8 +45,7 @@ export default async function AdminSyncPage() {
               <p className="uppercase tracking-[0.12em] text-text">
                 {entry.adapter.label}{" "}
                 <span className="text-text-dim">
-                  ({entry.adapter.source}) ·{" "}
-                  {entry.adapter.isEnabled() ? "enabled" : "disabled"}
+                  · {entry.adapter.isEnabled() ? "enabled" : "disabled"}
                 </span>
               </p>
               <p className="mt-1 text-text-muted normal-case tracking-normal">
@@ -75,7 +74,7 @@ export default async function AdminSyncPage() {
               <thead className="border-b border-border text-[9px] uppercase tracking-[0.14em] text-text-dim">
                 <tr>
                   <th className="px-3 py-2">When</th>
-                  <th className="px-3 py-2">Source</th>
+                  <th className="px-3 py-2">Adapter</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Fetched</th>
                   <th className="px-3 py-2">Upserted</th>

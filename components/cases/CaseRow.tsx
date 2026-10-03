@@ -17,13 +17,8 @@ export function CaseRow({
       data-active={active}
       className="case-row border-b border-border/80 font-mono text-[14px]"
     >
-      <td className="h-[54px] px-5 py-0 align-middle xl:h-[56px] xl:px-6">
+      <td className="max-w-[360px] truncate px-5 py-0 align-middle xl:px-6">
         <Link href={href} className="font-medium text-text">
-          {item.caseCode}
-        </Link>
-      </td>
-      <td className="max-w-[300px] truncate px-5 align-middle xl:px-6">
-        <Link href={href} className="text-text">
           {item.title}
         </Link>
       </td>

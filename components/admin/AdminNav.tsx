@@ -8,7 +8,6 @@ const links = [
   { href: "/admin/import", label: "Import" },
   { href: "/admin/takedowns", label: "Takedowns" },
   { href: "/admin/fictional", label: "Fictional" },
-  { href: "/admin/sources", label: "Sources" },
   { href: "/admin/moderation", label: "Moderation" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/analytics", label: "Analytics" },

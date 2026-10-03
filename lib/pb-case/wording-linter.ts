@@ -33,7 +33,7 @@ export function lintCaseWording(text: string): LinterFinding[] {
         severity: "error",
         rule: "no_guilt_declaration",
         message:
-          "Wording appears to declare guilt. Use reported/charged/convicted language with sources.",
+          "Wording appears to declare guilt. Use reported/charged/convicted language.",
       });
       break;
     }
@@ -56,7 +56,7 @@ export function lintCaseWording(text: string): LinterFinding[] {
       severity: "error",
       rule: "copyright_excerpt_length",
       message:
-        "Quoted excerpt is too long. Paraphrase and link the source; keep short excerpts only.",
+        "Quoted excerpt is too long. Paraphrase and keep short excerpts only.",
     });
   }
 

@@ -33,7 +33,6 @@ export function FilterControls({
       <select name="sort" defaultValue={sort} className="hud-select max-w-full">
         <option value="updated">Sort: Updated</option>
         <option value="recent">Sort: Recent</option>
-        <option value="code">Sort: Case ID</option>
         <option value="title">Sort: Title</option>
       </select>
     </div>

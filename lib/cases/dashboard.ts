@@ -138,19 +138,19 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
     ...cases.map((c) => ({
       id: `case-${c.id}`,
       at: c.updatedAt,
-      text: `Case ${c.caseCode} updated`,
+      text: `${c.title} updated`,
       href: `/cases/${c.slug}`,
     })),
     ...comments.map((c) => ({
       id: `cmt-${c.id}`,
       at: c.createdAt,
-      text: `Case ${c.discussion.case.caseCode} / Discussion reply from user: ${c.author.username}`,
+      text: `Discussion reply from ${c.author.username}`,
       href: `/discussions/${c.discussion.id}`,
     })),
     ...discussions.map((d) => ({
       id: `disc-${d.id}`,
       at: d.createdAt,
-      text: `Case ${d.case.caseCode} / New discussion: ${d.title}`,
+      text: `New discussion: ${d.title}`,
       href: `/discussions/${d.id}`,
     })),
   ];

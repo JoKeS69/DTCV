@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
   return buildPageMetadata({
-    title: `${caseFile.caseCode} · ${caseFile.title}`,
+    title: caseFile.title,
     description: metaDescription(
       `${caseFile.summary} Label: ${caseFile.contentLabel}. Status: ${caseFile.status}.`,
     ),
@@ -49,7 +49,6 @@ export default async function CaseDetailPage({ params }: Props) {
     <main className="deck-page deck-page--wide">
       <JsonLd
         data={realCaseJsonLd({
-          caseCode: caseFile.caseCode,
           title: caseFile.title,
           summary: caseFile.summary,
           slug: caseFile.slug,
@@ -58,10 +57,6 @@ export default async function CaseDetailPage({ params }: Props) {
           status: caseFile.status,
           contentLabel: caseFile.contentLabel,
           updatedAt: caseFile.updatedAt,
-          sources: caseFile.sources.map((s) => ({
-            title: s.title,
-            url: s.url,
-          })),
         })}
       />
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
@@ -76,7 +71,7 @@ export default async function CaseDetailPage({ params }: Props) {
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
               <div>
                 <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-                  CASE {caseFile.caseCode}
+                  CASE FILE
                 </p>
                 <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text md:text-2xl">
                   {caseFile.title}
@@ -88,11 +83,7 @@ export default async function CaseDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <dl className="grid gap-3 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.12em] sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              <div>
-                <dt className="text-text-dim">Case ID</dt>
-                <dd className="mt-1 text-text">{caseFile.caseCode}</dd>
-              </div>
+            <dl className="grid gap-3 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.12em] sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
               <div>
                 <dt className="text-text-dim">Type</dt>
                 <dd className="mt-1 text-text">
@@ -147,24 +138,9 @@ export default async function CaseDetailPage({ params }: Props) {
             <p className="font-mono text-[12px] leading-relaxed text-text-muted normal-case tracking-normal">
               {caseFile.summary}
             </p>
-            {caseFile.sourceAttribution || caseFile.sourceUrl ? (
+            {caseFile.lastSyncedAt ? (
               <p className="mt-3 font-mono text-[11px] text-text-dim normal-case tracking-normal">
-                Source:{" "}
-                {caseFile.sourceUrl ? (
-                  <a
-                    href={caseFile.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-cta underline-offset-2 hover:underline"
-                  >
-                    {caseFile.sourceAttribution ?? "Official listing"}
-                  </a>
-                ) : (
-                  (caseFile.sourceAttribution ?? "—")
-                )}
-                {caseFile.lastSyncedAt
-                  ? ` · Synced ${formatDateTime(caseFile.lastSyncedAt)}`
-                  : null}
+                Last synced {formatDateTime(caseFile.lastSyncedAt)}
               </p>
             ) : null}
           </Section>
@@ -207,30 +183,18 @@ export default async function CaseDetailPage({ params }: Props) {
           <Section title="Tips">
             <p className="font-mono text-[12px] leading-relaxed text-text-muted normal-case tracking-normal">
               {caseFile.tipsText?.trim() ||
-                "DETECTIVE does not collect tips. Contact the official source only."}
+                "DETECTIVE does not collect tips. Use official agency channels only."}
             </p>
-            {caseFile.sourceUrl ? (
-              <p className="mt-3">
-                <a
-                  href={caseFile.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex border border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text hover:border-cta/40"
-                >
-                  Open official source →
-                </a>
-              </p>
-            ) : null}
           </Section>
 
           <Section title="Disclaimer">
             <p className="font-mono text-[11px] leading-relaxed text-text-dim normal-case tracking-normal">
               {caseFile.source === "pb_case"
                 ? "This file was curated via PB CASE research and published by an admin. Claims are reported or disputed — never guilt declarations. Named persons are presumed innocent unless convicted in a court of law. "
-                : "Listings are republished from attributed public sources and may change or be removed upstream. No guilt declarations. "}
+                : "Listings may change or be removed upstream. No guilt declarations. "}
               See{" "}
-              <Link href="/sources" className="text-cta hover:underline">
-                Sources and terms
+              <Link href="/legal/disclaimer" className="text-cta hover:underline">
+                Disclaimer
               </Link>
               .
             </p>
@@ -309,40 +273,6 @@ export default async function CaseDetailPage({ params }: Props) {
             )}
           </Section>
 
-          <Section title="Sources">
-            {caseFile.sources.length === 0 ? (
-              <Empty>No sources cited yet.</Empty>
-            ) : (
-              <ul className="space-y-2">
-                {caseFile.sources.map((source) => (
-                  <li
-                    key={source.id}
-                    className="border border-border/80 px-3 py-2"
-                  >
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-mono text-[11px] text-cta underline-offset-2 hover:underline"
-                    >
-                      {source.title}
-                    </a>
-                    <p className="mt-1 font-mono text-[10px] text-text-dim">
-                      {[source.publisher, source.url]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    {source.citationNote ? (
-                      <p className="mt-1 font-mono text-[11px] text-text-muted normal-case tracking-normal">
-                        {source.citationNote}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
-
           <Section title="Updates">
             <ul className="space-y-2 font-mono text-[11px] text-text-muted">
               <li>File updated: {formatDateTime(caseFile.updatedAt)}</li>
@@ -358,7 +288,6 @@ export default async function CaseDetailPage({ params }: Props) {
         </div>
 
         <CaseDiscussionSidePanel
-          caseCode={caseFile.caseCode}
           threadCount={caseFile.discussions.length}
         >
           <Suspense

@@ -73,7 +73,7 @@ export default async function FictionalResultPage({ params }: Props) {
     <main className="deck-page">
       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
         <Link href={`/fictional/${slug}`} className="hover:text-text">
-          ← {caseFile.caseCode}
+          ← {caseFile.title}
         </Link>
         {" · "}
         <Link href="/fictional" className="hover:text-text">
@@ -84,7 +84,7 @@ export default async function FictionalResultPage({ params }: Props) {
       <header className="mt-3 border border-border bg-surface/70">
         <div className="border-b border-border px-4 py-3">
           <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-            RESULT · {caseFile.caseCode}
+            RESULT
           </p>
           <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text">
             Theory scorecard

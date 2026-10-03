@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
   return buildPageMetadata({
-    title: `${caseFile.caseCode} · ${caseFile.title}`,
+    title: caseFile.title,
     description: metaDescription(
       `[FICTIONAL] ${caseFile.synopsis} Difficulty ${caseFile.difficulty}.`,
     ),
@@ -67,7 +67,7 @@ export default async function FictionalCasePage({ params }: Props) {
         </p>
         <header className="mt-3 border border-border bg-surface/70 px-4 py-4">
           <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-            CASE {caseFile.caseCode} · {caseFile.difficulty} · PRO
+            CASE FILE · {caseFile.difficulty} · PRO
           </p>
           <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text">
             {caseFile.title}
@@ -112,7 +112,7 @@ export default async function FictionalCasePage({ params }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-              CASE {caseFile.caseCode}
+              CASE FILE
             </p>
             <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text md:text-2xl">
               {caseFile.title}

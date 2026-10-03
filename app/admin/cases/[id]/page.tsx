@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  deleteCaseSource,
   setCaseFeatured,
   setCasePublished,
 } from "@/app/actions/admin";
@@ -10,7 +9,6 @@ import { AdminActionButton } from "@/components/admin/AdminActionButtons";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CaseAdminForm } from "@/components/admin/CaseAdminForm";
 import { CaseOverrideForm } from "@/components/admin/CaseOverrideForm";
-import { SourceAdminForm } from "@/components/admin/SourceAdminForm";
 import { getPrisma } from "@/lib/db";
 
 type Props = { params: Promise<{ id: string }> };
@@ -22,7 +20,6 @@ export default async function AdminCaseEditPage({ params }: Props) {
   const caseFile = await getPrisma().case.findUnique({
     where: { id },
     include: {
-      sources: { orderBy: { createdAt: "asc" } },
       adminOverride: true,
     },
   });
@@ -30,7 +27,7 @@ export default async function AdminCaseEditPage({ params }: Props) {
 
   return (
     <AdminShell
-      title={`Edit ${caseFile.caseCode}`}
+      title={`Edit case`}
       subtitle={caseFile.title}
       current="/admin/cases"
     >
@@ -69,32 +66,6 @@ export default async function AdminCaseEditPage({ params }: Props) {
         />
       </div>
 
-      {(caseFile.source || caseFile.sourceUrl) && (
-        <section className="mb-4 border border-border bg-surface/40 px-4 py-3 font-mono text-[11px]">
-          <p className="text-[10px] uppercase tracking-[0.16em] text-text-dim">
-            Synced source
-          </p>
-          <p className="mt-1 text-text">
-            {caseFile.source ?? "—"} / {caseFile.sourceId ?? "—"}
-          </p>
-          {caseFile.sourceUrl ? (
-            <a
-              href={caseFile.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-block break-all text-cta"
-            >
-              {caseFile.sourceUrl}
-            </a>
-          ) : null}
-          {caseFile.rawPayload ? (
-            <pre className="mt-3 max-h-48 overflow-auto border border-border bg-bg p-2 text-[10px] text-text-dim">
-              {JSON.stringify(caseFile.rawPayload, null, 2)}
-            </pre>
-          ) : null}
-        </section>
-      )}
-
       <CaseAdminForm
         initial={{
           id: caseFile.id,
@@ -117,35 +88,6 @@ export default async function AdminCaseEditPage({ params }: Props) {
           isDevStub: caseFile.isDevStub,
         }}
       />
-
-      <section className="mt-4 border border-border bg-surface/40">
-        <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
-          &gt; Sources
-        </header>
-        <div className="space-y-3 px-4 py-3">
-          <ul className="space-y-2">
-            {caseFile.sources.map((source) => (
-              <li
-                key={source.id}
-                className="border border-border/80 px-3 py-2"
-              >
-                <p className="font-mono text-[11px] text-text">{source.title}</p>
-                <p className="mt-1 font-mono text-[10px] text-text-dim break-all">
-                  {source.url}
-                </p>
-                <div className="mt-2">
-                  <AdminActionButton
-                    label="Delete source"
-                    danger
-                    onAction={deleteCaseSource.bind(null, source.id)}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-          <SourceAdminForm caseId={caseFile.id} />
-        </div>
-      </section>
     </AdminShell>
   );
 }

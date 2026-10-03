@@ -17,7 +17,7 @@ export function SearchBar({
           name="q"
           id={id}
           defaultValue={q}
-          placeholder="Search by case ID, location, keyword..."
+          placeholder="Search by title, location, keyword..."
           className="hud-input"
         />
         <Search

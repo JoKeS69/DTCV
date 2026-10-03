@@ -8,7 +8,6 @@ export const primaryNav = [
 
 export const footerNav = [
   { href: "/cases", label: "Case database" },
-  { href: "/sources", label: "Sources and terms" },
   { href: "/legal/terms", label: "Terms" },
   { href: "/legal/privacy", label: "Privacy" },
   { href: "/legal/disclaimer", label: "Disclaimer" },

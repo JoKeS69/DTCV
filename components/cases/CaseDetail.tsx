@@ -42,7 +42,7 @@ export function CaseDetail({
     >
       <PanelHeader
         action={<StatusBadge status={item.status} />}
-      >{`> CASE ${item.caseCode}`}</PanelHeader>
+      >{`> CASE FILE`}</PanelHeader>
 
       <div className="border-b border-border px-4 py-4 md:px-5 xl:px-6">
         <h2 className="font-mono text-[18px] font-semibold leading-snug tracking-[0.02em] text-text xl:text-[20px]">
@@ -51,10 +51,6 @@ export function CaseDetail({
       </div>
 
       <dl className="space-y-3 border-b border-border px-4 py-5 font-mono text-[13px] uppercase tracking-[0.08em] md:px-5 xl:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <dt className="shrink-0 text-text-dim">Case ID</dt>
-          <dd className="text-right text-text">{item.caseCode}</dd>
-        </div>
         <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-text-dim">Location</dt>
           <dd className="text-right text-text">{item.location}</dd>
@@ -79,25 +75,6 @@ export function CaseDetail({
             {item.priority.charAt(0) + item.priority.slice(1).toLowerCase()}
           </dd>
         </div>
-        {item.sourceAttribution ? (
-          <div className="flex items-start justify-between gap-4">
-            <dt className="shrink-0 text-text-dim">Source</dt>
-            <dd className="text-right text-text normal-case tracking-normal">
-              {item.sourceUrl ? (
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-cta underline-offset-2 hover:underline"
-                >
-                  {item.sourceAttribution}
-                </a>
-              ) : (
-                item.sourceAttribution
-              )}
-            </dd>
-          </div>
-        ) : null}
       </dl>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-5 xl:px-6">

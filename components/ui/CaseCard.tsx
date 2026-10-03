@@ -23,9 +23,6 @@ export function CaseCard({
     >
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="font-mono text-[14px] font-medium tracking-[0.06em] text-text">
-            {item.caseCode}
-          </span>
           <StatusBadge status={item.status} />
         </div>
         <p className="mt-2.5 font-mono text-[15px] leading-snug text-text">

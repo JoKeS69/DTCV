@@ -97,7 +97,7 @@ export default async function FictionalListPage({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-                      {item.caseCode} · FICTIONAL · {item.difficulty}
+                      FICTIONAL · {item.difficulty}
                       {proLocked ? " · PRO LOCK" : ""}
                     </p>
                     <h2 className="mt-1 font-mono text-base font-semibold uppercase tracking-[0.08em] text-text">

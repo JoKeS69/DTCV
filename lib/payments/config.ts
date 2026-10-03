@@ -119,7 +119,7 @@ export function getPlanCatalog(): PlanDefinition[] {
       currency: proCurrency,
       interval: proInterval,
       features: [
-        "Real case database (sourced)",
+        "Real case database",
         "Community discussions",
         "Fictional NOVICE + INTERMEDIATE training",
         "Investigation board (core)",

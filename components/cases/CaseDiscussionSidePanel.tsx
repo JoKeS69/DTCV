@@ -6,7 +6,6 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 type Props = {
   children: ReactNode;
   threadCount: number;
-  caseCode: string;
 };
 
 /**
@@ -17,7 +16,6 @@ type Props = {
 export function CaseDiscussionSidePanel({
   children,
   threadCount,
-  caseCode,
 }: Props) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -74,7 +72,6 @@ export function CaseDiscussionSidePanel({
         <header className="hud-panel-title shrink-0">
           <span id={titleId} className="min-w-0 truncate">
             &gt; DISCUSSION
-            <span className="text-text-dim"> (CASE {caseCode})</span>
           </span>
           <span className="flex shrink-0 items-center gap-2">
             <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-text-dim">

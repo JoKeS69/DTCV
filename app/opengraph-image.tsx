@@ -49,7 +49,7 @@ export default function OpenGraphImage() {
               maxWidth: 800,
             }}
           >
-            Sourced case files · community · fictional training
+            Case files · community · fictional training
           </div>
         </div>
         <div

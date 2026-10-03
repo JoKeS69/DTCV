@@ -9,7 +9,7 @@ export function CaseTable({
 }: {
   items: HudCase[];
   selectedCode: string | null;
-  buildSelectHref: (caseCode: string) => string;
+  buildSelectHref: (selectKey: string) => string;
 }) {
   return (
     <>
@@ -18,7 +18,6 @@ export function CaseTable({
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead className="sticky top-0 z-[1] border-b border-border bg-surface">
             <tr className="font-mono text-[12px] uppercase tracking-[0.12em] text-text-dim">
-              <th className="px-5 py-4 font-medium xl:px-6">Case ID</th>
               <th className="px-5 py-4 font-medium xl:px-6">Title</th>
               <th className="px-5 py-4 font-medium xl:px-6">Location</th>
               <th className="px-5 py-4 font-medium xl:px-6">Type</th>
@@ -31,8 +30,8 @@ export function CaseTable({
               <CaseRow
                 key={item.id}
                 item={item}
-                href={buildSelectHref(item.caseCode)}
-                active={item.caseCode === selectedCode}
+                href={buildSelectHref(item.slug)}
+                active={item.slug === selectedCode || item.caseCode === selectedCode}
               />
             ))}
           </tbody>
@@ -45,8 +44,8 @@ export function CaseTable({
           <li key={item.id}>
             <CaseCard
               item={item}
-              href={buildSelectHref(item.caseCode)}
-              active={item.caseCode === selectedCode}
+              href={buildSelectHref(item.slug)}
+              active={item.slug === selectedCode || item.caseCode === selectedCode}
             />
           </li>
         ))}

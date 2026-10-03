@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Title + case code only — never dump comment bodies or emails into SEO.
   return buildPageMetadata({
     title: `${discussion.title} · Discussion`,
-    description: `Community discussion on case ${discussion.case.caseCode}. User theories are labeled; not evidence of guilt.`,
+    description: `Community discussion on ${discussion.case.title}. User theories are labeled; not evidence of guilt.`,
     path: `/discussions/${discussion.id}`,
   });
 }
@@ -64,7 +64,7 @@ export default async function DiscussionDetailPage({ params }: Props) {
           href={`/cases/${discussion.case.slug}`}
           className="hover:text-text"
         >
-          ← {discussion.case.caseCode}
+          ← {discussion.case.title}
         </Link>
         {" · "}
         <Link href="/cases" className="hover:text-text">
@@ -76,7 +76,7 @@ export default async function DiscussionDetailPage({ params }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-              DISCUSSION · {discussion.case.caseCode}
+              DISCUSSION
             </p>
             <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text md:text-2xl">
               {discussion.title}

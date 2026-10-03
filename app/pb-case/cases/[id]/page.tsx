@@ -45,7 +45,7 @@ export default async function PbCaseDetailPage({
   return (
     <PbCaseShell
       title={caseFile.title}
-      subtitle={`${caseFile.status} · ${caseFile.eventDateText ?? "undated"} · prefer official sources`}
+      subtitle={`${caseFile.status} · ${caseFile.eventDateText ?? "undated"}`}
       current={`/pb-case/cases/${caseFile.id}`}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -150,12 +150,7 @@ export default async function PbCaseDetailPage({
         ) : null}
         <p className="mt-2 font-mono text-[10px] text-text-dim">
           Last reviewed:{" "}
-          {caseFile.lastReviewedAt?.toISOString() ?? "never"} · Sources:{" "}
-          {Array.isArray(caseFile.sources)
-            ? caseFile.sources.length
-            : caseFile.sources
-              ? "present"
-              : "none"}
+          {caseFile.lastReviewedAt?.toISOString() ?? "never"}
         </p>
       </section>
 

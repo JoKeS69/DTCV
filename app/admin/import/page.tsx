@@ -15,9 +15,9 @@ export default function AdminImportPage() {
     >
       <ImportPanel />
       <p className="mt-4 font-mono text-[10px] text-text-dim normal-case tracking-normal">
-        Required fields: source (europol|manual|interpol), sourceId, name/title,
-        sourceUrl. Optional: summary, caseType, status, aliases (pipe-separated),
-        location, countryCode, agency, tipsText.
+        Required fields: name/title, and partner listing URL. Optional: summary,
+        caseType, status, aliases (pipe-separated), location, countryCode,
+        agency, tipsText.
       </p>
     </AdminShell>
   );

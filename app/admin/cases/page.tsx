@@ -16,7 +16,6 @@ export default async function AdminCasesPage() {
     take: 100,
     select: {
       id: true,
-      caseCode: true,
       title: true,
       slug: true,
       status: true,
@@ -24,14 +23,13 @@ export default async function AdminCasesPage() {
       featured: true,
       isDevStub: true,
       contentLabel: true,
-      _count: { select: { sources: true } },
     },
   });
 
   return (
     <AdminShell
       title="Real cases"
-      subtitle="Create, publish, feature, and curate sourced case files. Prefer REPORTED/VERIFIED labels — never guilt claims."
+      subtitle="Create, publish, feature, and curate case files. Prefer REPORTED/VERIFIED labels — never guilt claims."
       current="/admin/cases"
     >
       <div className="mb-3">
@@ -44,13 +42,12 @@ export default async function AdminCasesPage() {
       </div>
 
       <div className="overflow-x-auto border border-border">
-        <table className="w-full min-w-[800px] border-collapse text-left font-mono text-[11px]">
+        <table className="w-full min-w-[700px] border-collapse text-left font-mono text-[11px]">
           <thead className="border-b border-border bg-surface/70 text-[9px] uppercase tracking-[0.14em] text-text-dim">
             <tr>
               <th className="px-3 py-2">Case</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Flags</th>
-              <th className="px-3 py-2">Sources</th>
               <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
@@ -62,7 +59,7 @@ export default async function AdminCasesPage() {
                     href={`/admin/cases/${c.id}`}
                     className="text-text hover:text-cta"
                   >
-                    {c.caseCode} · {c.title}
+                    {c.title}
                   </Link>
                   <p className="text-[10px] text-text-dim">{c.contentLabel}</p>
                 </td>
@@ -72,7 +69,6 @@ export default async function AdminCasesPage() {
                   {c.featured ? " · FEATURED" : ""}
                   {c.isDevStub ? " · DEV" : ""}
                 </td>
-                <td className="px-3 py-2 text-text-muted">{c._count.sources}</td>
                 <td className="px-3 py-2">
                   <div className="flex flex-wrap gap-1">
                     <AdminActionButton

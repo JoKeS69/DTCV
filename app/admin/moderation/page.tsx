@@ -30,7 +30,7 @@ export default async function AdminModerationPage() {
         status: true,
         deletedAt: true,
         createdAt: true,
-        case: { select: { caseCode: true, slug: true } },
+        case: { select: { title: true, slug: true } },
         author: { select: { username: true } },
         _count: { select: { comments: true } },
       },
@@ -163,7 +163,7 @@ export default async function AdminModerationPage() {
                       href={`/cases/${d.case.slug}`}
                       className="hover:text-text"
                     >
-                      {d.case.caseCode}
+                      {d.case.title}
                     </Link>
                     {" · "}@{d.author.username}
                     {" · "}
