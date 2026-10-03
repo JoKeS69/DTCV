@@ -238,11 +238,35 @@ def complete_run_success(
     completion_tokens: int,
     total_tokens: int,
     plan: dict[str, Any],
+    event_date_text: str | None = None,
+    location: str | None = None,
+    legal_status_note: str | None = None,
 ) -> None:
     """Assemble draft → pending_review. NEVER publishes."""
     now = _now()
     with _transaction(conn):
         cur = conn.cursor()
+        # Only overwrite empty/weak case fields when metadata is present
+        cur.execute(
+            """
+            SELECT eventDateText, location, legalStatusNote, title
+            FROM cases WHERE id = ?
+            """,
+            (case_id,),
+        )
+        row = cur.fetchone()
+        existing_date = row["eventDateText"] if row else None
+        existing_loc = row["location"] if row else None
+        existing_note = row["legalStatusNote"] if row else None
+        title = row["title"] if row else ""
+
+        new_date = event_date_text or existing_date
+        new_loc = location or existing_loc
+        # Avoid title-as-location pollution
+        if new_loc and title and new_loc.strip().lower() == title.strip().lower():
+            new_loc = existing_loc if existing_loc != new_loc else None
+        new_note = legal_status_note or existing_note
+
         cur.execute(
             """
             UPDATE cases
@@ -250,6 +274,9 @@ def complete_run_success(
                 summary = ?,
                 draftContent = ?,
                 sources = ?,
+                eventDateText = ?,
+                location = ?,
+                legalStatusNote = ?,
                 lastReviewedAt = NULL,
                 updatedAt = ?
             WHERE id = ?
@@ -258,6 +285,9 @@ def complete_run_success(
                 summary,
                 _json(draft_content),
                 _json(sources),
+                new_date,
+                new_loc,
+                new_note,
                 now,
                 case_id,
             ),
@@ -283,14 +313,26 @@ def complete_run_success(
                 ),
             )
         for person in people:
+            presumption = person.get("presumptionNote")
+            if presumption is None:
+                role = str(person.get("role") or "other").lower()
+                legal = str(person.get("legalStatus") or "other").lower()
+                if role == "victim" or (legal == "deceased" and role != "subject"):
+                    presumption = (
+                        "Named as a victim/decedent of the event — not an accused person."
+                    )
+                elif role in {"witness", "investigator", "official"}:
+                    presumption = ""
+                else:
+                    presumption = (
+                        "Presumed innocent unless proven guilty in a court of law."
+                    )
             cur.execute(
                 """
                 INSERT INTO people (
                   id, caseId, name, role, legalStatus, sources, status,
                   presumptionNote, createdAt, updatedAt
-                ) VALUES (?,?,?,?,?,?,'pending',
-                  'Presumed innocent unless proven guilty in a court of law.',
-                  ?,?)
+                ) VALUES (?,?,?,?,?,?,'pending',?,?,?)
                 """,
                 (
                     _cuid_like(),
@@ -299,6 +341,7 @@ def complete_run_success(
                     person.get("role") or "other",
                     person.get("legalStatus") or "other",
                     _json(person.get("sources") or []),
+                    presumption,
                     now,
                     now,
                 ),
