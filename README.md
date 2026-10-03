@@ -79,14 +79,14 @@ Admin overrides (hide/note) live in `CaseAdminOverride` and are never overwritte
 
 ## Case research agent (`/pb-case` + `research-worker/`)
 
-Dedicated **cases database** (`CASES_DATABASE_URL`) separate from the main site DB.
+Dedicated **cases SQLite file** (`CASES_DATABASE_URL=file:./data/detective_cases.db`) separate from the main site DB.
 The research agent writes only to the cases DB — never users/auth/settings.
 
 ### Security model (confirmed)
 
 1. **Worker is not on the public website** — no public HTTP API; worker **polls** `research_runs` with `status=queued`.
 2. **Only the worker holds** `OPENAI_API_KEY`. Next.js never calls OpenAI and never exposes the worker. **Search API key not required.**
-3. **Worker DB:** cases DB only, restricted role — cannot touch main auth/users DB.
+3. **Worker DB:** cases SQLite file only — cannot touch main auth/users DB.
 4. **Admin-on-command:** `/pb-case` queues a DB job; end-users cannot trigger or talk to the agent.
 
 ### Architecture
@@ -110,18 +110,16 @@ See [`.env.example`](./.env.example), [`docs/CASE_RESEARCH.md`](./docs/CASE_RESE
 # Generate both Prisma clients
 npm run db:generate:all
 
-# Main site migrate, THEN cases migrate (separate credential recommended)
+# Main site migrate (Postgres), then cases SQLite file
 npm run db:deploy
-BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="$CASES_DATABASE_URL_MIGRATE" \
-  npm run db:deploy:cases:safe
+export CASES_DATABASE_URL="file:./data/detective_cases.db"
+npx prisma migrate deploy --config prisma-cases.config.ts
 
 # Seed three unpublished World Domination stubs (title+date only)
 npm run db:cases:seed
 
-# Start external research worker (separate process / host)
-# Sync tip first so research-worker/ exists. Windows: see research-worker/README.md
+# Start external research worker (separate process)
 cd research-worker && pip install -e ".[dev]" && python -m research_worker worker
-# Windows PowerShell: py -3 -m venv .venv; .\.venv\Scripts\Activate.ps1; Copy-Item .env.example .env
 ```
 
 **Admin access:** NextAuth user with `role=ADMIN` **and** `username` matching

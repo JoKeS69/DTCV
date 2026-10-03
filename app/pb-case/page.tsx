@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 import { CreateCaseForm } from "@/components/pb-case/CreateCaseForm";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 
@@ -64,7 +65,7 @@ export default async function PbCaseIndexPage() {
                     {c.worldDomination ? "yes" : "—"}
                   </td>
                   <td className="px-3 py-2 text-text-dim">
-                    {c.labels.join(", ") || "—"}
+                    {asStringArray(c.labels).join(", ") || "—"}
                   </td>
                 </tr>
               ))}

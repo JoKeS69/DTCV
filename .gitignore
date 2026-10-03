@@ -44,6 +44,13 @@ research-worker/**/__pycache__/
 research-worker/**/*.egg-info/
 research-worker/.pytest_cache/
 
+# cases SQLite file (built-in DB)
+/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # vercel
 .vercel
 

@@ -2,6 +2,7 @@
 Worker configuration from environment.
 OpenAI keys live here — never in the Next.js web app for research.
 Search is keyless by default (Wikipedia + allowlisted DDG HTML). BRAVE_API_KEY is optional.
+Cases DB is a built-in SQLite file (CASES_DATABASE_URL=file:./data/detective_cases.db).
 """
 
 from __future__ import annotations
@@ -9,12 +10,11 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Always load research-worker/.env (override stale CMD `set CASES_DATABASE_URL=...`).
+# Always load research-worker/.env (override stale CMD env vars).
 _env_file = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(_env_file, override=True)
 
@@ -23,18 +23,18 @@ class ConfigError(RuntimeError):
     pass
 
 
-def _req(name: str) -> str:
-    value = _strip_env(os.environ.get(name) or "")
-    if not value:
-        raise ConfigError(f"{name} is not set (required for live research worker).")
-    return value
-
-
 def _strip_env(value: str) -> str:
     v = value.strip()
     if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
         v = v[1:-1].strip()
     return v
+
+
+def _req(name: str) -> str:
+    value = _strip_env(os.environ.get(name) or "")
+    if not value:
+        raise ConfigError(f"{name} is not set (required for live research worker).")
+    return value
 
 
 def _opt(name: str, default: str = "") -> str:
@@ -85,19 +85,12 @@ def get_settings(*, require_keys: bool = True) -> Settings:
     Load settings. When require_keys=False (unit tests), OpenAI may be empty.
     BRAVE_API_KEY is never required.
     """
-    cases_url = _opt("CASES_DATABASE_URL")
-    discrete = all(
-        _opt(k)
-        for k in (
-            "CASES_DB_USER",
-            "CASES_DB_PASSWORD",
-            "CASES_DB_HOST",
-            "CASES_DB_NAME",
-        )
+    cases_url = _opt("CASES_DATABASE_URL") or _opt(
+        "CASES_SQLITE_PATH", "file:./data/detective_cases.db"
     )
-    if require_keys and not cases_url and not discrete:
+    if require_keys and not cases_url:
         raise ConfigError(
-            "Set CASES_DATABASE_URL or CASES_DB_USER/PASSWORD/HOST/NAME (cases DB only)."
+            "CASES_DATABASE_URL is required (e.g. file:./data/detective_cases.db)."
         )
 
     if require_keys:

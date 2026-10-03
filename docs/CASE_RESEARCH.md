@@ -4,7 +4,7 @@
 
 1. **Python research worker is not on the public website.** No public HTTP API is required for the agent. The worker **polls** the cases DB for `research_runs` with `status = queued` (created when an admin clicks Research in PB CASE), then writes results back. Do **not** put the worker behind a public URL on the web app.
 2. **Only the worker holds** `OPENAI_API_KEY`. The Next.js site **never** calls OpenAI and **never** exposes the worker. **No search-engine API key is required** (Wikipedia / allowlisted discovery by default; Brave optional).
-3. **Worker DB access:** cases DB only, restricted role (`research-worker/sql/restricted_role.sql`) that can update `research_runs` / claims / people / case drafts as designed — **cannot** touch the main auth/users DB.
+3. **Worker DB access:** cases DB only — built-in **SQLite file** (`file:./data/detective_cases.db`). Never the main auth/users DB.
 4. **“On command”** = admin action in `/pb-case` inserts/queues a job in the DB; worker picks it up. **No end-user** can trigger or talk to the agent.
 
 ```
@@ -21,7 +21,7 @@ Admin (/pb-case) ──insert queued──► cases DB (research_runs)
 | DB | Env | Client | Writers |
 | --- | --- | --- | --- |
 | Main site | `DATABASE_URL` | `lib/db.ts` | Auth, community, sourced cases, **consent_log** |
-| Cases research | `CASES_DATABASE_URL` | `lib/cases-db.ts` (web UI) + worker psycopg | `/pb-case` queues/monitors; **Python worker** runs pipeline |
+| Cases research | `CASES_DATABASE_URL` (`file:./data/detective_cases.db`) | `lib/cases-db.ts` + worker `sqlite3` | `/pb-case` queues/monitors; **Python worker** runs pipeline |
 
 Research agent **must not** write to users/auth/settings tables.
 
@@ -43,8 +43,8 @@ Research agent **must not** write to users/auth/settings tables.
 | Search | **Keyless** Wikipedia OpenSearch (+ allowlisted DDG HTML) | none required |
 | Search (optional) | Brave Search API | `BRAVE_API_KEY` optional |
 
-Web app `.env.local` needs `CASES_DATABASE_URL` for admin/UI — **not** OpenAI for research.
-Worker secrets: see `research-worker/.env.example`. Postgres via **pg8000** (pure Python; Windows-friendly).
+Web app `.env.local` needs `CASES_DATABASE_URL=file:./data/detective_cases.db` for admin/UI — **not** OpenAI for research.
+Worker secrets: see `research-worker/.env.example`. Cases DB is **SQLite** (stdlib `sqlite3` — no Postgres password).
 
 ### Changing models
 
@@ -151,17 +151,23 @@ Naming policy · legal status display · presumption of innocence · wording lin
 
 ## Cases DB deploy (`db:deploy:cases`)
 
-Separate step **after** main migrate, **before** the new app version starts.
-Never migrate on app boot. Use a **migration-only** credential
-(`CASES_DATABASE_URL_MIGRATE`), not the research-worker restricted role.
-Require a backup first (`BACKUP_OK=1`). Fail deploy on error.
+Cases DB is a **SQLite file** (`file:./data/detective_cases.db`). From repo root:
 
 ```bash
-BACKUP_OK=1 CASES_DATABASE_URL_MIGRATE="postgresql://..." \
-  npm run db:deploy:cases:safe
+export CASES_DATABASE_URL="file:./data/detective_cases.db"
+npx prisma migrate deploy --config prisma-cases.config.ts
+npm run db:cases:seed
 ```
 
-Example GitHub Actions workflow: `.github/workflows/deploy-cases-db.yml.example`.
+On Windows CMD:
+
+```bat
+set CASES_DATABASE_URL=file:./data/detective_cases.db
+npx prisma migrate deploy --config prisma-cases.config.ts
+npm run db:cases:seed
+```
+
+Keep `data/*.db` out of git (gitignored). Back up the file before migrating in shared environments.
 
 ## How to research / review / publish
 

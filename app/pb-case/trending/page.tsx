@@ -1,6 +1,7 @@
 import { CandidateActions } from "@/components/pb-case/CandidateActions";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,7 @@ export default async function PbCaseTrendingPage() {
                   {r.rationale}
                 </p>
                 <p className="mt-1 font-mono text-[9px] text-text-dim">
-                  score {r.score} · {r.sourceUrls.join(" · ")}
+                  score {r.score} · {asStringArray(r.sourceUrls).join(" · ")}
                 </p>
               </div>
               <CandidateActions id={r.id} />

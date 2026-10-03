@@ -5,12 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "detective-research-worker"
 version = "0.1.1"
-description = "External DETECTIVE / CASE//NET case research worker. OpenAI on worker only; keyless web discovery (Wikipedia). Pure-Python Postgres (pg8000) for Windows."
+description = "External DETECTIVE / CASE//NET case research worker. OpenAI on worker only; keyless web discovery (Wikipedia). Built-in SQLite cases DB (stdlib sqlite3)."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "openai>=1.60.0",
-  "pg8000>=1.31.0",
   "pydantic>=2.10.0",
   "httpx>=0.28.0",
   "python-dotenv>=1.0.0",

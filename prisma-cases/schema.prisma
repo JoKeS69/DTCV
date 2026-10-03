@@ -7,7 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  // Built-in file DB — no Postgres install/password for cases research.
+  // Auth/users stay on the main DATABASE_URL (Postgres or whatever the site uses).
+  provider = "sqlite"
 }
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -82,8 +84,8 @@ model CaseFile {
   eventDate        DateTime?
   location         String?
   status           ResearchCaseStatus  @default(draft)
-  /// Free-form labels (e.g. cold_case). "world_domination" is also mirrored below.
-  labels           String[]            @default([])
+  /// Free-form labels (JSON string array, e.g. ["cold_case"]).
+  labels           Json                @default("[]")
   /// Homepage World Domination slot — at most 3 published across DB.
   worldDomination  Boolean             @default(false)
   /// Display string for legal posture of the case file.
@@ -191,7 +193,8 @@ model Candidate {
   rationale     String          @default("")
   score         Float           @default(0)
   status        CandidateStatus @default(new)
-  sourceUrls    String[]        @default([])
+  /// Source URLs as JSON string array.
+  sourceUrls    Json            @default("[]")
   discoveredAt  DateTime        @default(now())
   reviewedAt    DateTime?
   linkedCaseId  String?

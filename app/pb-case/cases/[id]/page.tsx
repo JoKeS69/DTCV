@@ -10,6 +10,7 @@ import {
 } from "@/components/pb-case/CaseControls";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 import { evaluatePublishGate } from "@/lib/pb-case/publish-gate";
 
 export const dynamic = "force-dynamic";
@@ -97,7 +98,7 @@ export default async function PbCaseDetailPage({
               Labels
             </h2>
             <div className="mt-2">
-              <LabelsForm caseId={caseFile.id} labels={caseFile.labels} />
+              <LabelsForm caseId={caseFile.id} labels={asStringArray(caseFile.labels)} />
             </div>
           </div>
         </div>

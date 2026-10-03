@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 import { writeAuditLog } from "@/lib/pb-case/audit";
 import { requirePbCaseAdminAction } from "@/lib/pb-case/auth";
 import { evaluatePublishGate } from "@/lib/pb-case/publish-gate";
@@ -191,7 +192,9 @@ export async function setWorldDominationAction(
   const current = await db.caseFile.findUnique({ where: { id: caseId } });
   if (!current) return { ok: false as const, error: "Not found" };
 
-  let nextLabels = current.labels.filter((l) => l !== "world_domination");
+  let nextLabels = asStringArray(current.labels).filter(
+    (l) => l !== "world_domination",
+  );
   if (enabled) nextLabels = [...nextLabels, "world_domination"];
 
   await db.caseFile.update({
@@ -274,7 +277,7 @@ export async function reviewCandidateAction(
         status: "draft",
         contentWarning: true,
         preferOfficialSources: true,
-        sources: candidate.sourceUrls.map((url) => ({ url })),
+        sources: asStringArray(candidate.sourceUrls).map((url) => ({ url })),
       },
     });
     linkedCaseId = created.id;

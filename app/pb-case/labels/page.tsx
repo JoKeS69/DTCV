@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 import { getCasesPrisma } from "@/lib/cases-db";
+import { asStringArray } from "@/lib/cases/json-arrays";
 import {
   countWorldDomination,
   WORLD_DOMINATION_MAX,
@@ -44,7 +45,7 @@ export default async function PbCaseLabelsPage() {
               </span>
             </div>
             <div className="mt-2">
-              <LabelsForm caseId={c.id} labels={c.labels} />
+              <LabelsForm caseId={c.id} labels={asStringArray(c.labels)} />
             </div>
           </li>
         ))}
