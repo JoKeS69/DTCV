@@ -42,11 +42,10 @@ export async function createCaseAction(formData: FormData) {
   const gate = await requirePbCaseAdminAction();
   if (!gate.ok) return { ok: false as const, error: gate.error };
 
+  // Seed title only — date/location filled by research worker later.
   const title = String(formData.get("title") || "").trim();
   if (title.length < 3) return { ok: false as const, error: "Seed title required" };
 
-  const eventDateText = String(formData.get("eventDateText") || "").trim() || null;
-  const location = String(formData.get("location") || "").trim() || null;
   let slug = slugify(title) || `case-${Date.now()}`;
 
   const db = getCasesPrisma();
@@ -57,8 +56,6 @@ export async function createCaseAction(formData: FormData) {
     data: {
       title,
       slug,
-      eventDateText,
-      location,
       status: "draft",
       contentWarning: true,
       preferOfficialSources: true,
@@ -70,11 +67,59 @@ export async function createCaseAction(formData: FormData) {
     action: "case.create",
     entityType: "case",
     entityId: created.id,
-    meta: { title, slug },
+    meta: { title, slug, seedOnly: true },
   });
 
   revalidatePath("/pb-case");
   return { ok: true as const, id: created.id };
+}
+
+/**
+ * Delete a research CaseFile.
+ * Strategy: unpublish/hide any synced public Case, then hard-delete the
+ * research draft (claims/people/runs/revisions cascade; takedowns detach).
+ */
+export async function deleteCaseAction(caseId: string) {
+  const gate = await requirePbCaseAdminAction();
+  if (!gate.ok) return { ok: false as const, error: gate.error };
+
+  const db = getCasesPrisma();
+  const existing = await db.caseFile.findUnique({
+    where: { id: caseId },
+    select: { id: true, title: true, slug: true, status: true },
+  });
+  if (!existing) return { ok: false as const, error: "Case not found" };
+
+  let publicSlug = existing.slug;
+  try {
+    const sync = await unpublishPublicCase(caseId);
+    if (sync.ok && sync.slug) publicSlug = sync.slug;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Public cases unpublish failed";
+    return { ok: false as const, error: `Delete aborted: ${message}` };
+  }
+
+  await db.caseFile.delete({ where: { id: caseId } });
+
+  await writeAuditLog({
+    actor: gate.admin.username,
+    action: "case.delete",
+    entityType: "case",
+    entityId: caseId,
+    meta: {
+      title: existing.title,
+      slug: existing.slug,
+      previousStatus: existing.status,
+      publicSlug,
+      strategy: "unpublish_public_then_hard_delete_research",
+    },
+  });
+
+  revalidatePath("/pb-case");
+  revalidatePath(`/pb-case/cases/${caseId}`);
+  revalidatePublicCases(publicSlug || undefined);
+  return { ok: true as const };
 }
 
 /**

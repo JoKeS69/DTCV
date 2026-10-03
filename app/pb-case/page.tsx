@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCasesPrisma } from "@/lib/cases-db";
 import { asStringArray } from "@/lib/cases/json-arrays";
 import { CreateCaseForm } from "@/components/pb-case/CreateCaseForm";
+import { DeleteCaseButton } from "@/components/pb-case/DeleteCaseButton";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function PbCaseIndexPage() {
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto border border-border">
-          <table className="w-full min-w-[720px] text-left font-mono text-[11px]">
+          <table className="w-full min-w-[760px] text-left font-mono text-[11px]">
             <thead className="border-b border-border bg-surface/70 text-[9px] uppercase tracking-[0.14em] text-text-dim">
               <tr>
                 <th className="px-3 py-2">Title</th>
@@ -44,6 +45,7 @@ export default async function PbCaseIndexPage() {
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">WD</th>
                 <th className="px-3 py-2">Labels</th>
+                <th className="px-3 py-2">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -66,6 +68,9 @@ export default async function PbCaseIndexPage() {
                   </td>
                   <td className="px-3 py-2 text-text-dim">
                     {asStringArray(c.labels).join(", ") || "—"}
+                  </td>
+                  <td className="px-3 py-2">
+                    <DeleteCaseButton caseId={c.id} title={c.title} />
                   </td>
                 </tr>
               ))}

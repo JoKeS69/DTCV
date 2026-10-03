@@ -9,6 +9,7 @@ import {
   ResearchButton,
   WorldDominationToggle,
 } from "@/components/pb-case/CaseControls";
+import { DeleteCaseButton } from "@/components/pb-case/DeleteCaseButton";
 import { PbCaseShell } from "@/components/pb-case/PbCaseShell";
 import { getCasesPrisma } from "@/lib/cases-db";
 import { asStringArray } from "@/lib/cases/json-arrays";
@@ -47,11 +48,18 @@ export default async function PbCaseDetailPage({
       subtitle={`${caseFile.status} · ${caseFile.eventDateText ?? "undated"} · prefer official sources`}
       current={`/pb-case/cases/${caseFile.id}`}
     >
-      <p className="mb-3 font-mono text-[11px]">
-        <Link href="/pb-case" className="text-text-muted hover:text-text">
-          ← Cases
-        </Link>
-      </p>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="font-mono text-[11px]">
+          <Link href="/pb-case" className="text-text-muted hover:text-text">
+            ← Cases
+          </Link>
+        </p>
+        <DeleteCaseButton
+          caseId={caseFile.id}
+          title={caseFile.title}
+          redirectTo="/pb-case"
+        />
+      </div>
 
       <section className="grid gap-3 border border-border p-3 md:grid-cols-2">
         <div>
