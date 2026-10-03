@@ -18,6 +18,10 @@ import type {
 import { getPrisma } from "@/lib/db";
 import { getCasesPrisma } from "@/lib/cases-db";
 import { asStringArray } from "@/lib/cases/json-arrays";
+import {
+  claimSimilarity,
+  normalizePersonName,
+} from "@/lib/pb-case/dedupe-review";
 import { NAMING_POLICY } from "@/lib/pb-case/wording-linter";
 
 export const PB_CASE_SOURCE = "pb_case" as const;
@@ -99,6 +103,33 @@ export function mapPersonRole(
   const r = role.trim().toLowerCase().replace(/\s+/g, "_");
   const legal = (legalStatus ?? "").trim().toLowerCase();
 
+  // Subjects/attackers first — deceased perpetrators are NOT victims.
+  if (
+    r === "subject" ||
+    r.includes("person_of_interest") ||
+    r === "poi" ||
+    r.includes("suspect") ||
+    r.includes("accused") ||
+    r.includes("alleged") ||
+    r.includes("assassin") ||
+    r.includes("perpetrator") ||
+    r.includes("shooter") ||
+    r.includes("hijacker") ||
+    r.includes("terrorist") ||
+    r.includes("attacker") ||
+    r.includes("organizer") ||
+    r.includes("mastermind") ||
+    r.includes("plotter") ||
+    r.includes("conspirator") ||
+    r.includes("bomber") ||
+    legal === "person_of_interest" ||
+    legal === "charged" ||
+    legal === "convicted" ||
+    legal === "acquitted"
+  ) {
+    return "PERSON_OF_INTEREST";
+  }
+
   if (
     r.includes("victim") ||
     r === "deceased" ||
@@ -109,35 +140,11 @@ export function mapPersonRole(
   }
 
   // Deceased public figures with non-accused roles (e.g. "president") → victim.
-  if (
-    legal === "deceased" &&
-    !r.includes("suspect") &&
-    !r.includes("accused") &&
-    !r.includes("interest") &&
-    !r.includes("assassin") &&
-    !r.includes("perpetrator") &&
-    !r.includes("shooter")
-  ) {
+  if (legal === "deceased") {
     return "VICTIM";
   }
 
   if (r.includes("witness") || r.includes("bystander")) return "WITNESS";
-  if (
-    r.includes("person_of_interest") ||
-    r === "poi" ||
-    r.includes("suspect") ||
-    r.includes("accused") ||
-    r.includes("alleged") ||
-    r.includes("assassin") ||
-    r.includes("perpetrator") ||
-    r.includes("shooter") ||
-    legal === "person_of_interest" ||
-    legal === "charged" ||
-    legal === "convicted" ||
-    legal === "acquitted"
-  ) {
-    return "PERSON_OF_INTEREST";
-  }
   if (r.includes("relative") || r.includes("family") || r.includes("spouse")) {
     return "RELATIVE";
   }
@@ -155,14 +162,12 @@ export function personPublicNotes(input: {
 }): string | null {
   const mapped = mapPersonRole(input.role, input.legalStatus);
   const legal = input.legalStatus.trim().toLowerCase();
-  const isDeceasedVictim =
-    legal === "deceased" || mapped === "VICTIM";
+  const isDeceasedVictim = mapped === "VICTIM";
+  const isSubject = mapped === "PERSON_OF_INTEREST";
   const isLivingAccused =
     !isDeceasedVictim &&
-    (mapped === "PERSON_OF_INTEREST" ||
-      legal === "person_of_interest" ||
-      legal === "charged" ||
-      legal === "named_public_record");
+    isSubject &&
+    legal !== "deceased";
 
   const parts: string[] = [];
 
@@ -174,18 +179,20 @@ export function personPublicNotes(input: {
   const roleRaw = input.role.trim();
   if (
     roleRaw &&
-    !["other", "victim", "witness", "relative", "poi", "suspect"].includes(
+    !["other", "victim", "witness", "relative", "poi", "suspect", "subject"].includes(
       roleRaw.toLowerCase().replace(/\s+/g, "_"),
     )
   ) {
     parts.push(`Described as: ${roleRaw}`);
   }
 
-  if (isLivingAccused) {
+  if (isSubject && legal === "deceased") {
+    parts.push("Named as a subject in connection with the event — not a victim.");
+  } else if (isLivingAccused) {
     const note = (input.presumptionNote ?? "").trim();
     if (note && !isInstructionLeak(note)) {
       parts.push(note);
-    } else if (!note || isInstructionLeak(note)) {
+    } else {
       parts.push(NAMING_POLICY.presumptionOfInnocence);
     }
   }
@@ -403,12 +410,8 @@ export function claimsAsPublicNotes(
   factual: { text: string }[],
   disputed: { text: string }[],
 ): string | null {
-  const cleanFactual = factual
-    .map((c) => sanitizePublicText(c.text))
-    .filter((t) => t && !isInstructionLeak(t));
-  const cleanDisputed = disputed
-    .map((c) => sanitizePublicText(c.text))
-    .filter((t) => t && !isInstructionLeak(t));
+  const { factual: cleanFactual, disputed: cleanDisputed } =
+    dedupeClaimsForPublish(factual, disputed);
 
   const parts: string[] = [];
   if (cleanFactual.length > 0) {
@@ -425,6 +428,62 @@ export function claimsAsPublicNotes(
     );
   }
   return parts.length > 0 ? parts.join("\n\n") : null;
+}
+
+/** Collapse near-duplicate claim texts; disputed wins over factual for the same fact. */
+export function dedupeClaimsForPublish(
+  factual: { text: string }[],
+  disputed: { text: string }[],
+): { factual: string[]; disputed: string[] } {
+  const collapse = (rows: { text: string }[]): string[] => {
+    const out: string[] = [];
+    for (const row of rows) {
+      const text = sanitizePublicText(row.text);
+      if (!text || isInstructionLeak(text)) continue;
+      if (out.some((kept) => claimSimilarity(kept, text) >= 0.78)) continue;
+      out.push(text);
+    }
+    return out;
+  };
+
+  const disputedOut = collapse(disputed);
+  const factualOut: string[] = [];
+  for (const text of collapse(factual)) {
+    // Don't also show as CLAIM if the same fact is already DISPUTED.
+    if (disputedOut.some((d) => claimSimilarity(d, text) >= 0.78)) continue;
+    factualOut.push(text);
+  }
+  return { factual: factualOut, disputed: disputedOut };
+}
+
+/** One public person row per normalized name. */
+export function dedupePeopleForPublish<
+  T extends { name: string; role: string; legalStatus: string },
+>(people: T[]): T[] {
+  const byKey = new Map<string, T>();
+  for (const p of people) {
+    const key = normalizePersonName(p.name);
+    if (!key) continue;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, p);
+      continue;
+    }
+    // Prefer subject over mistaken victim for the same person.
+    const prevMapped = mapPersonRole(prev.role, prev.legalStatus);
+    const nextMapped = mapPersonRole(p.role, p.legalStatus);
+    if (
+      nextMapped === "PERSON_OF_INTEREST" &&
+      prevMapped === "VICTIM"
+    ) {
+      byKey.set(key, p);
+      continue;
+    }
+    if (p.name.length > prev.name.length) {
+      byKey.set(key, { ...prev, name: p.name });
+    }
+  }
+  return Array.from(byKey.values());
 }
 
 async function resolveUniqueSlug(
@@ -614,8 +673,9 @@ export async function syncResearchCaseToPublic(
   }
 
   if (caseFile.people.length > 0) {
+    const people = dedupePeopleForPublish(caseFile.people);
     await prisma.casePerson.createMany({
-      data: caseFile.people.map((p) => ({
+      data: people.map((p) => ({
         caseId: publicCase.id,
         name: p.name,
         role: mapPersonRole(p.role, p.legalStatus),
@@ -640,9 +700,11 @@ export async function syncResearchCaseToPublic(
       sortOrder: 0,
     });
   }
-  factual.forEach((c, i) => {
-    const text = sanitizePublicText(c.text);
-    if (!text || isInstructionLeak(text)) return;
+  const { factual: pubFactual, disputed: pubDisputed } = dedupeClaimsForPublish(
+    factual,
+    disputed,
+  );
+  pubFactual.forEach((text, i) => {
     events.push({
       caseId: publicCase.id,
       occurredAt: null,
@@ -652,9 +714,7 @@ export async function syncResearchCaseToPublic(
       sortOrder: i + 1,
     });
   });
-  disputed.forEach((c, i) => {
-    const text = sanitizePublicText(c.text);
-    if (!text || isInstructionLeak(text)) return;
+  pubDisputed.forEach((text, i) => {
     // Research-sourced disputed claims are reported-disputed, not user theories.
     events.push({
       caseId: publicCase.id,

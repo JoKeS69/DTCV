@@ -363,11 +363,11 @@ def run_claimed_research(
         )
         before_claims = len(corroborated)
         corroborated = dedupe_claims(corroborated)
-        verified_people = normalize_people(verified_people)
+        verified_people = normalize_people(verified_people, case_title=title)
         before_people = len(verified_people)
         verified_people = dedupe_people(verified_people)
         # Re-normalize roles after merge
-        verified_people = normalize_people(verified_people)
+        verified_people = normalize_people(verified_people, case_title=title)
         _push(
             steps,
             "dedupe",

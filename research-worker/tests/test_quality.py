@@ -45,7 +45,12 @@ def test_spelling_assassination():
 
 
 def test_jfk_is_victim_not_presumed_innocent():
-    role = normalize_role("other", legal_status="deceased")
+    role = normalize_role(
+        "other",
+        legal_status="deceased",
+        name="John F. Kennedy",
+        case_title="Assassination of John F. Kennedy",
+    )
     assert role == "victim"
     note = presumption_note_for_person(role="victim", legal_status="deceased")
     assert "innocent" not in note.lower()
@@ -57,6 +62,33 @@ def test_subject_keeps_presumption():
     assert "Presumed innocent" in note
 
 
+def test_attackers_are_subjects_not_victims():
+    assert (
+        normalize_role(
+            "hijacker",
+            legal_status="deceased",
+            name="Mohammed Atta",
+            case_title="September 11 attacks",
+        )
+        == "subject"
+    )
+    # Model wrongly labels victim — demote when name not in title on terror case
+    assert (
+        normalize_role(
+            "victim",
+            legal_status="deceased",
+            name="Osama bin Laden",
+            case_title="September 11 attacks",
+        )
+        == "subject"
+    )
+    note = presumption_note_for_person(
+        role="subject", legal_status="deceased", name="Osama bin Laden"
+    )
+    assert "not a victim" in note.lower()
+    assert "innocent" not in note.lower()
+
+
 def test_normalize_people_sets_victim_deceased():
     people = [
         {
@@ -64,13 +96,24 @@ def test_normalize_people_sets_victim_deceased():
             "role": "other",
             "legalStatus": "deceased",
             "sources": ["https://www.archives.gov/research/jfk"],
-        }
+        },
+        {
+            "name": "Mohammed Atta",
+            "role": "victim",
+            "legalStatus": "deceased",
+            "sources": ["https://www.fbi.gov/"],
+        },
     ]
-    out = normalize_people(people)
-    assert out[0]["role"] == "victim"
-    assert out[0]["legalStatus"] == "deceased"
-    assert "innocent" not in out[0]["presumptionNote"].lower()
+    out = normalize_people(people, case_title="September 11 attacks")
+    # JFK not in 9/11 title → not auto-victim here; Atta demoted from victim→subject
+    atta = next(p for p in out if "Atta" in p["name"])
+    assert atta["role"] == "subject"
 
+    out_jfk = normalize_people(
+        [people[0]], case_title="Assassination of John F. Kennedy"
+    )
+    assert out_jfk[0]["role"] == "victim"
+    assert "innocent" not in out_jfk[0]["presumptionNote"].lower()
 
 def test_metadata_rejects_title_as_location_and_bare_unsolved():
     meta = normalize_metadata(

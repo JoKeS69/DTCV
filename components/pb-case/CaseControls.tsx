@@ -8,6 +8,7 @@ import {
   reviewPersonAction,
   setWorldDominationAction,
   startResearchAction,
+  dedupeReviewRowsAction,
   unpublishCaseAction,
   updateLabelsAction,
 } from "@/app/actions/pb-case";
@@ -35,6 +36,37 @@ export function ResearchButton({ caseId }: { caseId: string }) {
         className="border border-border bg-accent/20 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] hover:bg-accent/30 disabled:opacity-50"
       >
         {pending ? "Queueing…" : "Run research"}
+      </button>
+      {msg ? (
+        <span className="font-mono text-[11px] text-text-muted">{msg}</span>
+      ) : null}
+    </div>
+  );
+}
+
+export function DedupeReviewButton({ caseId }: { caseId: string }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            const res = await dedupeReviewRowsAction(caseId);
+            setMsg(
+              res.ok
+                ? `Deduped — removed ${res.peopleRemoved} people, ${res.claimsRemoved} claims`
+                : res.error,
+            );
+            router.refresh();
+          })
+        }
+        className="border border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] hover:bg-surface disabled:opacity-50"
+      >
+        {pending ? "Deduping…" : "Deduplicate review rows"}
       </button>
       {msg ? (
         <span className="font-mono text-[11px] text-text-muted">{msg}</span>

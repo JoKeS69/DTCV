@@ -11,6 +11,25 @@ import { writeAuditLog } from "@/lib/pb-case/audit";
 import { getResearchLimits } from "@/lib/research/limits";
 
 /**
+ * Choice (documented): when a new research run is queued, supersede prior
+ * *pending* auto-generated claims/people. Admin-approved / rejected / disputed
+ * rows are kept; the worker will upsert into those on completion.
+ */
+async function supersedePendingReviewRows(caseId: string): Promise<{
+  claimsDeleted: number;
+  peopleDeleted: number;
+}> {
+  const db = getCasesPrisma();
+  const claims = await db.claim.deleteMany({
+    where: { caseId, status: "pending" },
+  });
+  const people = await db.person.deleteMany({
+    where: { caseId, status: "pending" },
+  });
+  return { claimsDeleted: claims.count, peopleDeleted: people.count };
+}
+
+/**
  * Queue a research job for the external Python worker.
  * Does not run the pipeline in-process. Keys stay off the web app.
  */
@@ -27,6 +46,8 @@ export async function queueCaseResearch(input: {
     throw new Error("Case not found");
   }
 
+  const superseded = await supersedePendingReviewRows(caseFile.id);
+
   const run = await db.researchRun.create({
     data: {
       caseId: caseFile.id,
@@ -37,6 +58,11 @@ export async function queueCaseResearch(input: {
           step: "queued",
           detail: "Waiting for external research worker (DB poll)",
         },
+        {
+          at: new Date().toISOString(),
+          step: "supersede_pending",
+          detail: `Removed pending claims=${superseded.claimsDeleted} people=${superseded.peopleDeleted} (kept admin-reviewed)`,
+        },
       ],
       plan: {
         title: caseFile.title,
@@ -44,6 +70,7 @@ export async function queueCaseResearch(input: {
         maxSteps: limits.maxSteps,
         queuedBy: "pb-case",
         worker: "python-research-worker",
+        superseded,
       },
     },
   });
@@ -60,7 +87,8 @@ export async function queueCaseResearch(input: {
     entityId: caseFile.id,
     meta: {
       runId: run.id,
-      note: "External worker polls research_runs; web app holds no OpenAI key",
+      superseded,
+      note: "External worker polls research_runs; pending rows superseded; web app holds no OpenAI key",
     },
   });
 

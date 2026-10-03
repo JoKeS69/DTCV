@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ClaimReviewButtons,
+  DedupeReviewButton,
   LabelsForm,
   PersonReviewButtons,
   PublishControls,
@@ -61,9 +62,15 @@ export default async function PbCaseDetailPage({
             Queues a job in the cases DB. The external Python worker polls and
             runs LLM/search — keys stay off this web app. Never publishes.
           </p>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-2">
             <ResearchButton caseId={caseFile.id} />
+            <DedupeReviewButton caseId={caseFile.id} />
           </div>
+          <p className="mt-2 font-mono text-[9px] text-text-dim">
+            Deduplicate merges same-name people and near-duplicate claims (keeps
+            highest review status). Re-running research supersedes pending rows
+            and upserts into admin-reviewed ones.
+          </p>
           <ul className="mt-3 space-y-1 font-mono text-[10px] text-text-muted">
             {caseFile.researchRuns.map((r) => (
               <li key={r.id}>

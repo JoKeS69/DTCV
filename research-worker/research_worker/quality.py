@@ -38,12 +38,14 @@ _SPELLING_FIXES = [
 ]
 
 _VICTIM_ROLE_RE = re.compile(
-    r"\b(victim|deceased victim|killed|murdered|assassinated|decedent)\b",
+    r"\b(victim|deceased victim|murder victim|civilian (victim|casualty)|"
+    r"decedent)\b",
     re.I,
 )
 _SUBJECT_ROLE_RE = re.compile(
     r"\b(suspect|accused|defendant|perpetrator|assassin|gunman|subject|"
-    r"person of interest|alleged)\b",
+    r"person of interest|alleged|hijacker|terrorist|attacker|organizer|"
+    r"mastermind|plotter|conspirator|bomber|shooter|militant|extremist)\b",
     re.I,
 )
 _WITNESS_ROLE_RE = re.compile(r"\b(witness|bystander|eyewitness)\b", re.I)
@@ -94,27 +96,78 @@ def fix_spelling(text: str) -> str:
     return out
 
 
-def normalize_role(role: str | None, *, legal_status: str | None = None) -> str:
-    raw = (role or "other").strip().lower()
-    if raw in _ALLOWED_ROLES:
-        base = raw
-    elif _VICTIM_ROLE_RE.search(raw):
-        base = "victim"
-    elif _SUBJECT_ROLE_RE.search(raw):
-        base = "subject"
-    elif _WITNESS_ROLE_RE.search(raw):
-        base = "witness"
-    elif _INVESTIGATOR_ROLE_RE.search(raw):
-        base = "investigator"
-    else:
-        base = "other"
+def _name_overlaps_case_title(name: str, title: str | None) -> bool:
+    if not name or not title:
+        return False
+    stop = {
+        "the",
+        "and",
+        "of",
+        "in",
+        "on",
+        "a",
+        "an",
+        "attacks",
+        "attack",
+        "assassination",
+        "murder",
+        "case",
+        "incident",
+    }
+    nt = {
+        t
+        for t in re.sub(r"[^\w\s]", " ", name.lower()).split()
+        if len(t) > 2 and t not in stop
+    }
+    tt = {
+        t
+        for t in re.sub(r"[^\w\s]", " ", title.lower()).split()
+        if len(t) > 2 and t not in stop
+    }
+    if not nt or not tt:
+        return False
+    return len(nt & tt) >= 1
 
-    # Clear decedents of the event are victims, not "other"
-    if (legal_status or "") == "deceased" and base in {"other", "official"}:
-        # Keep investigator/official if role text says so; else victim
-        if not _INVESTIGATOR_ROLE_RE.search(raw):
-            base = "victim"
-    return base
+
+def normalize_role(
+    role: str | None,
+    *,
+    legal_status: str | None = None,
+    name: str | None = None,
+    case_title: str | None = None,
+) -> str:
+    raw = (role or "other").strip().lower()
+    blob = f"{raw} {name or ''}"
+
+    # Subjects/attackers first — never auto-label as victim just because deceased.
+    if raw == "subject" or _SUBJECT_ROLE_RE.search(blob):
+        return "subject"
+    if raw in _ALLOWED_ROLES and raw not in {"other"}:
+        # Explicit victim from the model: keep only if name fits the case title
+        # or no title was provided. Otherwise demote mistaken attacker→victim.
+        if raw == "victim" and case_title and name:
+            if not _name_overlaps_case_title(name, case_title):
+                if re.search(
+                    r"\b(attack|attacks|terror|hijack|bombing)\b",
+                    case_title,
+                    re.I,
+                ):
+                    return "subject"
+        return raw
+    if _VICTIM_ROLE_RE.search(raw):
+        return "victim"
+    if _WITNESS_ROLE_RE.search(raw):
+        return "witness"
+    if _INVESTIGATOR_ROLE_RE.search(raw):
+        return "investigator"
+
+    # Auto-victim only when deceased + name appears in the case title (e.g. JFK).
+    if (legal_status or "") == "deceased" and raw in {"other", "official", ""}:
+        if case_title and name and _name_overlaps_case_title(name, case_title):
+            return "victim"
+        if not case_title:
+            return "victim"
+    return "other" if raw not in _ALLOWED_ROLES else raw
 
 
 def presumption_note_for_person(
@@ -122,18 +175,26 @@ def presumption_note_for_person(
     role: str,
     legal_status: str | None,
     name: str | None = None,
+    case_title: str | None = None,
 ) -> str:
     """
-    Do not attach accused-style presumption boilerplate to clear victims/deceased
-    public figures killed in the event.
+    Do not attach accused-style presumption boilerplate to clear victims.
+    Subjects (including deceased attackers) are not VICTIMs.
     """
-    r = normalize_role(role, legal_status=legal_status)
+    r = normalize_role(
+        role, legal_status=legal_status, name=name, case_title=case_title
+    )
     status = (legal_status or "other").lower()
-    if r == "victim" or (status == "deceased" and r != "subject"):
-        return _PRESUMPTION_VICTIM if r == "victim" else _PRESUMPTION_DECEASED_PUBLIC
+    if r == "victim":
+        return _PRESUMPTION_VICTIM
+    if r == "subject":
+        if status == "deceased":
+            return "Named in connection with the event as a subject — not a victim."
+        return _PRESUMPTION_DEFAULT
+    if status == "deceased" and r != "subject":
+        return _PRESUMPTION_DECEASED_PUBLIC
     if r in {"witness", "investigator", "official"}:
-        return ""  # not an accused posture
-    # subject / other → presumption of innocence
+        return ""
     return _PRESUMPTION_DEFAULT
 
 
@@ -159,7 +220,11 @@ def filter_instruction_leaks(
     return cleaned
 
 
-def normalize_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def normalize_people(
+    people: list[dict[str, Any]],
+    *,
+    case_title: str | None = None,
+) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for p in people:
         name = fix_spelling(str(p.get("name") or "")).strip()
@@ -169,11 +234,14 @@ def normalize_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if is_instruction_leak(role_raw):
             role_raw = "other"
         legal = str(p.get("legalStatus") or "other")
-        role = normalize_role(role_raw, legal_status=legal)
-        # Victims of assassination events: legalStatus should be deceased when killed
+        role = normalize_role(
+            role_raw, legal_status=legal, name=name, case_title=case_title
+        )
         if role == "victim" and legal == "other":
             legal = "deceased"
-        note = presumption_note_for_person(role=role, legal_status=legal, name=name)
+        note = presumption_note_for_person(
+            role=role, legal_status=legal, name=name, case_title=case_title
+        )
         out.append(
             {
                 **p,

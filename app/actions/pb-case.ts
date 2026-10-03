@@ -15,6 +15,10 @@ import {
   WORLD_DOMINATION_MAX,
 } from "@/lib/pb-case/world-domination";
 import { queueCaseResearch } from "@/lib/research/pipeline";
+import {
+  planClaimCollapse,
+  planPersonCollapse,
+} from "@/lib/pb-case/dedupe-review";
 
 function revalidatePublicCases(slug?: string) {
   revalidatePath("/cases");
@@ -89,6 +93,71 @@ export async function startResearchAction(caseId: string) {
   revalidatePath("/pb-case");
   revalidatePath(`/pb-case/cases/${caseId}`);
   return { ok: true as const, ...result };
+}
+
+/**
+ * One-shot cleanup for polluted review lists (e.g. JFK ×3 people).
+ * Merges near-duplicate claims and same-name people; keeps highest review status.
+ */
+export async function dedupeReviewRowsAction(caseId: string) {
+  const gate = await requirePbCaseAdminAction();
+  if (!gate.ok) return { ok: false as const, error: gate.error };
+
+  const db = getCasesPrisma();
+  const caseFile = await db.caseFile.findUnique({
+    where: { id: caseId },
+    include: { claims: true, people: true },
+  });
+  if (!caseFile) return { ok: false as const, error: "Not found" };
+
+  const claimPlans = planClaimCollapse(caseFile.claims);
+  let claimsRemoved = 0;
+  for (const plan of claimPlans) {
+    await db.claim.update({
+      where: { id: plan.survivorId },
+      data: { sources: plan.mergedSources },
+    });
+    if (plan.deleteIds.length) {
+      const res = await db.claim.deleteMany({
+        where: { id: { in: plan.deleteIds } },
+      });
+      claimsRemoved += res.count;
+    }
+  }
+
+  const peoplePlans = planPersonCollapse(caseFile.people);
+  let peopleRemoved = 0;
+  for (const plan of peoplePlans) {
+    await db.person.update({
+      where: { id: plan.survivorId },
+      data: {
+        name: plan.name,
+        role: plan.role,
+        legalStatus: plan.legalStatus as never,
+        sources: plan.mergedSources,
+      },
+    });
+    if (plan.deleteIds.length) {
+      const res = await db.person.deleteMany({
+        where: { id: { in: plan.deleteIds } },
+      });
+      peopleRemoved += res.count;
+    }
+  }
+
+  await writeAuditLog({
+    actor: gate.admin.username,
+    action: "case.dedupe_review_rows",
+    entityType: "case",
+    entityId: caseId,
+    meta: { claimsRemoved, peopleRemoved },
+  });
+  revalidatePath(`/pb-case/cases/${caseId}`);
+  return {
+    ok: true as const,
+    claimsRemoved,
+    peopleRemoved,
+  };
 }
 
 export async function reviewClaimAction(
