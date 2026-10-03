@@ -6,9 +6,13 @@ import type {
   HudStats,
 } from "@/lib/cases/hud-types";
 import type { CaseStatusCounts, TopLocation } from "@/lib/cases/dashboard";
+import { coerceDate, type DateLike } from "@/lib/format-date";
 
-function formatRelativeLabel(date: Date): string {
-  const ms = Date.now() - date.getTime();
+/** Relative HUD label; accepts Date | string | number from cache/JSON/Prisma. */
+export function formatRelativeLabel(date: DateLike | null | undefined): string {
+  const d = coerceDate(date);
+  if (!d) return "—";
+  const ms = Date.now() - d.getTime();
   const mins = Math.max(0, Math.floor(ms / 60_000));
   if (mins < 60) return `${String(mins).padStart(2, "0")} MIN AGO`;
   const hrs = Math.floor(mins / 60);
@@ -17,8 +21,11 @@ function formatRelativeLabel(date: Date): string {
   return `${days}D AGO`;
 }
 
-function formatClock(date: Date): string {
-  return date.toISOString().slice(11, 19);
+/** Clock label HH:MM:SS; accepts Date | string | number from cache/JSON/Prisma. */
+export function formatClock(date: DateLike | null | undefined): string {
+  const d = coerceDate(date);
+  if (!d) return "--:--:--";
+  return d.toISOString().slice(11, 19);
 }
 
 export function toHudCase(row: {
@@ -30,7 +37,8 @@ export function toHudCase(row: {
   countryCode: string | null;
   type: string;
   status: string;
-  updatedAt: Date;
+  /** May be a string after `unstable_cache` / JSON serialization. */
+  updatedAt: DateLike;
   priority: string;
   summary?: string | null;
   publicNotes?: string | null;
@@ -38,6 +46,7 @@ export function toHudCase(row: {
   sourceAttribution?: string | null;
   agency?: string | null;
 }): HudCase {
+  const updated = coerceDate(row.updatedAt);
   return {
     id: row.id,
     caseCode: row.caseCode,
@@ -47,8 +56,8 @@ export function toHudCase(row: {
     locationShort: row.countryCode?.trim() || "—",
     type: row.type,
     status: row.status as HudCaseStatus,
-    updatedLabel: formatRelativeLabel(row.updatedAt),
-    updatedAt: row.updatedAt.toISOString(),
+    updatedLabel: formatRelativeLabel(updated ?? row.updatedAt),
+    updatedAt: updated ? updated.toISOString() : String(row.updatedAt),
     priority: (row.priority as HudCase["priority"]) || "LOW",
     assignedTo: row.agency?.trim() || "N/A",
     overview: (row.summary ?? row.publicNotes ?? "").trim() || "No overview published.",
@@ -74,7 +83,8 @@ export function toHudStats(
 
 export function toHudActivity(items: {
   id: string;
-  at: Date;
+  /** May be a string after `unstable_cache` / JSON serialization. */
+  at: DateLike;
   text: string;
   href?: string;
 }[]): HudActivity[] {
@@ -90,7 +100,8 @@ export function toHudDiscussions(
   rows: {
     id: string;
     body: string | null;
-    createdAt: Date;
+    /** May be a string after `unstable_cache` / JSON serialization. */
+    createdAt: DateLike;
     author: { username: string };
     _count?: { comments?: number };
   }[],

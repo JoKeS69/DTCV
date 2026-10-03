@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { HudMapMarker } from "@/lib/cases/hud-types";
 import { getPrisma } from "@/lib/db";
+import { coerceDate, type DateLike } from "@/lib/format-date";
 
 export type CaseStatusCounts = {
   total: number;
@@ -14,7 +15,8 @@ export type TopLocation = { country: string; count: number };
 
 export type ActivityItem = {
   id: string;
-  at: Date;
+  /** May be a string after `unstable_cache` / JSON serialization. */
+  at: DateLike;
   text: string;
   href?: string;
 };
@@ -154,7 +156,11 @@ async function loadRecentActivity(): Promise<ActivityItem[]> {
   ];
 
   return items
-    .sort((a, b) => b.at.getTime() - a.at.getTime())
+    .sort((a, b) => {
+      const bt = coerceDate(b.at)?.getTime() ?? 0;
+      const at = coerceDate(a.at)?.getTime() ?? 0;
+      return bt - at;
+    })
     .slice(0, 8);
 }
 
