@@ -23,6 +23,7 @@
     "db:cases:seed": "tsx prisma-cases/seed.ts",
     "db:spotcheck": "tsx prisma/spotcheck.ts",
     "db:prod-check": "tsx scripts/db-prod-check.ts",
+    "pb-case:whoami": "tsx scripts/pb-case-whoami.ts",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:watch": "vitest",

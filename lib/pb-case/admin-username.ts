@@ -15,3 +15,18 @@ export function isPbCaseAdminUsername(
   if (!username) return false;
   return username.trim().toLowerCase() === getAdminUsername();
 }
+
+export type PbCaseGateUser = {
+  role: string;
+  username: string | null | undefined;
+  suspendedAt?: Date | string | null;
+};
+
+/**
+ * Single predicate for /pb-case page gate AND CommandDeck chrome.
+ * Must stay identical in both call sites — ADMIN role alone is not enough.
+ */
+export function canAccessPbCase(user: PbCaseGateUser): boolean {
+  if (user.suspendedAt) return false;
+  return user.role === "ADMIN" && isPbCaseAdminUsername(user.username);
+}

@@ -9,7 +9,11 @@ import {
   parseExtractResultStrict,
 } from "@/lib/research/schema";
 import { WORLD_DOMINATION_MAX } from "@/lib/pb-case/world-domination";
-import { getAdminUsername, isPbCaseAdminUsername } from "@/lib/pb-case/admin-username";
+import {
+  canAccessPbCase,
+  getAdminUsername,
+  isPbCaseAdminUsername,
+} from "@/lib/pb-case/admin-username";
 import { LEGAL_POLICY_VERSION } from "@/lib/legal/policy";
 import { isRetryableError } from "@/lib/research/backoff";
 import { openAiModelEnvKey } from "@/lib/research/models";
@@ -103,6 +107,25 @@ describe("world domination + admin gate helpers", () => {
     expect(getAdminUsername()).toBe("abed");
     expect(isPbCaseAdminUsername("abed")).toBe(true);
     expect(isPbCaseAdminUsername("admin_ops")).toBe(false);
+  });
+
+  it("canAccessPbCase requires ADMIN + username + not suspended", () => {
+    expect(
+      canAccessPbCase({ role: "ADMIN", username: "abed", suspendedAt: null }),
+    ).toBe(true);
+    expect(
+      canAccessPbCase({ role: "ADMIN", username: "admin_ops", suspendedAt: null }),
+    ).toBe(false);
+    expect(
+      canAccessPbCase({ role: "USER", username: "abed", suspendedAt: null }),
+    ).toBe(false);
+    expect(
+      canAccessPbCase({
+        role: "ADMIN",
+        username: "abed",
+        suspendedAt: new Date(),
+      }),
+    ).toBe(false);
   });
 });
 

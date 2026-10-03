@@ -61,7 +61,13 @@ function isActive(label: string, pathname: string, focus: string | null) {
   }
 }
 
-function AdminBadge({ canAccessPbCase }: { canAccessPbCase: boolean }) {
+function AdminBadge({
+  canAccessPbCase,
+  username,
+}: {
+  canAccessPbCase: boolean;
+  username?: string;
+}) {
   const icon = <Shield className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />;
 
   if (canAccessPbCase) {
@@ -79,11 +85,15 @@ function AdminBadge({ canAccessPbCase }: { canAccessPbCase: boolean }) {
   }
 
   // ADMIN role chrome only — not a link (username fails /pb-case gate).
+  const lockedHint = username
+    ? `Administrator — research desk locked (signed in as ${username})`
+    : "Administrator — research desk locked for this account";
+
   return (
     <span
       className="relative z-20 inline-flex min-h-10 min-w-10 cursor-default items-center justify-center rounded-[6px] border border-border/70 px-2.5 py-1.5 text-text-dim pointer-events-auto"
       aria-label="Administrator (research desk not available)"
-      title="Administrator — research desk locked for this account"
+      title={lockedHint}
       role="img"
     >
       {icon}
@@ -135,6 +145,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
   };
   const isAdmin = user?.role === "ADMIN";
   const canAccessPbCase = user?.canAccessPbCase === true;
+  const adminUsername = user?.username;
 
   useEffect(() => {
     const tick = () => setClock(formatHudClock(new Date()));
@@ -172,7 +183,12 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             >
               {designTokens.brand}
             </Link>
-            {isAdmin ? <AdminBadge canAccessPbCase={canAccessPbCase} /> : null}
+            {isAdmin ? (
+              <AdminBadge
+                canAccessPbCase={canAccessPbCase}
+                username={adminUsername}
+              />
+            ) : null}
             <span className="hidden h-6 w-px bg-border lg:block" aria-hidden />
             <div className="hidden min-w-0 lg:block">
               <UserChip user={guestUser} />
@@ -247,7 +263,12 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                 <Menu className="size-5" strokeWidth={1.5} aria-hidden />
               )}
             </button>
-            {isAdmin ? <AdminBadge canAccessPbCase={canAccessPbCase} /> : null}
+            {isAdmin ? (
+              <AdminBadge
+                canAccessPbCase={canAccessPbCase}
+                username={adminUsername}
+              />
+            ) : null}
             <UserChip user={guestUser} />
           </div>
           <div className="shrink-0 text-right">
@@ -274,7 +295,10 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 {isAdmin ? (
-                  <AdminBadge canAccessPbCase={canAccessPbCase} />
+                  <AdminBadge
+                    canAccessPbCase={canAccessPbCase}
+                    username={adminUsername}
+                  />
                 ) : null}
                 <UserChip user={guestUser} />
               </div>

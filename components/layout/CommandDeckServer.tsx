@@ -3,7 +3,7 @@ import { CommandDeckShell } from "@/components/layout/CommandDeckShell";
 import type { DeckUser } from "@/components/layout/deck-user";
 import { getCaseStatsCached } from "@/lib/cases/dashboard";
 import { getPrisma } from "@/lib/db";
-import { isPbCaseAdminUsername } from "@/lib/pb-case/admin-username";
+import { canAccessPbCase } from "@/lib/pb-case/admin-username";
 
 export async function CommandDeckServer({
   children,
@@ -29,31 +29,29 @@ export async function CommandDeckServer({
         },
       });
       if (row && !row.suspendedAt) {
-        const role = row.role;
-        const canAccessPbCase =
-          role === "ADMIN" && isPbCaseAdminUsername(row.username);
         user = {
           displayName: "DETECTIVE",
           publicId: row.publicId,
           rankLabel: row.detectiveRank || "NOVICE",
           status: "ACTIVE",
-          role,
-          // Link chrome only when server-side /pb-case username gate would pass.
-          canAccessPbCase,
+          role: row.role,
+          username: row.username,
+          // Exact same predicate as requirePbCaseAdmin — link only when gate would pass.
+          canAccessPbCase: canAccessPbCase(row),
         };
       }
     } catch {
       // DB briefly unavailable: fall back to session role + username (JWT keeps both fresh).
       const role = session.user.role ?? "USER";
-      const canAccessPbCase =
-        role === "ADMIN" && isPbCaseAdminUsername(session.user.username);
+      const username = session.user.username ?? "";
       user = {
         displayName: "DETECTIVE",
         publicId: "DET-LOCALDEV",
         rankLabel: "NOVICE",
         status: "ACTIVE",
         role,
-        canAccessPbCase,
+        username,
+        canAccessPbCase: canAccessPbCase({ role, username }),
       };
     }
   }

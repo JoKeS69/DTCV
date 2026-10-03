@@ -8,9 +8,13 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import type { UserRole } from "@/lib/generated/prisma/client";
-import { isPbCaseAdminUsername } from "@/lib/pb-case/admin-username";
+import {
+  canAccessPbCase,
+  getAdminUsername,
+} from "@/lib/pb-case/admin-username";
 
 export {
+  canAccessPbCase,
   getAdminUsername,
   isPbCaseAdminUsername,
   PB_CASE_ADMIN_USERNAME_DEFAULT,
@@ -22,12 +26,25 @@ export type PbCaseAdmin = {
   role: UserRole;
 };
 
+function logPbCaseGateDeny(
+  reason: string,
+  detail: Record<string, string | undefined> = {},
+): void {
+  if (process.env.NODE_ENV !== "development") return;
+  const bits = Object.entries(detail)
+    .filter(([, v]) => v != null && v !== "")
+    .map(([k, v]) => `${k}=${v}`)
+    .join(" ");
+  console.warn(`[pb-case] gate 404: ${reason}${bits ? ` (${bits})` : ""}`);
+}
+
 /**
  * Server-side gate for /pb-case pages. Returns 404 for logged-out / non-admin.
  */
 export async function requirePbCaseAdmin(): Promise<PbCaseAdmin> {
   const session = await auth();
   if (!session?.user?.id) {
+    logPbCaseGateDeny("no session");
     notFound();
   }
 
@@ -37,9 +54,26 @@ export async function requirePbCaseAdmin(): Promise<PbCaseAdmin> {
   });
 
   if (!user || user.suspendedAt) {
+    logPbCaseGateDeny("missing or suspended user", {
+      sessionId: session.user.id,
+      sessionUsername: session.user.username,
+    });
     notFound();
   }
-  if (user.role !== "ADMIN" || !isPbCaseAdminUsername(user.username)) {
+
+  if (!canAccessPbCase(user)) {
+    if (user.role === "ADMIN") {
+      logPbCaseGateDeny("ADMIN username mismatch", {
+        dbUsername: user.username,
+        adminUsername: getAdminUsername(),
+        sessionUsername: session.user.username,
+      });
+    } else {
+      logPbCaseGateDeny("role not ADMIN", {
+        dbUsername: user.username,
+        role: user.role,
+      });
+    }
     notFound();
   }
 
@@ -61,7 +95,14 @@ export async function requirePbCaseAdminAction(): Promise<
   if (!user || user.suspendedAt) {
     return { ok: false, error: "Not found", status: 404 };
   }
-  if (user.role !== "ADMIN" || !isPbCaseAdminUsername(user.username)) {
+  if (!canAccessPbCase(user)) {
+    if (process.env.NODE_ENV === "development" && user.role === "ADMIN") {
+      logPbCaseGateDeny("ADMIN username mismatch (action)", {
+        dbUsername: user.username,
+        adminUsername: getAdminUsername(),
+        sessionUsername: session.user.username,
+      });
+    }
     return { ok: false, error: "Not found", status: 404 };
   }
   return {
