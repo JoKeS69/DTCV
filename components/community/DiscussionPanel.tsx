@@ -32,7 +32,7 @@ export function DiscussionPanel({
   signedIn: boolean;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3" data-testid="case-discussion-body">
       <TheorySafetyBanner />
       <CreateDiscussionForm
         caseId={caseId}
@@ -41,15 +41,25 @@ export function DiscussionPanel({
       />
 
       {discussions.length === 0 ? (
-        <p className="font-mono text-[11px] text-text-dim normal-case tracking-normal">
-          No open discussions yet. Start one — posts are labeled User theory.
-        </p>
+        <div
+          className="border border-dashed border-border/80 px-3 py-8 text-center"
+          data-testid="case-discussion-empty"
+        >
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-dim">
+            No discussions on this file yet
+          </p>
+          <p className="mt-2 font-mono text-[11px] text-text-dim normal-case tracking-normal">
+            {signedIn
+              ? "Start a thread — posts are labeled User theory."
+              : "Sign in to start a thread. Posts are labeled User theory."}
+          </p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border/70 border border-border/80">
           {discussions.map((discussion) => (
-            <li key={discussion.id} className="border border-border/80 px-3 py-2">
+            <li key={discussion.id} className="px-3 py-2.5">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
+                <div className="min-w-0">
                   <Link
                     href={`/discussions/${discussion.id}`}
                     className="font-mono text-[11px] uppercase tracking-[0.12em] text-text hover:text-cta"
