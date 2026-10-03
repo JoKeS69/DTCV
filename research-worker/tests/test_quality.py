@@ -201,9 +201,7 @@ def test_normalize_case_title_fixes_kennedy_typo():
         event_type="assassination",
         people=[{"name": "John F. Kennedy", "role": "victim"}],
     )
-    assert "assassination" in title.lower()
-    assert "Kennedy" in title
-    assert "assasination" not in title.lower()
+    assert title == "Assassination of John F. Kennedy"
 
 
 def test_normalize_case_title_builds_hariri_from_victim():
@@ -214,6 +212,17 @@ def test_normalize_case_title_builds_hariri_from_victim():
         people=[{"name": "Rafik Hariri", "role": "victim"}],
     )
     assert title == "Assassination of Rafik Hariri"
+
+
+def test_normalize_case_title_rewrites_inverted_hariri():
+    title = normalize_case_title(
+        "Rafik Hariri Assasination",
+        seed_title="Rafik Hariri Assasination",
+        event_type="assassination",
+        people=[{"name": "Rafik Hariri", "role": "victim"}],
+    )
+    assert title == "Assassination of Rafik Hariri"
+    assert "assasination" not in title.lower()
 
 
 def test_metadata_includes_generated_title():

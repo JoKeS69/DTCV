@@ -464,20 +464,49 @@ def normalize_case_title(
             victim_name = name
             break
 
+    # "Rafik Hariri Assassination" / "Kennedy Assassination" → "Assassination of …"
+    inverted = re.match(
+        r"^(?P<name>.+?)\s+assassinations?$",
+        title,
+        flags=re.I,
+    )
+    if inverted:
+        name = inverted.group("name").strip(" -–,")
+        if name and name.lower() not in {"the", "an", "a"}:
+            title = f"Assassination of {name}"
+    elif re.match(r"^assassinations?\s+(?!of\b)(?P<name>.+)$", title, flags=re.I):
+        name = re.sub(
+            r"^assassinations?\s+",
+            "",
+            title,
+            flags=re.I,
+        ).strip(" -–,")
+        if name:
+            title = f"Assassination of {name}"
+
+    # Prefer full victim name when available (seed often uses surname-only)
+    if event_type == "assassination" and victim_name:
+        of_match = re.match(r"^assassination\s+of\s+(.+)$", title, flags=re.I)
+        current_name = of_match.group(1).strip() if of_match else ""
+        victim_l = victim_name.lower()
+        current_l = current_name.lower()
+        if (
+            not of_match
+            or current_l != victim_l
+            and (
+                len(current_name.split()) < len(victim_name.split())
+                or current_l in victim_l.split()
+                or victim_l not in title.lower()
+            )
+        ):
+            title = f"Assassination of {victim_name}"
+
     weak = (
         not title
         or len(title) < 8
         or title.lower() in {"case", "new case", "untitled", "test"}
     )
-    # Seed/model missing assassination framing despite event type + victim
-    needs_assassination_form = (
-        event_type == "assassination"
-        and victim_name
-        and "assassination" not in title.lower()
-    )
-    if (weak or needs_assassination_form) and event_type == "assassination" and victim_name:
-        title = f"Assassination of {victim_name}"
-    elif weak and event_type == "terrorist" and seed:
+    if weak and event_type == "terrorist" and seed:
         title = seed
     elif not title:
         title = seed or "Untitled case"
@@ -488,11 +517,10 @@ def normalize_case_title(
     letters = [c for c in title if c.isalpha()]
     if letters and sum(1 for c in letters if c.islower()) / len(letters) > 0.7:
         title = _title_case_words(title)
-
-    # Append year only when short and year known and not already present
-    if year and year not in title and len(title) < 50 and event_type == "assassination":
-        # Prefer without year for classic style ("Assassination of Rafik Hariri")
-        pass
+    # Always title-case "Assassination of …" for polish
+    m = re.match(r"^(assassination of)\s+(.+)$", title, flags=re.I)
+    if m:
+        title = f"Assassination of {_title_case_words(m.group(2))}"
 
     return title[:120]
 

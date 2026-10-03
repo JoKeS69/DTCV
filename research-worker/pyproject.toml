@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "detective-research-worker"
-version = "0.1.7"
+version = "0.1.8"
 description = "DETECTIVE research worker: SQLite upserts, pending supersede, subject-vs-victim roles, publish dedupe."
 readme = "README.md"
 requires-python = ">=3.11"
