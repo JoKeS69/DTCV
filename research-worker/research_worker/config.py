@@ -14,9 +14,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Always load research-worker/.env (override stale CMD env vars).
+# Load research-worker/.env for defaults, but do NOT override vars already
+# set in the shell (so `set OPENAI_API_KEY=...` wins over an empty .env line).
 _env_file = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(_env_file, override=True)
+load_dotenv(_env_file, override=False)
 
 
 class ConfigError(RuntimeError):
