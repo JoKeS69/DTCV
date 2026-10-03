@@ -22,6 +22,14 @@ test.describe("Community", () => {
     await loginAs(page);
     await page.goto(`/cases/${slug}`);
 
+    // Side panel is sticky on desktop; open the mobile drawer when needed.
+    const startDiscussion = page.getByRole("button", {
+      name: /start discussion|sign in to start discussion/i,
+    });
+    if (!(await startDiscussion.first().isVisible().catch(() => false))) {
+      await page.getByTestId("case-discussion-open").click();
+    }
+
     await page.getByRole("button", { name: /start discussion/i }).click();
     await page.locator('input[maxlength="160"]').fill(title);
     await page
