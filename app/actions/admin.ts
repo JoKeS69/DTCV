@@ -112,7 +112,13 @@ const caseSchema = z.object({
   type: z.enum([
     "DISAPPEARANCE",
     "HOMICIDE",
+    "ASSASSINATION",
     "MISSING",
+    "WANTED",
+    "UNIDENTIFIED",
+    "KIDNAPPING",
+    "SEEKING_INFORMATION",
+    "TERRORIST",
     "UNKNOWN",
     "OTHER",
   ]),

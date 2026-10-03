@@ -88,10 +88,11 @@ describe("sync-public-case helpers", () => {
     ).toBeNull();
   });
 
-  it("maps JFK-style research signals to CLOSED + HOMICIDE", () => {
+  it("maps JFK-style research signals to CLOSED + ASSASSINATION", () => {
     expect(
       mapResearchCaseStatus({
-        labels: [],
+        labels: ["closed", "assassination"],
+        investigativeStatus: "closed",
         summary:
           "The Warren Commission officially concluded that Lee Harvey Oswald acted alone.",
         title: "JFK assassination",
@@ -102,9 +103,31 @@ describe("sync-public-case helpers", () => {
       mapResearchCaseType({
         title: "JFK assassination",
         summary: "President Kennedy was killed in Dallas.",
-        labels: [],
+        labels: ["assassination"],
+        eventType: "assassination",
       }),
-    ).toBe("HOMICIDE");
+    ).toBe("ASSASSINATION");
+  });
+
+  it("maps Hariri metadata to ASSASSINATION type", () => {
+    expect(
+      mapResearchCaseType({
+        title: "Assassination of Rafik Hariri",
+        summary: "Car bomb in Beirut.",
+        labels: ["assassination", "closed"],
+        eventType: "assassination",
+      }),
+    ).toBe("ASSASSINATION");
+  });
+
+  it("maps dropped investigative status without inventing vague unknown", () => {
+    expect(
+      mapResearchCaseStatus({
+        labels: ["dropped"],
+        investigativeStatus: "dropped",
+        summary: "Inquiry abandoned.",
+      }),
+    ).toBe("UNSOLVED");
   });
 
   it("respects explicit cold/unsolved labels", () => {

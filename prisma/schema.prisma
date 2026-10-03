@@ -59,6 +59,8 @@ enum CaseStatus {
 enum CaseType {
   DISAPPEARANCE
   HOMICIDE
+  /// Targeted political / public-figure killing (Hariri, JFK, etc.).
+  ASSASSINATION
   MISSING
   WANTED
   UNIDENTIFIED

@@ -17,6 +17,7 @@ export type ImportPreviewRow = {
 const CASE_TYPES = new Set<string>([
   "DISAPPEARANCE",
   "HOMICIDE",
+  "ASSASSINATION",
   "MISSING",
   "WANTED",
   "UNIDENTIFIED",

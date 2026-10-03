@@ -18,6 +18,7 @@ export function FilterControls({
         <option value="SEEKING_INFORMATION">Seeking information</option>
         <option value="TERRORIST">Terrorist</option>
         <option value="HOMICIDE">Homicide</option>
+        <option value="ASSASSINATION">Assassination</option>
         <option value="DISAPPEARANCE">Disappearance</option>
         <option value="UNKNOWN">Unknown</option>
         <option value="OTHER">Other</option>

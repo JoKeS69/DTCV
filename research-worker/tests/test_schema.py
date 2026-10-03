@@ -30,8 +30,9 @@ def test_extract_schema_ok():
             "region": "New York",
             "country": "United States",
             "location": "New York, United States",
-            "investigativeStatus": "official_finding",
-            "statusEvidence": "Multiple official investigations published findings."
+            "investigativeStatus": "closed",
+            "statusEvidence": "Multiple official investigations published findings.",
+            "eventType": "terrorist"
           },
           "claims": [
             {
@@ -51,6 +52,8 @@ def test_extract_schema_ok():
     assert "Paraphrased" in parsed.summary
     assert len(parsed.claims) == 1
     assert parsed.metadata.year == "2001"
+    assert parsed.metadata.investigativeStatus == "closed"
+    assert parsed.metadata.eventType == "terrorist"
 
 
 def test_extract_schema_rejects_malformed():
@@ -72,8 +75,9 @@ def test_verify_schema_requires_notes():
         "region": null,
         "country": null,
         "location": null,
-        "investigativeStatus": "unknown",
-        "statusEvidence": null
+        "investigativeStatus": "open",
+        "statusEvidence": null,
+        "eventType": "other"
       },
       "claims": [],
       "people": [],

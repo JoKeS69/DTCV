@@ -256,6 +256,116 @@ def normalize_people(
 
 _YEAR_RE = re.compile(r"\b(1[5-9]\d{2}|20\d{2})\b")
 
+_STATUS_CANONICAL = {"open", "closed", "dropped"}
+
+# Legacy / model drift → open|closed|dropped
+_STATUS_ALIASES = {
+    "open": "open",
+    "active": "open",
+    "ongoing": "open",
+    "unsolved": "open",  # unresolved without closure → still open posture
+    "unresolved": "open",
+    "unknown": "open",
+    "closed": "closed",
+    "solved": "closed",
+    "resolved": "closed",
+    "official_finding": "closed",
+    "disputed": "closed",  # findings exist even if contested
+    "dropped": "dropped",
+    "abandoned": "dropped",
+    "dismissed": "dropped",
+    "nolle": "dropped",
+}
+
+_EVENT_TYPES = {
+    "assassination",
+    "homicide",
+    "terrorist",
+    "kidnapping",
+    "disappearance",
+    "missing",
+    "other",
+}
+
+
+def infer_event_type(
+    *,
+    title: str,
+    raw_event_type: str | None = None,
+    status_evidence: str | None = None,
+    summary: str | None = None,
+) -> str:
+    raw = (raw_event_type or "").strip().lower()
+    if raw in _EVENT_TYPES and raw != "other":
+        return raw
+    blob = " ".join(
+        x for x in (title, status_evidence, summary, raw) if x
+    ).lower()
+    if re.search(r"\bassassinat", blob):
+        return "assassination"
+    if re.search(r"\b(terror|terrorist|9/?11|september\s+11)\b", blob):
+        return "terrorist"
+    if re.search(r"\b(kidnap|abduct)", blob):
+        return "kidnapping"
+    if re.search(r"\bdisappear", blob):
+        return "disappearance"
+    if re.search(r"\bmissing\b", blob):
+        return "missing"
+    if re.search(r"\b(homicide|murder|killed|killing|fatal shooting)\b", blob):
+        return "homicide"
+    return raw if raw in _EVENT_TYPES else "other"
+
+
+def canonicalize_investigative_status(
+    raw: str | None,
+    *,
+    title: str,
+    status_evidence: str | None = None,
+) -> str:
+    """
+    Force open | closed | dropped. Never leave unsolved/unknown when avoidable.
+    """
+    key = (raw or "").strip().lower().replace("-", "_").replace(" ", "_")
+    evidence = (status_evidence or "").lower()
+    title_l = (title or "").lower()
+    blob = f"{evidence} {title_l}"
+
+    # Evidence phrases win over raw aliases
+    if re.search(
+        r"\b(dropped|abandoned|discontinued|nolle\s+prosequi|no\s+longer\s+pursu)\b",
+        blob,
+    ):
+        return "dropped"
+    if re.search(
+        r"\b(official(?:ly)?\s+(?:closed|concluded|finding)|warren\s+commission|"
+        r"special\s+tribunal|\bstl\b|convicted|judgment|verdict|case\s+closed)\b",
+        blob,
+    ):
+        return "closed"
+    if re.search(
+        r"\b(ongoing|still\s+investigat|actively\s+investigat|open\s+investigation)\b",
+        blob,
+    ):
+        return "open"
+
+    mapped = _STATUS_ALIASES.get(key)
+    if mapped == "dropped":
+        return "dropped"
+    if mapped == "closed":
+        return "closed"
+    # Explicit open from the model
+    if key == "open" or key in {"active", "ongoing"}:
+        return "open"
+
+    # Vague legacy values (unsolved/unknown) on assassination titles → closed
+    if re.search(r"\bassassinat", title_l):
+        return "closed"
+
+    if mapped in _STATUS_CANONICAL:
+        return mapped
+
+    return "open"
+
 
 def extract_year_hint(*texts: str | None) -> str | None:
     for t in texts:
@@ -345,37 +455,28 @@ def normalize_metadata(
     elif not location:
         location = None
 
-    status = str(meta.get("investigativeStatus") or "unknown").strip().lower()
-    allowed = {
-        "open",
-        "unsolved",
-        "closed",
-        "official_finding",
-        "disputed",
-        "unknown",
-    }
-    if status not in allowed:
-        status = "unknown"
-    # Do not invent unsolved
-    if status == "unsolved" and not meta.get("statusEvidence"):
-        # Keep unsolved only if model explicitly provided evidence string
-        status_evidence = str(meta.get("statusEvidence") or "").strip()
-        if not status_evidence:
-            status = "unknown"
-
     status_evidence = fix_spelling(str(meta.get("statusEvidence") or "")).strip()
     if is_instruction_leak(status_evidence):
         status_evidence = ""
 
+    status = canonicalize_investigative_status(
+        str(meta.get("investigativeStatus") or ""),
+        title=title,
+        status_evidence=status_evidence,
+    )
+
+    event_type = infer_event_type(
+        title=title,
+        raw_event_type=str(meta.get("eventType") or "") or None,
+        status_evidence=status_evidence,
+    )
+
     note_map = {
-        "open": "Investigation reported as open.",
-        "unsolved": "No conclusive public resolution established in cited official sources.",
-        "closed": "Matter reported closed in cited sources.",
-        "official_finding": "Official investigation issued findings; public debate may continue.",
-        "disputed": "Official accounts exist and remain publicly disputed on key points.",
-        "unknown": "Investigative posture not clearly established from cited sources.",
+        "open": "Investigation reported as open / ongoing.",
+        "closed": "Matter reported closed or resolved with official findings in cited sources.",
+        "dropped": "Investigation or prosecution reported dropped / abandoned without a closed resolution.",
     }
-    legal_note = status_evidence or note_map.get(status, note_map["unknown"])
+    legal_note = status_evidence or note_map.get(status, note_map["open"])
 
     return {
         "year": year,
@@ -386,5 +487,6 @@ def normalize_metadata(
         "country": country,
         "investigativeStatus": status,
         "statusEvidence": status_evidence,
+        "eventType": event_type,
         "legalStatusNote": legal_note[:500],
     }

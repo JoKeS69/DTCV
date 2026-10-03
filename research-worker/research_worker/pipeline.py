@@ -280,7 +280,9 @@ def run_claimed_research(
                                 "Near-paraphrases count as the same claim (e.g. 'killed by a "
                                 "car bomb' vs 'killed in a car bomb explosion'). "
                                 "One person once (fold Rafik/Rafic spelling). "
-                                "Fill metadata (year, city/region/country, investigativeStatus). "
+                                "Fill metadata (year, city/region/country, "
+                                "investigativeStatus=open|closed|dropped, "
+                                "eventType — use assassination for Hariri/JFK-style). "
                                 "Classify people roles (victim/subject/witness/...). "
                                 "Never copy prompt/UI instructions into claim text. "
                                 "Prefer primary sources about THIS case only. "
@@ -455,6 +457,7 @@ def run_claimed_research(
                 "dedupedPeople": len(verified_people),
                 "topicTokens": sorted(topic_tokens),
                 "investigativeStatus": metadata.get("investigativeStatus"),
+                "eventType": metadata.get("eventType"),
             },
             "note": (
                 "Draft from research agent — pending admin review. Not published."

@@ -512,6 +512,60 @@ def list_case_review_context(
     return {"claims": claims, "people": people}
 
 
+def merge_research_labels(
+    existing: list[str] | None,
+    *,
+    investigative_status: str,
+    event_type: str,
+) -> list[str]:
+    """
+    Keep non-status/type labels; ensure status + eventType tokens are present
+    so publish sync can map OPEN/CLOSED and ASSASSINATION.
+    """
+    drop_keys = {
+        "open",
+        "closed",
+        "dropped",
+        "unsolved",
+        "unresolved",
+        "unknown",
+        "official_finding",
+        "disputed",
+        "cold",
+        "cold_case",
+        "assassination",
+        "homicide",
+        "terrorist",
+        "kidnapping",
+        "disappearance",
+        "missing",
+        "status_open",
+        "status_closed",
+        "status_dropped",
+        "type_assassination",
+        "event_assassination",
+    }
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in existing or []:
+        label = str(raw or "").strip()
+        if not label:
+            continue
+        key = label.lower().replace("-", "_").replace(" ", "_")
+        if key in drop_keys or key.startswith("status_") or key.startswith("type_"):
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(label)
+    for token in (investigative_status, event_type):
+        t = str(token or "").strip().lower()
+        if t and t not in seen and t != "other":
+            seen.add(t)
+            out.append(t)
+    return out[:40]
+
+
 def _cuid_like() -> str:
     return f"c{secrets.token_hex(12)}"
 
@@ -742,7 +796,7 @@ def complete_run_success(
         # Only overwrite empty/weak case fields when metadata is present
         cur.execute(
             """
-            SELECT eventDateText, location, legalStatusNote, title
+            SELECT eventDateText, location, legalStatusNote, title, labels
             FROM cases WHERE id = ?
             """,
             (case_id,),
@@ -752,6 +806,20 @@ def complete_run_success(
         existing_loc = row["location"] if row else None
         existing_note = row["legalStatusNote"] if row else None
         title = row["title"] if row else ""
+        existing_labels = _loads_json(row["labels"]) if row else []
+        if not isinstance(existing_labels, list):
+            existing_labels = []
+
+        meta = {}
+        if isinstance(draft_content, dict):
+            meta = draft_content.get("metadata") or {}
+        status_token = str(meta.get("investigativeStatus") or "open")
+        event_token = str(meta.get("eventType") or "other")
+        merged_labels = merge_research_labels(
+            [str(x) for x in existing_labels if x is not None],
+            investigative_status=status_token,
+            event_type=event_token,
+        )
 
         new_date = event_date_text or existing_date
         new_loc = location or existing_loc
@@ -770,6 +838,7 @@ def complete_run_success(
                 eventDateText = ?,
                 location = ?,
                 legalStatusNote = ?,
+                labels = ?,
                 lastReviewedAt = NULL,
                 updatedAt = ?
             WHERE id = ?
@@ -781,6 +850,7 @@ def complete_run_success(
                 new_date,
                 new_loc,
                 new_note,
+                _json(merged_labels),
                 now,
                 case_id,
             ),

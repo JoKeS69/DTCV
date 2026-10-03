@@ -30,11 +30,18 @@ PersonRole = Literal[
 
 InvestigativeStatus = Literal[
     "open",
-    "unsolved",
     "closed",
-    "official_finding",
-    "disputed",
-    "unknown",
+    "dropped",
+]
+
+EventType = Literal[
+    "assassination",
+    "homicide",
+    "terrorist",
+    "kidnapping",
+    "disappearance",
+    "missing",
+    "other",
 ]
 
 
@@ -75,8 +82,9 @@ class CaseMetadataOut(BaseModel):
     region: str | None = Field(default=None, max_length=80)
     country: str | None = Field(default=None, max_length=80)
     location: str | None = Field(default=None, max_length=160)
-    investigativeStatus: InvestigativeStatus = "unknown"
+    investigativeStatus: InvestigativeStatus = "open"
     statusEvidence: str | None = Field(default=None, max_length=400)
+    eventType: EventType = "other"
 
 
 class ExtractResult(BaseModel):
@@ -138,14 +146,23 @@ _METADATA_SCHEMA: dict[str, Any] = {
             "type": "string",
             "enum": [
                 "open",
-                "unsolved",
                 "closed",
-                "official_finding",
-                "disputed",
-                "unknown",
+                "dropped",
             ],
         },
         "statusEvidence": {"type": ["string", "null"]},
+        "eventType": {
+            "type": "string",
+            "enum": [
+                "assassination",
+                "homicide",
+                "terrorist",
+                "kidnapping",
+                "disappearance",
+                "missing",
+                "other",
+            ],
+        },
     },
     "required": [
         "year",
@@ -156,6 +173,7 @@ _METADATA_SCHEMA: dict[str, Any] = {
         "location",
         "investigativeStatus",
         "statusEvidence",
+        "eventType",
     ],
 }
 
@@ -260,9 +278,13 @@ Rules:
 - People.role MUST be one of: victim | subject | witness | investigator | official | other.
   Example: John F. Kennedy in his assassination case → role=victim, legalStatus=deceased.
   Example: hijackers / organizers / alleged perpetrators (e.g. Mohammed Atta, Osama bin Laden in a 9/11 case) → role=subject — NEVER victim, even if deceased.
-- Fill metadata accurately from sources: year, eventDateText, city/region/country, location, investigativeStatus.
-  investigativeStatus values: open | unsolved | closed | official_finding | disputed | unknown.
-  Do NOT default historical cases to unsolved. If an official investigation issued findings, use official_finding (or disputed if key findings remain contested). Use unknown when unclear.
+- Fill metadata accurately from sources: year, eventDateText, city/region/country, location, investigativeStatus, eventType.
+  investigativeStatus MUST be exactly one of: open | closed | dropped.
+  - open = investigation ongoing / active / unresolved with active inquiry
+  - closed = official findings issued, prosecution concluded, or matter formally closed (e.g. Warren Commission; STL judgments)
+  - dropped = inquiry abandoned / charges dropped / no longer pursued without a closed resolution
+  NEVER use unsolved, unknown, official_finding, or disputed as status values — map those into open/closed/dropped and explain in statusEvidence.
+  eventType: assassination when the event is a targeted killing of a public/political figure (Hariri, JFK, etc.); else homicide / terrorist / kidnapping / disappearance / missing / other.
 - NEVER copy system/prompt/UI instructions into summary, claims, people, or sources (e.g. do not write "Disputed claims must appear in a clearly labeled Disputed section").
 - Prefer primary/official sources: government, court, archive, commission reports, wire services.
 - REJECT off-topic sources from a different case/event. Spell "assassination" correctly.
@@ -273,7 +295,9 @@ Rules:
 
 VERIFY_SYSTEM_PROMPT = """You verify research extracts for DETECTIVE / CASE//NET.
 Rules:
-- Correct metadata (year, location city/region/country, investigativeStatus) using on-topic sources. Never invent unsolved.
+- Correct metadata (year, location city/region/country, investigativeStatus, eventType) using on-topic sources.
+  investigativeStatus must be open | closed | dropped only — never unsolved/unknown.
+  eventType=assassination for Hariri/JFK-style targeted political killings.
 - Drop any claim/person/source text that looks like pipeline instructions or UI chrome.
 - Classify people correctly: victims of the event vs subjects (attackers/organizers/accused).
 - Victims/deceased of the event (e.g. JFK): legalStatus=deceased, role=victim — not "other".

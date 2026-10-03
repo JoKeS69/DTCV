@@ -115,7 +115,7 @@ def test_normalize_people_sets_victim_deceased():
     assert out_jfk[0]["role"] == "victim"
     assert "innocent" not in out_jfk[0]["presumptionNote"].lower()
 
-def test_metadata_rejects_title_as_location_and_bare_unsolved():
+def test_metadata_maps_vague_status_to_open_closed_dropped():
     meta = normalize_metadata(
         {
             "year": "1963",
@@ -126,6 +126,7 @@ def test_metadata_rejects_title_as_location_and_bare_unsolved():
             "country": "United States",
             "investigativeStatus": "unsolved",
             "statusEvidence": "",
+            "eventType": "other",
         },
         title="Assassination of John F. Kennedy",
         existing_event_date=None,
@@ -133,13 +134,15 @@ def test_metadata_rejects_title_as_location_and_bare_unsolved():
     )
     assert meta["year"] == "1963"
     assert meta["location"] and "Dallas" in meta["location"]
-    assert meta["investigativeStatus"] == "unknown"  # no evidence for unsolved
+    # Assassination title without ongoing cue → closed (not unknown/unsolved)
+    assert meta["investigativeStatus"] == "closed"
+    assert meta["eventType"] == "assassination"
     assert looks_like_title_as_location(
         "Assassination of John F. Kennedy", "Assassination of John F. Kennedy"
     )
 
 
-def test_official_finding_status_preserved_with_evidence():
+def test_official_finding_status_maps_to_closed():
     meta = normalize_metadata(
         {
             "year": "1963",
@@ -148,10 +151,43 @@ def test_official_finding_status_preserved_with_evidence():
             "country": "United States",
             "investigativeStatus": "official_finding",
             "statusEvidence": "Warren Commission issued official findings in 1964.",
+            "eventType": "assassination",
         },
         title="Assassination of John F. Kennedy",
         existing_event_date="1963",
         existing_location=None,
     )
-    assert meta["investigativeStatus"] == "official_finding"
+    assert meta["investigativeStatus"] == "closed"
+    assert meta["eventType"] == "assassination"
     assert "Warren" in meta["legalStatusNote"]
+
+
+def test_dropped_status_from_evidence():
+    meta = normalize_metadata(
+        {
+            "year": "1995",
+            "investigativeStatus": "open",
+            "statusEvidence": "Prosecutors dropped the inquiry in 2001.",
+            "eventType": "homicide",
+        },
+        title="Example homicide",
+        existing_event_date=None,
+        existing_location=None,
+    )
+    assert meta["investigativeStatus"] == "dropped"
+
+
+def test_hariri_event_type_assassination():
+    meta = normalize_metadata(
+        {
+            "year": "2005",
+            "investigativeStatus": "unknown",
+            "statusEvidence": "STL Special Tribunal issued judgments.",
+            "eventType": "other",
+        },
+        title="Assassination of Rafik Hariri",
+        existing_event_date="14 February 2005",
+        existing_location="Beirut",
+    )
+    assert meta["eventType"] == "assassination"
+    assert meta["investigativeStatus"] == "closed"

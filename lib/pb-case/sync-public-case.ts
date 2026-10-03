@@ -233,6 +233,7 @@ export function mapResearchCaseStatus(input: {
   legalStatusNote?: string | null;
   summary?: string | null;
   title?: string | null;
+  investigativeStatus?: string | null;
   people?: { legalStatus: string; role: string }[];
 }): CaseStatus {
   const labels = (input.labels ?? []).map((l) =>
@@ -258,6 +259,17 @@ export function mapResearchCaseStatus(input: {
           (key.includes("_") && l === key),
       );
     });
+
+  // Canonical research worker statuses win (open | closed | dropped).
+  const canon = (input.investigativeStatus || "")
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  if (canon === "closed" || hasLabel("closed")) return "CLOSED";
+  if (canon === "dropped" || hasLabel("dropped", "abandoned")) {
+    // Public enum has no DROPPED — treat as closed-out inquiry without resolution.
+    return "UNSOLVED";
+  }
+  if (canon === "open" || hasLabel("open", "active", "ongoing")) return "OPEN";
 
   // Explicit label wins (check unsolved before solved).
   if (hasLabel("unsolved", "unresolved")) return "UNSOLVED";
@@ -294,12 +306,21 @@ export function mapResearchCaseStatus(input: {
   return "UNSOLVED";
 }
 
-/** Infer CaseType from title/summary/labels (research has no typed field). */
+/** Infer CaseType from title/summary/labels (research eventType drives ASSASSINATION). */
 export function mapResearchCaseType(input: {
   title?: string | null;
   summary?: string | null;
   labels?: string[] | null;
+  eventType?: string | null;
 }): CaseType {
+  const eventType = (input.eventType || "").toLowerCase().trim();
+  if (eventType === "assassination") return "ASSASSINATION";
+  if (eventType === "terrorist") return "TERRORIST";
+  if (eventType === "kidnapping") return "KIDNAPPING";
+  if (eventType === "disappearance") return "DISAPPEARANCE";
+  if (eventType === "missing") return "MISSING";
+  if (eventType === "homicide") return "HOMICIDE";
+
   const blob = [
     ...(input.labels ?? []),
     input.title,
@@ -309,8 +330,11 @@ export function mapResearchCaseType(input: {
     .join(" ")
     .toLowerCase();
 
+  if (/\bassassinat/.test(blob) || /\bassassination\b/.test(blob)) {
+    return "ASSASSINATION";
+  }
   if (
-    /\b(homicide|murder|assassinat|killed|killing|shooting death|fatal shooting)\b/.test(
+    /\b(homicide|murder|killed|killing|shooting death|fatal shooting)\b/.test(
       blob,
     )
   ) {
@@ -547,6 +571,31 @@ export async function syncResearchCaseToPublic(
       (c.disputed || c.status === "disputed") && !isInstructionLeak(c.text),
   );
   const labels = asStringArray(caseFile.labels);
+  const draftMeta = (() => {
+    const raw = caseFile.draftContent;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const meta = (raw as { metadata?: Record<string, unknown> }).metadata;
+    return meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
+  })();
+  const investigativeStatus =
+    typeof draftMeta.investigativeStatus === "string"
+      ? draftMeta.investigativeStatus
+      : labels.find((l) =>
+          ["open", "closed", "dropped"].includes(l.toLowerCase()),
+        ) ?? null;
+  const eventType =
+    typeof draftMeta.eventType === "string"
+      ? draftMeta.eventType
+      : labels.find((l) =>
+          [
+            "assassination",
+            "homicide",
+            "terrorist",
+            "kidnapping",
+            "disappearance",
+            "missing",
+          ].includes(l.toLowerCase()),
+        ) ?? null;
   const now = new Date();
   const prisma = getPrisma();
 
@@ -579,12 +628,14 @@ export async function syncResearchCaseToPublic(
     title: caseFile.title,
     summary: caseFile.summary,
     labels,
+    eventType,
   });
   const status = mapResearchCaseStatus({
     labels,
     legalStatusNote: caseFile.legalStatusNote,
     summary: caseFile.summary,
     title: caseFile.title,
+    investigativeStatus,
     people: caseFile.people.map((p) => ({
       legalStatus: p.legalStatus,
       role: p.role,
