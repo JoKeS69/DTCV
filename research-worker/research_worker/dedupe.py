@@ -191,6 +191,8 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "legalStatus": str(raw.get("legalStatus") or "other"),
             "sources": _merge_url_lists(raw.get("sources")),
         }
+        if "presumptionNote" in raw:
+            entry["presumptionNote"] = raw.get("presumptionNote")
         if key not in by_name:
             by_name[key] = entry
             order.append(key)
@@ -202,7 +204,7 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if len(existing["name"]) >= len(entry["name"])
             else entry["name"]
         )
-        by_name[key] = {
+        merged = {
             "name": prefer_name,
             "role": _merge_roles(existing.get("role") or "", entry.get("role") or ""),
             "legalStatus": _prefer_legal(
@@ -213,6 +215,11 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 existing.get("sources"), entry.get("sources")
             ),
         }
+        # Keep a non-empty presumption note if present
+        note = existing.get("presumptionNote") or entry.get("presumptionNote")
+        if note is not None:
+            merged["presumptionNote"] = note
+        by_name[key] = merged
     return [by_name[k] for k in order][:25]
 
 

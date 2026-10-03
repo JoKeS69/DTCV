@@ -23,6 +23,16 @@ def test_extract_schema_ok():
         """
         {
           "summary": "Paraphrased summary",
+          "metadata": {
+            "year": "2001",
+            "eventDateText": "11 September 2001",
+            "city": "New York",
+            "region": "New York",
+            "country": "United States",
+            "location": "New York, United States",
+            "investigativeStatus": "official_finding",
+            "statusEvidence": "Multiple official investigations published findings."
+          },
           "claims": [
             {
               "text": "A court filing reported charges.",
@@ -40,6 +50,7 @@ def test_extract_schema_ok():
     )
     assert "Paraphrased" in parsed.summary
     assert len(parsed.claims) == 1
+    assert parsed.metadata.year == "2001"
 
 
 def test_extract_schema_rejects_malformed():
@@ -54,6 +65,16 @@ def test_verify_schema_requires_notes():
     raw = """
     {
       "summary": "s",
+      "metadata": {
+        "year": null,
+        "eventDateText": null,
+        "city": null,
+        "region": null,
+        "country": null,
+        "location": null,
+        "investigativeStatus": "unknown",
+        "statusEvidence": null
+      },
       "claims": [],
       "people": [],
       "sources": [],

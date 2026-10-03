@@ -201,8 +201,9 @@ class ResearchSearchClient:
             base,
             f"{title} official report OR commission OR investigation",
             f"{title} site:fbi.gov OR site:justice.gov OR site:archives.gov OR site:nist.gov",
-            f"{title} timeline OR chronology facts",
-            f"{title} court OR indictment OR charges",
+            f"{title} where OR location OR city",
+            f"{title} timeline OR chronology {event_date_text or ''}".strip(),
+            f"{title} court OR indictment OR commission report",
         ]
         # Deduplicate while preserving order
         seen: set[str] = set()

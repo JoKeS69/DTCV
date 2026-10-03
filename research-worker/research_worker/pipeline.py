@@ -21,6 +21,13 @@ from research_worker.dedupe import (
     filter_sources_for_case,
     source_relevant_to_case,
 )
+from research_worker.quality import (
+    filter_instruction_leaks,
+    fix_spelling,
+    is_instruction_leak,
+    normalize_metadata,
+    normalize_people,
+)
 from research_worker.fetch import (
     fetch_allowlisted_page,
     is_url_allowlisted,
@@ -228,9 +235,11 @@ def run_claimed_research(
                                 for p in pages
                             ],
                             "instruction": (
-                                "Extract paraphrased UNIQUE claims/people/sources as JSON. "
-                                "Prefer primary/official sources about THIS case only. "
-                                "Deduplicate aggressively. Never attach unrelated-case sources."
+                                "Extract UNIQUE on-topic claims/people/sources as JSON. "
+                                "Fill metadata (year, city/region/country, investigativeStatus). "
+                                "Classify people roles (victim/subject/witness/...). "
+                                "Never copy prompt/UI instructions into claim text. "
+                                "Prefer primary sources about THIS case only."
                             ),
                         }
                     ),
@@ -289,14 +298,30 @@ def run_claimed_research(
         verified_claims = [
             c.model_dump()
             for c in verify_value.claims
-            if not any(f.severity == "error" for f in lint_case_wording(c.text))
+            if not is_instruction_leak(c.text)
+            and not any(f.severity == "error" for f in lint_case_wording(c.text))
         ]
         verified_sources = [
             s.model_dump()
             for s in verify_value.sources
-            if is_url_allowlisted(s.url)
+            if is_url_allowlisted(s.url) and not is_instruction_leak(s.title or "")
         ]
         verified_people = [p.model_dump() for p in verify_value.people]
+
+        meta_raw = {}
+        try:
+            meta_raw = verify_value.metadata.model_dump()
+        except Exception:  # noqa: BLE001
+            try:
+                meta_raw = extract_value.metadata.model_dump()
+            except Exception:  # noqa: BLE001
+                meta_raw = {}
+        metadata = normalize_metadata(
+            meta_raw,
+            title=title,
+            existing_event_date=event_date or None,
+            existing_location=location or None,
+        )
 
         _push(steps, "corroborate")
         steps_used += 1
@@ -309,13 +334,12 @@ def run_claimed_research(
         corroborated = []
         for c in verified_claims:
             data = dict(c)
-            # Tighten: prefer claim sources that appear in case-level on-topic sources
+            data["text"] = fix_spelling(str(data.get("text") or ""))
             srcs = []
             for u in data.get("sources") or []:
                 url = u if isinstance(u, str) else str(u)
                 key = url.rstrip("/").lower()
                 if allowed_source_urls and key not in allowed_source_urls:
-                    # keep only if still on-topic
                     if not source_relevant_to_case(
                         url=url,
                         title=None,
@@ -329,34 +353,48 @@ def run_claimed_research(
                 continue
             if data.get("confidence") is None:
                 data["confidence"] = min(1.0, len(srcs) / 2.0)
-            # Higher bar: single weak source → lower confidence
             if len(srcs) < 2 and (data.get("confidence") or 0) > 0.55:
                 data["confidence"] = 0.55
             corroborated.append(data)
 
+        corroborated = filter_instruction_leaks(corroborated)
         corroborated = filter_claim_sources_to_topic(
             corroborated, topic_tokens=topic_tokens
         )
         before_claims = len(corroborated)
         corroborated = dedupe_claims(corroborated)
+        verified_people = normalize_people(verified_people)
         before_people = len(verified_people)
         verified_people = dedupe_people(verified_people)
+        # Re-normalize roles after merge
+        verified_people = normalize_people(verified_people)
         _push(
             steps,
             "dedupe",
             (
                 f"claims {before_claims}->{len(corroborated)}; "
                 f"people {before_people}->{len(verified_people)}; "
-                f"sources={len(verified_sources)}"
+                f"sources={len(verified_sources)}; "
+                f"status={metadata.get('investigativeStatus')}; "
+                f"year={metadata.get('year')}; loc={metadata.get('location')}"
             ),
         )
 
+        summary = fix_spelling(
+            verify_value.summary
+            or extract_value.summary
+            or (claimed.get("summary") or "")
+        )
+        if is_instruction_leak(summary):
+            summary = claimed.get("summary") or title
+
         _push(steps, "assemble")
         draft_content = {
-            "summary": verify_value.summary or extract_value.summary,
+            "summary": summary,
             "assembledAt": datetime.now(timezone.utc).isoformat(),
             "pageCount": len(pages),
             "verifyNotes": verify_value.notes,
+            "metadata": metadata,
             "tokenUsage": {
                 "promptTokens": token_usage.prompt_tokens,
                 "completionTokens": token_usage.completion_tokens,
@@ -366,17 +404,13 @@ def run_claimed_research(
                 "dedupedClaims": len(corroborated),
                 "dedupedPeople": len(verified_people),
                 "topicTokens": sorted(topic_tokens),
+                "investigativeStatus": metadata.get("investigativeStatus"),
             },
             "note": (
                 "Draft from research agent — pending admin review. Not published."
             ),
             "worker": "python-research-worker",
         }
-        summary = (
-            verify_value.summary
-            or extract_value.summary
-            or (claimed.get("summary") or "")
-        )
 
         cases_db.complete_run_success(
             conn,
@@ -395,6 +429,9 @@ def run_claimed_research(
             prompt_tokens=token_usage.prompt_tokens,
             completion_tokens=token_usage.completion_tokens,
             total_tokens=token_usage.total_tokens,
+            event_date_text=metadata.get("eventDateText"),
+            location=metadata.get("location"),
+            legal_status_note=metadata.get("legalStatusNote"),
             plan={
                 "title": title,
                 "actor": actor,
@@ -402,7 +439,8 @@ def run_claimed_research(
                 "hitCount": len(hits),
                 "models": {"extract": extract_model, "verify": verify_model},
                 "worker": "python-research-worker",
-                "quality": "dedupe+topic-filter",
+                "quality": "dedupe+topic-filter+metadata",
+                "metadata": metadata,
             },
         )
         return "completed"
