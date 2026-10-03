@@ -46,6 +46,8 @@ def normalize_person_name(name: str) -> str:
     n = n.lower()
     n = _PUNCT_RE.sub(" ", n)
     n = _SPACE_RE.sub(" ", n).strip()
+    # Common transliteration fold (Rafic/Rafik, etc.)
+    n = n.replace("rafic", "rafik")
     return n
 
 
@@ -68,6 +70,37 @@ def claim_similarity(a: str, b: str) -> float:
         return seq
     jaccard = len(ta & tb) / len(ta | tb)
     return max(seq, jaccard)
+
+
+def person_name_similarity(a: str, b: str) -> float:
+    na, nb = normalize_person_name(a), normalize_person_name(b)
+    if not na or not nb:
+        return 0.0
+    if na == nb:
+        return 1.0
+    return claim_similarity(na, nb)
+
+
+def find_matching_person_key(
+    name: str,
+    existing_keys: list[str],
+    *,
+    threshold: float = 0.88,
+) -> str | None:
+    """Match Rafik/Rafic-style near-identical names onto one key."""
+    needle = normalize_person_name(name)
+    if not needle:
+        return None
+    if needle in existing_keys:
+        return needle
+    best_key = None
+    best = 0.0
+    for key in existing_keys:
+        sim = person_name_similarity(needle, key)
+        if sim >= threshold and sim > best:
+            best = sim
+            best_key = key
+    return best_key
 
 
 def _merge_url_lists(*lists: list[Any] | None) -> list[str]:
@@ -185,6 +218,10 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
         key = normalize_person_name(name)
         if not key:
             continue
+        # Soft-match transliterations onto an existing key
+        matched = find_matching_person_key(name, list(by_name.keys()))
+        if matched:
+            key = matched
         entry = {
             "name": name,
             "role": str(raw.get("role") or "other"),
@@ -198,7 +235,6 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
             order.append(key)
             continue
         existing = by_name[key]
-        # Prefer display name with more words / title case length
         prefer_name = (
             existing["name"]
             if len(existing["name"]) >= len(entry["name"])
@@ -215,7 +251,6 @@ def dedupe_people(people: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 existing.get("sources"), entry.get("sources")
             ),
         }
-        # Keep a non-empty presumption note if present
         note = existing.get("presumptionNote") or entry.get("presumptionNote")
         if note is not None:
             merged["presumptionNote"] = note

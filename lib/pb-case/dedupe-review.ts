@@ -10,7 +10,9 @@ export function normalizePersonName(name: string): string {
     .toLowerCase()
     .replace(/[^\w\s]/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    // Common transliteration fold (Rafic/Rafik)
+    .replace(/\brafic\b/g, "rafik");
 }
 
 export function normalizeClaimText(text: string): string {
@@ -37,7 +39,12 @@ export function claimSimilarity(a: string, b: string): number {
   // Cheap length ratio as stand-in for sequence match
   const lenRatio =
     Math.min(na.length, nb.length) / Math.max(na.length, nb.length);
-  return Math.max(jaccard, lenRatio * jaccard);
+  // Boost near-paraphrases that share most content words (Hariri car-bomb twins)
+  const coverage =
+    inter / Math.min(ta.size, tb.size);
+  const paraphrased =
+    coverage >= 0.85 && lenRatio >= 0.75 ? Math.max(jaccard, 0.86) : jaccard;
+  return Math.max(paraphrased, lenRatio * jaccard);
 }
 
 const CLAIM_STATUS_RANK: Record<string, number> = {

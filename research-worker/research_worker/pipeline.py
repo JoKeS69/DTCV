@@ -159,28 +159,27 @@ def run_claimed_research(
         _push(steps, "search_ok", f"hits={len(hits)} on_topic")
 
         pages: list[dict[str, str]] = []
-        for hit in hits:
+        fetched_urls: set[str] = set()
+
+        def _try_fetch(url: str, label: str) -> None:
+            nonlocal pages_fetched, steps_used, cost_units
             if pages_fetched >= limits.max_pages or steps_used >= limits.max_steps:
-                break
+                return
             if cost_units >= limits.max_cost:
-                break
-            if not is_url_allowlisted(hit.url):
-                _push(steps, "skip_url", "not_allowlisted", hit.url)
-                continue
-            if not source_relevant_to_case(
-                url=hit.url,
-                title=hit.title,
-                snippet=hit.snippet,
-                topic_tokens=topic_tokens,
-            ):
-                _push(steps, "skip_url", "off_topic", hit.url)
-                continue
-            _push(steps, "fetch", hit.title, hit.url)
-            fetched = fetch_allowlisted_page(hit.url)
+                return
+            key = url.rstrip("/").lower()
+            if key in fetched_urls:
+                return
+            if not is_url_allowlisted(url):
+                _push(steps, "skip_url", "not_allowlisted", url)
+                return
+            _push(steps, "fetch", label, url)
+            fetched = fetch_allowlisted_page(url)
             steps_used += 1
+            fetched_urls.add(key)
             if not fetched.get("ok"):
-                _push(steps, "fetch_fail", str(fetched.get("reason")), hit.url)
-                continue
+                _push(steps, "fetch_fail", str(fetched.get("reason")), url)
+                return
             pages_fetched += 1
             cost_units += 0.02
             pages.append(
@@ -207,9 +206,46 @@ def run_claimed_research(
                 total_tokens=token_usage.total_tokens,
             )
 
+        for hit in hits:
+            if not source_relevant_to_case(
+                url=hit.url,
+                title=hit.title,
+                snippet=hit.snippet,
+                topic_tokens=topic_tokens,
+            ):
+                _push(steps, "skip_url", "off_topic", hit.url)
+                continue
+            _try_fetch(hit.url, hit.title)
+
+        # If discovery returned hits but every fetch failed (or topic filter wiped
+        # them), force Wikipedia title seeds so one run still gathers real text.
+        if not pages:
+            from research_worker.search import wikipedia_seed_hits
+
+            _push(steps, "seed_retry", "pages=0; forcing Wikipedia title seeds")
+            for seed in wikipedia_seed_hits(title):
+                _try_fetch(seed.url, f"seed:{seed.title}")
+                if pages:
+                    break
+
+        if not pages:
+            raise RuntimeError(
+                "pages=0: discovery/fetch gathered no allowlisted pages for this case. "
+                "Refusing to invent claims/people without sources."
+            )
+
         _push(steps, "social", "skipped_no_official_api")
 
-        _push(steps, "extract", f"pages={len(pages)}")
+        existing_ctx = cases_db.list_case_review_context(conn, case_id)
+        _push(
+            steps,
+            "extract",
+            (
+                f"pages={len(pages)}; "
+                f"existing_claims={len(existing_ctx['claims'])}; "
+                f"existing_people={len(existing_ctx['people'])}"
+            ),
+        )
         steps_used += 1
         import json
 
@@ -230,16 +266,25 @@ def run_claimed_research(
                             "caseTitle": title,
                             "eventDateText": event_date or None,
                             "location": location or None,
+                            "existingClaims": existing_ctx["claims"][:25],
+                            "existingPeople": existing_ctx["people"][:25],
                             "pages": [
                                 {"url": p["url"], "text": p["text"][:6000]}
                                 for p in pages
                             ],
                             "instruction": (
+                                "Produce ONE consolidated draft for this case in a single pass. "
                                 "Extract UNIQUE on-topic claims/people/sources as JSON. "
+                                "Do NOT restate facts already listed in existingClaims/"
+                                "existingPeople — merge/update those instead of duplicating. "
+                                "Near-paraphrases count as the same claim (e.g. 'killed by a "
+                                "car bomb' vs 'killed in a car bomb explosion'). "
+                                "One person once (fold Rafik/Rafic spelling). "
                                 "Fill metadata (year, city/region/country, investigativeStatus). "
                                 "Classify people roles (victim/subject/witness/...). "
                                 "Never copy prompt/UI instructions into claim text. "
-                                "Prefer primary sources about THIS case only."
+                                "Prefer primary sources about THIS case only. "
+                                "Only use facts grounded in the fetched pages."
                             ),
                         }
                     ),
@@ -276,10 +321,15 @@ def run_claimed_research(
                             "location": location or None,
                             "topicTokens": sorted(topic_tokens),
                             "extract": extract_value.model_dump(),
+                            "existingClaims": existing_ctx["claims"][:25],
+                            "existingPeople": existing_ctx["people"][:25],
                             "allowlistedHostsHint": (
                                 "Keep only https sources that are official/reputable AND "
                                 "about this case. Drop off-topic pages (wrong event). "
-                                "Merge duplicate claims/people. One statement → one claim."
+                                "Merge duplicate claims/people with existingClaims/"
+                                "existingPeople. One statement → one claim. "
+                                "One person → one row (Rafik ≡ Rafic). "
+                                "Do not invent when pages already cover the fact."
                             ),
                         }
                     ),
@@ -439,8 +489,9 @@ def run_claimed_research(
                 "hitCount": len(hits),
                 "models": {"extract": extract_model, "verify": verify_model},
                 "worker": "python-research-worker",
-                "quality": "dedupe+topic-filter+metadata",
+                "quality": "dedupe+topic-filter+metadata+single-pass+idempotent",
                 "metadata": metadata,
+                "pagesFetched": pages_fetched,
             },
         )
         return "completed"

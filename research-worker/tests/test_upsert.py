@@ -138,3 +138,68 @@ def test_upsert_claims_merges_near_duplicates_keep_approved():
     rows = list(cur.execute("SELECT status, text FROM claims WHERE caseId=?", (case_id,)))
     assert len(rows) == 1
     assert rows[0]["status"] == "approved"
+
+
+def test_upsert_people_merges_rafik_rafic():
+    conn = _mem()
+    cur = conn.cursor()
+    case_id = "hariri"
+    now = "2026-01-01T00:00:00+00:00"
+    cur.execute(
+        """
+        INSERT INTO people (id, caseId, name, role, legalStatus, sources, status,
+          presumptionNote, createdAt, updatedAt)
+        VALUES ('p1',?,?, 'victim','deceased','[]','pending','',?,?)
+        """,
+        (case_id, "Rafik Hariri", now, now),
+    )
+    conn.commit()
+
+    stats = _upsert_people(
+        cur,
+        case_id=case_id,
+        people=[
+            {
+                "name": "Rafic Hariri",
+                "role": "victim",
+                "legalStatus": "deceased",
+                "sources": ["https://en.wikipedia.org/wiki/Rafic_Hariri"],
+            }
+        ],
+        now=now,
+    )
+    conn.commit()
+    rows = list(cur.execute("SELECT name, status FROM people WHERE caseId=?", (case_id,)))
+    assert len(rows) == 1
+    assert stats["updated"] >= 1 or stats["collapsed"] >= 1
+
+
+def test_upsert_claims_merges_hariri_car_bomb_twins():
+    conn = _mem()
+    cur = conn.cursor()
+    case_id = "hariri"
+    now = "2026-01-01T00:00:00+00:00"
+    a = "Rafik Hariri was killed by a car bomb in Beirut on February 14, 2005"
+    b = (
+        "Rafik Hariri was killed in a car bomb explosion in Beirut "
+        "on February 14, 2005"
+    )
+    cur.execute(
+        """
+        INSERT INTO claims (id, caseId, text, disputed, confidence, sources, status,
+          showOnPublish, createdAt, updatedAt)
+        VALUES ('c1',?,?,0,0.5,'[]','pending',1,?,?)
+        """,
+        (case_id, a, now, now),
+    )
+    conn.commit()
+    stats = _upsert_claims(
+        cur,
+        case_id=case_id,
+        claims=[{"text": b, "disputed": False, "sources": ["https://u"], "confidence": 0.9}],
+        now=now,
+    )
+    conn.commit()
+    rows = list(cur.execute("SELECT text FROM claims WHERE caseId=?", (case_id,)))
+    assert len(rows) == 1
+    assert stats["updated"] >= 1

@@ -19,6 +19,7 @@ from typing import Any, Iterator
 from research_worker.config import Settings, get_settings
 from research_worker.dedupe import (
     claim_similarity,
+    find_matching_person_key,
     normalize_person_name,
     _merge_url_lists,
     _prefer_legal,
@@ -258,7 +259,9 @@ def _upsert_people(
         key = normalize_person_name(str(row.get("name") or ""))
         if not key:
             continue
-        # If multiple already exist, keep highest status for matching
+        matched = find_matching_person_key(str(row.get("name") or ""), list(by_key.keys()))
+        if matched:
+            key = matched
         prev = by_key.get(key)
         if prev is None or _PERSON_STATUS_RANK.get(
             str(row.get("status")), 0
@@ -274,6 +277,9 @@ def _upsert_people(
         key = normalize_person_name(name)
         if not key:
             continue
+        soft = find_matching_person_key(name, list(by_key.keys()))
+        if soft:
+            key = soft
         presumption = person.get("presumptionNote")
         if presumption is None:
             role = str(person.get("role") or "other").lower()
@@ -393,6 +399,7 @@ def _upsert_people(
         updated += 1
 
     # Collapse leftover same-name rows (rejected + pending twins etc.)
+    # Soft-match so Rafik/Rafic (and similar) collapse onto one survivor.
     cur.execute(
         "SELECT id, name, role, legalStatus, sources, status FROM people WHERE caseId = ?",
         (case_id,),
@@ -400,9 +407,13 @@ def _upsert_people(
     rows = [dict(r) for r in cur.fetchall()]
     survivors: dict[str, dict[str, Any]] = {}
     for row in rows:
-        key = normalize_person_name(str(row.get("name") or ""))
+        name = str(row.get("name") or "")
+        key = normalize_person_name(name)
         if not key:
             continue
+        soft = find_matching_person_key(name, list(survivors.keys()))
+        if soft:
+            key = soft
         if key not in survivors:
             survivors[key] = row
             continue
@@ -452,6 +463,54 @@ def _upsert_people(
         collapsed += 1
 
     return {"inserted": inserted, "updated": updated, "collapsed": collapsed}
+
+
+def list_case_review_context(
+    conn: sqlite3.Connection, case_id: str, *, limit: int = 40
+) -> dict[str, list[dict[str, Any]]]:
+    """
+    Existing claims/people for extract prompts — so one run can merge instead of
+    re-inventing near-duplicates already on the case.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT text, disputed, status, confidence
+        FROM claims WHERE caseId = ?
+        ORDER BY createdAt ASC
+        LIMIT ?
+        """,
+        (case_id, limit),
+    )
+    claims = [
+        {
+            "text": str(r["text"] or ""),
+            "disputed": bool(r["disputed"]),
+            "status": str(r["status"] or "pending"),
+            "confidence": r["confidence"],
+        }
+        for r in cur.fetchall()
+    ]
+    cur.execute(
+        """
+        SELECT name, role, legalStatus, status
+        FROM people WHERE caseId = ?
+        ORDER BY createdAt ASC
+        LIMIT ?
+        """,
+        (case_id, limit),
+    )
+    people = [
+        {
+            "name": str(r["name"] or ""),
+            "role": str(r["role"] or "other"),
+            "legalStatus": str(r["legalStatus"] or "other"),
+            "status": str(r["status"] or "pending"),
+        }
+        for r in cur.fetchall()
+    ]
+    return {"claims": claims, "people": people}
+
 
 def _cuid_like() -> str:
     return f"c{secrets.token_hex(12)}"

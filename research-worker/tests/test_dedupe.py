@@ -85,3 +85,43 @@ def test_reject_warren_commission_for_911_case():
         snippet="The September 11 attacks were four coordinated Islamist terrorist suicide attacks",
         topic_tokens=tokens,
     )
+
+
+def test_hariri_claim_near_paraphrase_merges():
+    a = "Rafik Hariri was killed by a car bomb in Beirut on February 14, 2005"
+    b = (
+        "Rafik Hariri was killed in a car bomb explosion in Beirut "
+        "on February 14, 2005"
+    )
+    assert claim_similarity(a, b) >= 0.82
+    out = dedupe_claims(
+        [
+            {"text": a, "disputed": False, "sources": ["https://u1"], "confidence": 0.7},
+            {"text": b, "disputed": False, "sources": ["https://u2"], "confidence": 0.8},
+        ]
+    )
+    assert len(out) == 1
+    assert len(out[0]["sources"]) == 2
+
+
+def test_rafik_rafic_people_merge():
+    out = dedupe_people(
+        [
+            {
+                "name": "Rafik Hariri",
+                "role": "victim",
+                "legalStatus": "deceased",
+                "sources": ["https://en.wikipedia.org/wiki/Rafic_Hariri"],
+            },
+            {
+                "name": "Rafic Hariri",
+                "role": "victim",
+                "legalStatus": "deceased",
+                "sources": [
+                    "https://en.wikipedia.org/wiki/Assassination_of_Rafic_Hariri"
+                ],
+            },
+        ]
+    )
+    assert len(out) == 1
+    assert len(out[0]["sources"]) == 2
