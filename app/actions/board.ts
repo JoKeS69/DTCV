@@ -7,6 +7,7 @@ import { BOARD_H, BOARD_W } from "@/lib/board/types";
 import { getPrisma } from "@/lib/db";
 import { awardAchievement } from "@/lib/progression/achievements";
 import { requireActiveUser } from "@/lib/server/authz";
+import { requireFictionalAccessAction } from "@/lib/billing/gate";
 import type { BoardNodeType } from "@/lib/generated/prisma/client";
 
 export type BoardActionResult =
@@ -27,6 +28,10 @@ async function requireOwner(investigationId: string) {
   const gate = await requireActiveUser();
   if (!gate.ok) {
     return { ok: false as const, error: gate.error, investigation: null };
+  }
+  const access = await requireFictionalAccessAction();
+  if (!access.ok) {
+    return { ok: false as const, error: access.error, investigation: null };
   }
   const investigation = await getPrisma().investigation.findFirst({
     where: {

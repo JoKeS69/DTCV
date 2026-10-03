@@ -201,6 +201,21 @@ model User {
   paymentSubscriptionId String?         @unique
   subscriptionCurrentPeriodEnd DateTime?
   subscriptionCancelAtPeriodEnd Boolean @default(false)
+
+  /// Fictional-cases prepaid access (trial + paid periods). DB is source of truth.
+  trialStartedAt     DateTime?
+  trialEndsAt        DateTime?
+  /// One trial per account, ever.
+  hasUsedTrial       Boolean   @default(false)
+  /// Paid/comped access ends at this instant (exclusive).
+  accessUntil        DateTime?
+  /// Last purchased prepaid plan: monthly | yearly
+  billingPlan        String?
+  /// Admin-granted free access (bypasses paywall while true).
+  comped             Boolean   @default(false)
+  /// Optional card auto-renew — default OFF (Whish always manual).
+  cardAutoRenew      Boolean   @default(false)
+
   /// When set, credentials login is rejected (admin suspend).
   suspendedAt        DateTime?
   /// Internal sequential id — never show on public surfaces.
@@ -215,6 +230,9 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
   checkoutSessions        CheckoutSession[]
+  payments                Payment[]
+  billingAdminActionsAsAdmin  BillingAdminAction[] @relation("BillingAdminActor")
+  billingAdminActionsAsTarget BillingAdminAction[] @relation("BillingAdminTarget")
 
   discussions           Discussion[]
   comments              Comment[]
@@ -228,6 +246,53 @@ model User {
 
   @@index([paymentCustomerId])
   @@index([subscriptionPlan, subscriptionStatus])
+  @@index([accessUntil])
+  @@index([trialEndsAt])
+  @@index([hasUsedTrial])
+}
+
+/// Prepaid billing payment record (Visa card or Whish). Idempotent on (provider, providerReference).
+model Payment {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// card | whish
+  provider          String
+  providerReference String
+  /// monthly | yearly
+  plan              String
+  amountCents       Int
+  currency          String
+  /// pending | paid | failed | refunded | expired
+  status            String    @default("pending")
+  createdAt         DateTime  @default(now())
+  paidAt            DateTime?
+  /// Visa only — verified brand after tokenization/payment.
+  cardBrand         String?
+  /// Optional link to local Visa checkout session.
+  checkoutSessionId String?
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([provider, providerReference])
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+/// Admin grant/revoke/extend audit (who + why). Never stores card numbers.
+model BillingAdminAction {
+  id           String   @id @default(cuid())
+  adminUserId  String
+  admin        User     @relation("BillingAdminActor", fields: [adminUserId], references: [id], onDelete: Cascade)
+  targetUserId String
+  target       User     @relation("BillingAdminTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  /// grant_comped | revoke_comped | extend_access
+  action       String
+  reason       String
+  meta         Json?
+  createdAt    DateTime @default(now())
+
+  @@index([targetUserId, createdAt])
+  @@index([adminUserId, createdAt])
 }
 
 /// Local checkout session for Visa (test mode or gateway-hosted handoff).

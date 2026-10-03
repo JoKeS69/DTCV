@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import { UpgradeButton } from "@/components/billing/BillingActions";
 import { FictionalBanner } from "@/components/fictional/FictionalBanner";
 import { NotesPanel } from "@/components/fictional/NotesPanel";
 import { StartInvestigationButton } from "@/components/fictional/StartInvestigationButton";
@@ -11,10 +10,7 @@ import {
   getFictionalCaseBySlug,
   getUserInvestigation,
 } from "@/lib/fictional/queries";
-import {
-  fictionalRequiresPremium,
-  getUserEntitlements,
-} from "@/lib/payments/entitlements";
+import { getUserEntitlements } from "@/lib/payments/entitlements";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { metaDescription } from "@/lib/seo/site";
 
@@ -48,8 +44,8 @@ export default async function FictionalCasePage({ params }: Props) {
   const entitlements = session?.user?.id
     ? await getUserEntitlements(session.user.id)
     : null;
-  const locked =
-    fictionalRequiresPremium(caseFile.difficulty) && !entitlements?.isPremium;
+  // Layout enforces access; keep a fail-closed check so case payloads never leak.
+  const locked = !entitlements?.hasFictionalAccess;
 
   const investigation = locked
     ? null
@@ -67,32 +63,21 @@ export default async function FictionalCasePage({ params }: Props) {
         </p>
         <header className="mt-3 border border-border bg-surface/70 px-4 py-4">
           <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
-            CASE FILE · {caseFile.difficulty} · PRO
+            CASE FILE · ACCESS REQUIRED
           </p>
           <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.08em] text-text">
             {caseFile.title}
           </h1>
           <p className="mt-3 font-mono text-[12px] text-text-muted normal-case tracking-normal">
-            This ADVANCED/EXPERT training file requires Investigator Pro. Free
-            NOVICE and INTERMEDIATE cases remain available without a
-            subscription.
+            Fictional cases require a free trial or paid access. We accept Visa
+            cards and Whish Money only.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {session?.user ? (
-              <UpgradeButton />
-            ) : (
-              <Link
-                href={`/login?callbackUrl=/fictional/${caseFile.slug}`}
-                className="border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
-              >
-                Sign in to upgrade
-              </Link>
-            )}
             <Link
-              href="/pricing"
-              className="border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
+              href={`/billing/paywall?callbackUrl=/fictional/${caseFile.slug}`}
+              className="border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
             >
-              View pricing
+              Start trial or subscribe
             </Link>
           </div>
         </header>

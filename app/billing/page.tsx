@@ -4,12 +4,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import {
   CancelSubscriptionButton,
-  UpgradeButton,
 } from "@/components/billing/BillingActions";
+import { SubscriptionSection } from "@/components/billing/SubscriptionSection";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { paymentsStatusSummary } from "@/lib/payments";
-import { getUserEntitlements } from "@/lib/payments/entitlements";
+import { loadAccessDecision, listUserPayments } from "@/lib/billing/service";
 import { privatePageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = privatePageMetadata("Billing");
@@ -23,9 +23,10 @@ export default async function BillingPage({
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=/billing");
 
-  const entitlements = await getUserEntitlements(session.user.id);
-  if (!entitlements) redirect("/login?callbackUrl=/billing");
+  const decision = await loadAccessDecision(session.user.id);
+  if (!decision) redirect("/login?callbackUrl=/billing");
 
+  const payments = await listUserPayments(session.user.id);
   const status = paymentsStatusSummary();
 
   return (
@@ -39,66 +40,29 @@ export default async function BillingPage({
           Billing
         </h1>
         <p className="mt-2 font-mono text-[12px] text-text-muted normal-case tracking-normal">
-          Manage Investigator Pro. Payments accept Visa through the configured
-          provider{status.testMode ? " (test mode)" : ""}.
+          Fictional cases access — Visa and Whish Money only
+          {status.testMode ? " (card test mode)" : ""}. Prepaid periods; no
+          automatic Whish renewals.
         </p>
 
         {params.checkout === "success" ? (
           <p className="mt-3 border border-online/40 bg-online/10 px-3 py-2 font-mono text-[11px] text-online">
-            Checkout complete. Clearance updated via signed payment webhook.
+            Checkout complete. Access extends after verified payment confirmation.
           </p>
         ) : null}
 
-        <section className="mt-6 border border-border bg-surface/40">
-          <header className="border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">
-            &gt; Current plan
-          </header>
-          <dl className="grid gap-3 px-4 py-4 font-mono text-[11px] uppercase tracking-[0.12em] sm:grid-cols-2">
-            <div>
-              <dt className="text-text-dim">Plan</dt>
-              <dd className="mt-1 text-text">{entitlements.label}</dd>
-            </div>
-            <div>
-              <dt className="text-text-dim">Status</dt>
-              <dd className="mt-1 text-text">{entitlements.status}</dd>
-            </div>
-            <div>
-              <dt className="text-text-dim">Period end</dt>
-              <dd className="mt-1 normal-case tracking-normal text-text">
-                {entitlements.currentPeriodEnd
-                  ? entitlements.currentPeriodEnd.toISOString()
-                  : "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-text-dim">Cancel at period end</dt>
-              <dd className="mt-1 text-text">
-                {entitlements.cancelAtPeriodEnd ? "Yes" : "No"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-text-dim">Customer id</dt>
-              <dd className="mt-1 normal-case tracking-normal text-text-muted break-all">
-                {entitlements.paymentCustomerId ?? "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-text-dim">Subscription id</dt>
-              <dd className="mt-1 normal-case tracking-normal text-text-muted break-all">
-                {entitlements.paymentSubscriptionId ?? "—"}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <SubscriptionSection decision={decision} payments={payments} />
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {!entitlements.isPremium ? (
-            <UpgradeButton />
+          {!decision.allowed ? (
+            <Link
+              href="/billing/paywall?callbackUrl=/billing"
+              className="border border-cta/50 bg-cta/15 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text"
+            >
+              Start trial or subscribe
+            </Link>
           ) : (
-            <>
-              <CancelSubscriptionButton />
-              <CancelSubscriptionButton immediate />
-            </>
+            <CancelSubscriptionButton />
           )}
           <Link
             href="/pricing"
@@ -107,10 +71,10 @@ export default async function BillingPage({
             View pricing
           </Link>
           <Link
-            href="/profile"
+            href="/fictional"
             className="border border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text"
           >
-            Profile
+            Fictional cases
           </Link>
         </div>
       </main>

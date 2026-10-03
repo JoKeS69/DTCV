@@ -10,10 +10,7 @@ import {
   syncRankFromXp,
 } from "@/lib/progression/achievements";
 import { getDetectiveStats } from "@/lib/progression/stats";
-import {
-  fictionalRequiresPremium,
-  getUserEntitlements,
-} from "@/lib/payments/entitlements";
+import { requireFictionalAccessAction } from "@/lib/billing/gate";
 import { requireActiveUser } from "@/lib/server/authz";
 
 export type FictionalActionResult =
@@ -27,6 +24,10 @@ async function requireUser(): Promise<
   const gate = await requireActiveUser();
   if (!gate.ok) {
     return { ok: false, error: gate.error };
+  }
+  const access = await requireFictionalAccessAction();
+  if (!access.ok) {
+    return { ok: false, error: access.error };
   }
   return { ok: true, userId: gate.user.id };
 }
@@ -43,16 +44,6 @@ export async function startOrContinueInvestigation(
     select: { id: true, title: true, slug: true, difficulty: true },
   });
   if (!caseFile) return { ok: false, error: "Fictional case not found" };
-
-  if (fictionalRequiresPremium(caseFile.difficulty)) {
-    const entitlements = await getUserEntitlements(gate.userId);
-    if (!entitlements?.isPremium) {
-      return {
-        ok: false,
-        error: "Investigator Pro required for this training file",
-      };
-    }
-  }
 
   const existing = await getPrisma().investigation.findFirst({
     where: {

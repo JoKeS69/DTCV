@@ -59,6 +59,11 @@ export async function listDraftInvestigationCases() {
 }
 
 export async function getInvestigationPlayPayload(slug: string) {
+  // Never send suspects/clues/solution without fictional access.
+  const { checkFictionalAccess } = await import("@/lib/billing/gate");
+  const access = await checkFictionalAccess();
+  if (!access.ok) return null;
+
   const db = getCasesPrisma();
   const row = await db.investigationCase.findFirst({
     where: { slug, status: "published" },

@@ -5,10 +5,7 @@ import { FictionalBanner } from "@/components/fictional/FictionalBanner";
 import { listPublishedFictionalCases } from "@/lib/fictional/queries";
 import { listPublishedInvestigationCards } from "@/lib/investigation/queries";
 import { getPrisma } from "@/lib/db";
-import {
-  fictionalRequiresPremium,
-  getUserEntitlements,
-} from "@/lib/payments/entitlements";
+import { getUserEntitlements } from "@/lib/payments/entitlements";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -90,7 +87,9 @@ export default async function FictionalListPage({
           <Link href="/pricing" className="hover:text-text">
             Pricing
           </Link>
-          {entitlements?.isPremium ? " · PRO CLEARANCE" : " · FREE CLEARANCE"}
+          {entitlements?.hasFictionalAccess
+            ? ` · ${entitlements.label.toUpperCase()}`
+            : " · LOCKED"}
         </p>
       </div>
 
@@ -161,9 +160,6 @@ export default async function FictionalListPage({
         <ul className="mt-3 space-y-3">
           {cases.map((item) => {
             const state = byCase.get(item.id);
-            const proLocked =
-              fictionalRequiresPremium(item.difficulty) &&
-              !entitlements?.isPremium;
             return (
               <li key={item.id}>
                 <Link
@@ -174,7 +170,6 @@ export default async function FictionalListPage({
                     <div>
                       <p className="font-mono text-[10px] tracking-[0.18em] text-text-dim">
                         FICTIONAL · {item.difficulty}
-                        {proLocked ? " · PRO LOCK" : ""}
                       </p>
                       <h3 className="mt-1 font-mono text-base font-semibold uppercase tracking-[0.08em] text-text">
                         {item.title}

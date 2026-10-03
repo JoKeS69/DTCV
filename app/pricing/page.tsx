@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { UpgradeButton } from "@/components/billing/BillingActions";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import {
-  formatMoney,
-  getPlanCatalog,
-  getPaymentsMode,
-} from "@/lib/payments/config";
-import { paymentsStatusSummary } from "@/lib/payments";
-import { getUserEntitlements } from "@/lib/payments/entitlements";
+  formatBillingMoney,
+  getBillingPlans,
+  getTrialDays,
+  PAYWALL_METHODS_COPY,
+  PAYWALL_RENEWAL_COPY,
+} from "@/lib/billing/config";
+import { loadAccessDecision } from "@/lib/billing/service";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Pricing",
   description:
-    "DETECTIVE clearance tiers — Free core access and Investigator Pro via Visa. Amounts configured by environment.",
+    "DETECTIVE Fictional cases access — free trial, then Visa or Whish Money prepaid plans.",
   path: "/pricing",
 });
 
@@ -27,12 +27,11 @@ export default async function PricingPage({
 }) {
   const params = await searchParams;
   const session = await auth();
-  const entitlements = session?.user?.id
-    ? await getUserEntitlements(session.user.id)
+  const decision = session?.user?.id
+    ? await loadAccessDecision(session.user.id)
     : null;
-  const plans = getPlanCatalog();
-  const status = paymentsStatusSummary();
-  const mode = getPaymentsMode();
+  const plans = getBillingPlans();
+  const trialDays = getTrialDays();
 
   return (
     <div className="flex min-h-svh flex-col bg-bg">
@@ -48,14 +47,14 @@ export default async function PricingPage({
         />
 
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
-          &gt; Clearance tiers · DETECTIVE
+          &gt; Fictional cases · DETECTIVE
         </p>
         <h1 className="mt-2 font-mono text-3xl font-semibold uppercase tracking-[0.12em] text-text md:text-4xl">
           DETECTIVE
         </h1>
         <p className="mt-2 max-w-xl font-mono text-[12px] text-text-muted normal-case tracking-normal">
-          Free core stays open. Investigator Pro unlocks the full training
-          library, advanced tools, and premium challenges — paid with Visa.
+          Real case files stay free. Fictional Investigation Mode uses a{" "}
+          {trialDays}-day free trial, then prepaid monthly or yearly access.
         </p>
 
         {params.checkout === "canceled" ? (
@@ -64,18 +63,14 @@ export default async function PricingPage({
           </p>
         ) : null}
 
-        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-text-dim">
-          Mode {mode}
-          {" · "}
-          Provider {status.provider}
-          {" · "}
-          Visa {status.acceptsVisa ? "enabled" : "off"}
-          {status.testMode ? " · TEST CHECKOUT ACTIVE" : ""}
+        <p className="mt-3 font-mono text-[11px] text-text">{PAYWALL_METHODS_COPY}</p>
+        <p className="mt-2 max-w-2xl font-mono text-[11px] text-text-muted normal-case tracking-normal">
+          {PAYWALL_RENEWAL_COPY}
         </p>
 
-        {entitlements?.isPremium ? (
+        {decision?.allowed ? (
           <p className="mt-3 font-mono text-[11px] text-online">
-            Active clearance: {entitlements.label}.{" "}
+            Active clearance: {decision.status}.{" "}
             <Link href="/billing" className="text-text underline">
               Manage billing
             </Link>
@@ -84,46 +79,37 @@ export default async function PricingPage({
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {plans.map((plan) => {
-            const isPro = plan.key === "investigator_pro";
-            const price =
-              plan.amountCents === 0
-                ? "Free"
-                : `${formatMoney(plan.amountCents, plan.currency)} / ${plan.interval}`;
+            const price = `${formatBillingMoney(plan.amountCents, plan.currency)} / ${
+              plan.key === "yearly" ? "year" : "month"
+            }`;
             return (
               <section
                 key={plan.key}
-                className={[
-                  "border bg-surface/40 px-5 py-5",
-                  isPro ? "border-cta/40" : "border-border",
-                ].join(" ")}
+                className="border border-cta/40 bg-surface/40 px-5 py-5"
               >
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-text-dim">
-                  {isPro ? "Premium clearance" : "Core access"}
+                  Prepaid access
                 </p>
                 <h2 className="mt-2 font-mono text-xl uppercase tracking-[0.1em] text-text">
                   {plan.label}
                 </h2>
                 <p className="mt-3 font-mono text-2xl text-text">{price}</p>
                 <ul className="mt-4 space-y-2">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="font-mono text-[11px] text-text-muted normal-case tracking-normal"
-                    >
-                      <span className="mr-2 text-text-dim">›</span>
-                      {feature}
-                    </li>
-                  ))}
+                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
+                    <span className="mr-2 text-text-dim">›</span>
+                    Full Fictional cases + Investigation Mode
+                  </li>
+                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
+                    <span className="mr-2 text-text-dim">›</span>
+                    Visa or Whish Money checkout
+                  </li>
+                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
+                    <span className="mr-2 text-text-dim">›</span>
+                    Early renewals stack — never lose paid time
+                  </li>
                 </ul>
                 <div className="mt-6">
-                  {!isPro ? (
-                    <Link
-                      href="/fictional"
-                      className="inline-flex border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text hover:border-border-strong"
-                    >
-                      Continue free
-                    </Link>
-                  ) : entitlements?.isPremium ? (
+                  {decision?.allowed ? (
                     <Link
                       href="/billing"
                       className="inline-flex border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
@@ -131,13 +117,18 @@ export default async function PricingPage({
                       Manage subscription
                     </Link>
                   ) : session?.user ? (
-                    <UpgradeButton label="Pay with Visa" />
-                  ) : (
                     <Link
-                      href="/login?callbackUrl=/pricing"
+                      href="/billing/paywall?callbackUrl=/fictional"
                       className="inline-flex border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
                     >
-                      Sign in to upgrade
+                      Start trial or subscribe
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/login?callbackUrl=/billing/paywall"
+                      className="inline-flex border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
+                    >
+                      Sign in to continue
                     </Link>
                   )}
                 </div>
@@ -147,9 +138,9 @@ export default async function PricingPage({
         </div>
 
         <p className="mt-6 max-w-2xl font-mono text-[10px] text-text-dim normal-case tracking-normal">
-          Amounts come from environment settings (`PAYMENTS_PRO_AMOUNT_CENTS`),
-          not hard-coded UI constants. Card data is processed through the
-          payments provider abstraction (test Visa or live Visa gateway).
+          Amounts come from `BILLING_*_AMOUNT_CENTS` / `CURRENCY` / `TRIAL_DAYS`
+          — never hard-coded in UI. No Stripe. Whish endpoints must match
+          official merchant docs before production.
         </p>
       </main>
       <SiteFooter />

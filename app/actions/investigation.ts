@@ -41,6 +41,7 @@ import type {
   InvestigationCaseDraft,
 } from "@/lib/investigation/types";
 import { validateInvestigationCase } from "@/lib/investigation/validate";
+import { requireFictionalAccessAction } from "@/lib/billing/gate";
 
 function revalidateFictional(slug?: string) {
   revalidatePath("/fictional");
@@ -86,6 +87,11 @@ function appendChat(
 }
 
 async function requirePlayerState(caseSlug: string, displayName?: string) {
+  const access = await requireFictionalAccessAction();
+  if (!access.ok) {
+    return { ok: false as const, error: access.error };
+  }
+
   const db = getCasesPrisma();
   const row = await db.investigationCase.findFirst({
     where: { slug: caseSlug, status: "published" },
