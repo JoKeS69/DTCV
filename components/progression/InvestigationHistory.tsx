@@ -22,7 +22,7 @@ export function InvestigationHistory({
       <p className="font-mono text-[13px] text-text-dim">
         No investigations yet.{" "}
         <Link href="/fictional" className="text-cta hover:underline">
-          Training →
+          Fictional cases →
         </Link>
       </p>
     );

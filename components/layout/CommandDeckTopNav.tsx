@@ -21,7 +21,7 @@ const ICONS: Record<string, typeof BookOpen> = {
   Cases: BookOpen,
   Evidence: FolderSearch,
   Intel: FileSearch,
-  Training: GraduationCap,
+  "Fictional cases": GraduationCap,
   Profile: User,
 };
 
@@ -50,7 +50,7 @@ function isActive(label: string, pathname: string, focus: string | null) {
       );
     case "Evidence":
       return focus === "evidence";
-    case "Training":
+    case "Fictional cases":
       return pathname.startsWith("/fictional") && !pathname.includes("rankings");
     case "Intel":
       return pathname.includes("rankings");

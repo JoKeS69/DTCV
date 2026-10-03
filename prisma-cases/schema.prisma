@@ -250,3 +250,83 @@ model TakedownRequest {
   @@index([status, createdAt])
   @@map("takedown_requests")
 }
+
+// ─── Investigation Mode (fictional whodunit — never sync to public /cases) ───
+
+enum InvestigationCaseStatus {
+  draft
+  published
+  archived
+}
+
+/// Original fictional whodunit case. Lives only in cases DB.
+/// Publish → /fictional Investigation Mode ONLY (never public Case sync).
+model InvestigationCase {
+  id               String                   @id @default(cuid())
+  slug             String                   @unique
+  title            String
+  teaser           String                   @default("")
+  /// JSON string array of victim display names.
+  victims          Json                     @default("[]")
+  location         String                   @default("")
+  discoveryReport  String                   @default("")
+  weaponName       String                   @default("")
+  weaponTrait      String                   @default("")
+  /// Scenes: [{id,name,clue}] — clue hidden from client until inspected.
+  locations        Json                     @default("[]")
+  /// Suspects incl. isGuilty + private fields — NEVER send isGuilty/solution to client until closed.
+  suspects         Json                     @default("[]")
+  hasTwist         Boolean                  @default(false)
+  twistNote        String?
+  /// Optional darker terminal theme for special cases.
+  darkerTheme      Boolean                  @default(false)
+  /// Support agent roster shown in Contact agents (JSON array).
+  fieldAgents      Json                     @default("[]")
+  status           InvestigationCaseStatus  @default(draft)
+  publishedAt      DateTime?
+  publishedBy      String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  playerStates     InvestigationPlayerState[]
+
+  @@index([status])
+  @@map("investigation_cases")
+}
+
+/// Per-player progress for an investigation case (userId string only — no FK to main DB).
+model InvestigationPlayerState {
+  id                   String   @id @default(cuid())
+  caseId               String
+  /// Logged-in user id from main DB, or null for guest cookie sessions.
+  userId               String?
+  /// Stable key: `user:<id>` or `guest:<token>`.
+  playerKey            String
+  displayName          String
+  /// unsolved | solved_first_try | solved_after_n
+  status               String   @default("unsolved")
+  wrongAccusations     Int      @default(0)
+  /// JSON string arrays of location/suspect ids discovered/reviewed.
+  inspectedLocationIds Json     @default("[]")
+  reviewedSuspectIds   Json     @default("[]")
+  backgroundCheckedIds Json     @default("[]")
+  alibiVerifiedIds     Json     @default("[]")
+  /// Board pins: [{suspectId, clueId}]
+  boardConnections     Json     @default("[]")
+  /// Structured case-log entries (JSON array).
+  caseLog              Json     @default("[]")
+  /// Chat transcripts (JSON): {suspectId?: messages[], agentId?: messages[]}
+  chatHistory          Json     @default("{}")
+  closedAt             DateTime?
+  /// Solution payload revealed only after correct accusation (JSON).
+  solutionReveal       Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  case                 InvestigationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, playerKey])
+  @@index([playerKey])
+  @@index([userId])
+  @@map("investigation_player_states")
+}

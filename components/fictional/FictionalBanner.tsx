@@ -8,7 +8,7 @@ export function FictionalBanner({ compact = false }: { compact?: boolean }) {
           : "px-3 py-2 text-[10px]",
       ].join(" ")}
     >
-      FICTIONAL TRAINING CASE — not a real crime. No real persons harmed.
+      FICTIONAL CASE — invented scenario / game only. No real persons as suspects.
     </div>
   );
 }
