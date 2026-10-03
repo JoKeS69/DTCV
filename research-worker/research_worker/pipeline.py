@@ -1,7 +1,7 @@
 """
 Case research pipeline (Python worker).
 
-plan → search/fetch → extract → verify → corroborate → assemble → pending_review
+plan → search/fetch → extract → verify → corroborate/dedupe → assemble → pending_review
 NEVER publishes. Keys stay on the worker host only.
 """
 
@@ -13,6 +13,14 @@ from typing import Any, Callable
 from research_worker.search import ResearchSearchClient
 from research_worker.config import Settings, get_settings, redact_secrets
 from research_worker import db as cases_db
+from research_worker.dedupe import (
+    case_topic_tokens,
+    dedupe_claims,
+    dedupe_people,
+    filter_claim_sources_to_topic,
+    filter_sources_for_case,
+    source_relevant_to_case,
+)
 from research_worker.fetch import (
     fetch_allowlisted_page,
     is_url_allowlisted,
@@ -119,22 +127,29 @@ def run_claimed_research(
         search = ResearchSearchClient(settings)
 
         title = claimed["title"]
+        event_date = claimed.get("event_date_text") or ""
+        location = claimed.get("location") or ""
+        topic_tokens = case_topic_tokens(title, event_date, location)
+
         _push(steps, "plan", f"Research plan for: {title}")
         steps_used += 1
-        plan_query = " ".join(
-            p
-            for p in (
-                title,
-                claimed.get("event_date_text") or "",
-                claimed.get("location") or "",
-            )
-            if p
+        queries = search.build_queries(
+            title=title,
+            event_date_text=event_date or None,
+            location=location or None,
         )
 
-        _push(steps, "search", f"{search.id}: {plan_query}")
+        _push(steps, "search", f"{search.id}: {len(queries)} queries")
         steps_used += 1
-        hits = search.search(plan_query, min(8, limits.max_pages))
-        cost_units += 0.05
+        hits = search.search_case(
+            title=title,
+            event_date_text=event_date or None,
+            location=location or None,
+            limit=min(12, limits.max_pages),
+            topic_filter=topic_tokens,
+        )
+        cost_units += 0.05 * max(1, len(queries))
+        _push(steps, "search_ok", f"hits={len(hits)} on_topic")
 
         pages: list[dict[str, str]] = []
         for hit in hits:
@@ -144,6 +159,14 @@ def run_claimed_research(
                 break
             if not is_url_allowlisted(hit.url):
                 _push(steps, "skip_url", "not_allowlisted", hit.url)
+                continue
+            if not source_relevant_to_case(
+                url=hit.url,
+                title=hit.title,
+                snippet=hit.snippet,
+                topic_tokens=topic_tokens,
+            ):
+                _push(steps, "skip_url", "off_topic", hit.url)
                 continue
             _push(steps, "fetch", hit.title, hit.url)
             fetched = fetch_allowlisted_page(hit.url)
@@ -198,15 +221,16 @@ def run_claimed_research(
                     "content": json.dumps(
                         {
                             "caseTitle": title,
-                            "eventDateText": claimed.get("event_date_text"),
-                            "location": claimed.get("location"),
+                            "eventDateText": event_date or None,
+                            "location": location or None,
                             "pages": [
                                 {"url": p["url"], "text": p["text"][:6000]}
                                 for p in pages
                             ],
                             "instruction": (
-                                "Extract paraphrased claims/people/sources as JSON. "
-                                "Prefer official sources."
+                                "Extract paraphrased UNIQUE claims/people/sources as JSON. "
+                                "Prefer primary/official sources about THIS case only. "
+                                "Deduplicate aggressively. Never attach unrelated-case sources."
                             ),
                         }
                     ),
@@ -239,10 +263,14 @@ def run_claimed_research(
                     "content": json.dumps(
                         {
                             "caseTitle": title,
+                            "eventDateText": event_date or None,
+                            "location": location or None,
+                            "topicTokens": sorted(topic_tokens),
                             "extract": extract_value.model_dump(),
                             "allowlistedHostsHint": (
-                                "Keep only https sources that look official/reputable; "
-                                "mark disputed claims."
+                                "Keep only https sources that are official/reputable AND "
+                                "about this case. Drop off-topic pages (wrong event). "
+                                "Merge duplicate claims/people. One statement → one claim."
                             ),
                         }
                     ),
@@ -259,7 +287,7 @@ def run_claimed_research(
         )
 
         verified_claims = [
-            c
+            c.model_dump()
             for c in verify_value.claims
             if not any(f.severity == "error" for f in lint_case_wording(c.text))
         ]
@@ -272,12 +300,56 @@ def run_claimed_research(
 
         _push(steps, "corroborate")
         steps_used += 1
+        verified_sources = filter_sources_for_case(
+            verified_sources, topic_tokens=topic_tokens
+        )
+        allowed_source_urls = {
+            str(s.get("url") or "").rstrip("/").lower() for s in verified_sources
+        }
         corroborated = []
         for c in verified_claims:
-            data = c.model_dump()
+            data = dict(c)
+            # Tighten: prefer claim sources that appear in case-level on-topic sources
+            srcs = []
+            for u in data.get("sources") or []:
+                url = u if isinstance(u, str) else str(u)
+                key = url.rstrip("/").lower()
+                if allowed_source_urls and key not in allowed_source_urls:
+                    # keep only if still on-topic
+                    if not source_relevant_to_case(
+                        url=url,
+                        title=None,
+                        snippet=str(data.get("text") or ""),
+                        topic_tokens=topic_tokens,
+                    ):
+                        continue
+                srcs.append(url)
+            data["sources"] = srcs
+            if not srcs:
+                continue
             if data.get("confidence") is None:
-                data["confidence"] = min(1.0, len(data.get("sources") or []) / 2.0)
+                data["confidence"] = min(1.0, len(srcs) / 2.0)
+            # Higher bar: single weak source → lower confidence
+            if len(srcs) < 2 and (data.get("confidence") or 0) > 0.55:
+                data["confidence"] = 0.55
             corroborated.append(data)
+
+        corroborated = filter_claim_sources_to_topic(
+            corroborated, topic_tokens=topic_tokens
+        )
+        before_claims = len(corroborated)
+        corroborated = dedupe_claims(corroborated)
+        before_people = len(verified_people)
+        verified_people = dedupe_people(verified_people)
+        _push(
+            steps,
+            "dedupe",
+            (
+                f"claims {before_claims}->{len(corroborated)}; "
+                f"people {before_people}->{len(verified_people)}; "
+                f"sources={len(verified_sources)}"
+            ),
+        )
 
         _push(steps, "assemble")
         draft_content = {
@@ -289,6 +361,11 @@ def run_claimed_research(
                 "promptTokens": token_usage.prompt_tokens,
                 "completionTokens": token_usage.completion_tokens,
                 "totalTokens": token_usage.total_tokens,
+            },
+            "quality": {
+                "dedupedClaims": len(corroborated),
+                "dedupedPeople": len(verified_people),
+                "topicTokens": sorted(topic_tokens),
             },
             "note": (
                 "Draft from research agent — pending admin review. Not published."
@@ -321,10 +398,11 @@ def run_claimed_research(
             plan={
                 "title": title,
                 "actor": actor,
-                "queries": [plan_query],
+                "queries": queries,
                 "hitCount": len(hits),
                 "models": {"extract": extract_model, "verify": verify_model},
                 "worker": "python-research-worker",
+                "quality": "dedupe+topic-filter",
             },
         )
         return "completed"

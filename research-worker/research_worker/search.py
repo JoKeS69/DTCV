@@ -188,6 +188,33 @@ class ResearchSearchClient:
             return "wikipedia+ddg+brave"
         return "wikipedia+ddg"
 
+    def build_queries(
+        self,
+        *,
+        title: str,
+        event_date_text: str | None = None,
+        location: str | None = None,
+    ) -> list[str]:
+        """Diverse, high-signal queries favoring primary/official coverage."""
+        base = " ".join(p for p in (title, event_date_text or "", location or "") if p)
+        queries = [
+            base,
+            f"{title} official report OR commission OR investigation",
+            f"{title} site:fbi.gov OR site:justice.gov OR site:archives.gov OR site:nist.gov",
+            f"{title} timeline OR chronology facts",
+            f"{title} court OR indictment OR charges",
+        ]
+        # Deduplicate while preserving order
+        seen: set[str] = set()
+        out: list[str] = []
+        for q in queries:
+            qn = " ".join(q.split()).strip().lower()
+            if not qn or qn in seen:
+                continue
+            seen.add(qn)
+            out.append(q.strip())
+        return out
+
     def search(self, query: str, limit: int = 5) -> list[SearchHit]:
         settings = self.settings
         timeout_s = max(1.0, settings.limits.timeout_ms / 1000.0)
@@ -200,10 +227,10 @@ class ResearchSearchClient:
                     hits.extend(
                         _wikipedia_search(client, query, limit, user_agent=ua)
                     )
-                    # Prefer site: queries toward allowlisted hosts via DDG
                     site_q = (
                         f"{query} "
                         f"(site:fbi.gov OR site:justice.gov OR site:archives.gov "
+                        f"OR site:nist.gov OR site:dhs.gov OR site:9-11commission.gov "
                         f"OR site:reuters.com OR site:apnews.com OR site:bbc.com "
                         f"OR site:wikipedia.org)"
                     )
@@ -230,6 +257,44 @@ class ResearchSearchClient:
             return _dedupe(hits, limit)
 
         return with_backoff(_call, retries=settings.limits.retries)
+
+    def search_case(
+        self,
+        *,
+        title: str,
+        event_date_text: str | None = None,
+        location: str | None = None,
+        limit: int = 12,
+        topic_filter: set[str] | None = None,
+    ) -> list[SearchHit]:
+        """Run multiple queries and keep on-topic allowlisted hits."""
+        from research_worker.dedupe import case_topic_tokens, source_relevant_to_case
+
+        queries = self.build_queries(
+            title=title,
+            event_date_text=event_date_text,
+            location=location,
+        )
+        tokens = topic_filter if topic_filter is not None else case_topic_tokens(
+            title, event_date_text, location
+        )
+        pooled: list[SearchHit] = []
+        per = max(3, min(6, limit))
+        for q in queries:
+            pooled.extend(self.search(q, per))
+        filtered: list[SearchHit] = []
+        for h in pooled:
+            if not is_url_allowlisted(h.url):
+                continue
+            if not source_relevant_to_case(
+                url=h.url,
+                title=h.title,
+                snippet=h.snippet,
+                topic_tokens=tokens,
+            ):
+                continue
+            filtered.append(h)
+        return _dedupe(filtered, limit)
 
 
 # Back-compat alias
