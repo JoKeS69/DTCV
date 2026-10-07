@@ -30,9 +30,11 @@ export function AuthHudChrome() {
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-3 md:px-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-muted">
-          <span className="text-text-dim">|</span> CASE//NET{" "}
-          <span className="text-text-dim">|</span> GLOBAL INVESTIGATION PLATFORM
+        <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-text md:text-[12px]">
+          CASE//NET
+          <span className="ml-2 font-mono text-[9px] font-normal tracking-[0.22em] text-text-dim md:text-[10px]">
+            GLOBAL INVESTIGATION PLATFORM
+          </span>
         </p>
         <div className="text-right">
           <p className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted">

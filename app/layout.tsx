@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { ObservabilityBoot } from "@/components/observability/ObservabilityBoot";
 import { getSiteUrl } from "@/lib/env";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
@@ -17,6 +17,15 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  display: "swap",
+  preload: true,
+});
+
+/** Display face for brand / hero titles — not a default SaaS stack. */
+const display = Space_Grotesk({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
   preload: true,
 });
@@ -50,15 +59,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050607",
+  themeColor: "#06080A",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} h-full`}>
+    <html
+      lang="en"
+      className={`${sans.variable} ${mono.variable} ${display.variable} h-full`}
+    >
       <body className="min-h-full bg-bg font-mono text-text antialiased">
         <ObservabilityBoot />
         {children}

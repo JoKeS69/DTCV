@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   BookOpen,
   FileSearch,
-  FolderSearch,
   GraduationCap,
   Menu,
   Shield,
@@ -19,7 +18,6 @@ import { primaryNav } from "@/lib/site-nav";
 
 const ICONS: Record<string, typeof BookOpen> = {
   Cases: BookOpen,
-  Evidence: FolderSearch,
   Intel: FileSearch,
   "Fictional cases": GraduationCap,
   Profile: User,
@@ -39,17 +37,10 @@ function formatHudClock(date: Date) {
     .toUpperCase();
 }
 
-function isActive(label: string, pathname: string, focus: string | null) {
+function isActive(label: string, pathname: string) {
   switch (label) {
     case "Cases":
-      return (
-        pathname.startsWith("/cases") &&
-        focus !== "search" &&
-        focus !== "evidence" &&
-        focus !== "discussions"
-      );
-    case "Evidence":
-      return focus === "evidence";
+      return pathname.startsWith("/cases");
     case "Fictional cases":
       return pathname.startsWith("/fictional") && !pathname.includes("rankings");
     case "Intel":
@@ -68,36 +59,49 @@ function AdminBadge({
   canAccessPbCase: boolean;
   username?: string;
 }) {
+  const chipClass =
+    "relative z-20 inline-flex min-h-10 min-w-10 cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted pointer-events-auto transition-colors hover:border-border-strong hover:bg-surface-elevated hover:text-text";
   const icon = <Shield className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />;
 
   if (canAccessPbCase) {
     return (
-      <Link
-        href="/pb-case"
-        className="relative z-20 inline-flex min-h-10 min-w-10 cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted pointer-events-auto transition-colors hover:border-border-strong hover:bg-surface-elevated hover:text-text"
-        aria-label="PB CASE admin research desk"
-        title="PB CASE · research desk"
-      >
-        {icon}
-        <span>PB CASE</span>
-      </Link>
+      <div className="relative z-20 flex items-center gap-1.5 pointer-events-auto">
+        <Link
+          href="/pb-case"
+          className={chipClass}
+          aria-label="PB CASE admin research desk"
+          title="PB CASE · research desk"
+        >
+          {icon}
+          <span>PB CASE</span>
+        </Link>
+        <Link
+          href="/admin"
+          className={chipClass}
+          aria-label="Ops admin console"
+          title="Admin · ops console"
+        >
+          <span>Admin</span>
+        </Link>
+      </div>
     );
   }
 
-  // ADMIN role chrome only — not a link (username fails /pb-case gate).
+  // ADMIN role without PB CASE username gate — still reach /admin.
   const lockedHint = username
-    ? `Administrator — research desk locked (signed in as ${username})`
-    : "Administrator — research desk locked for this account";
+    ? `Ops console · research desk locked (signed in as ${username})`
+    : "Ops console · research desk locked for this account";
 
   return (
-    <span
-      className="relative z-20 inline-flex min-h-10 min-w-10 cursor-default items-center justify-center rounded-[6px] border border-border/70 px-2.5 py-1.5 text-text-dim pointer-events-auto"
-      aria-label="Administrator (research desk not available)"
+    <Link
+      href="/admin"
+      className={chipClass}
+      aria-label="Ops admin console"
       title={lockedHint}
-      role="img"
     >
       {icon}
-    </span>
+      <span>Admin</span>
+    </Link>
   );
 }
 
@@ -130,8 +134,6 @@ function UserChip({
 
 export function CommandDeckTopNav({ user }: { user: DeckUser }) {
   const pathname = usePathname() ?? "";
-  const searchParams = useSearchParams();
-  const focus = searchParams?.get("focus") ?? null;
   const [menuOpen, setMenuOpen] = useState(false);
   const [clock, setClock] = useState("");
 
@@ -179,7 +181,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
           <div className="relative z-20 flex min-w-0 items-center gap-3 justify-self-start">
             <Link
               href="/cases"
-              className="shrink-0 font-mono text-[13px] font-semibold tracking-[0.12em] text-text"
+              className="shrink-0 font-display text-[14px] font-semibold tracking-[0.12em] text-text xl:text-[15px]"
             >
               {designTokens.brand}
             </Link>
@@ -200,7 +202,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 justify-self-center xl:gap-x-3"
           >
             {primaryNav.map((item) => {
-              const active = isActive(item.label, pathname, focus);
+              const active = isActive(item.label, pathname);
               const Icon = ICONS[item.label] ?? BookOpen;
               return (
                 <Link
@@ -317,7 +319,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
               className="flex flex-col gap-1 overflow-y-auto px-3 py-3"
             >
               {primaryNav.map((item) => {
-                const active = isActive(item.label, pathname, focus);
+                const active = isActive(item.label, pathname);
                 const Icon = ICONS[item.label] ?? BookOpen;
                 return (
                   <Link

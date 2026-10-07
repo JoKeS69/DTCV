@@ -62,7 +62,7 @@ Vercel `buildCommand` in `vercel.json` runs main `prisma migrate deploy` before 
 
 ### Cases research DB (separate)
 
-`CASES_DATABASE_URL` / `prisma-cases/` — **not** applied on app boot.
+`CASES_DATABASE_URL` / `prisma-cases/` — **not** applied on app boot and **not** part of `vercel.json` `buildCommand` (requires `BACKUP_OK=1` + migrate credential). Skipping this step leaves Investigation Mode / PB CASE tables stale or missing while the main site boots cleanly.
 
 Order: **backup → main migrate → cases migrate → start/promote new app version**.
 

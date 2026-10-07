@@ -8,13 +8,14 @@ export function DiscussionPanel({
   discussions,
   sheet = false,
 }: {
-  /** @deprecated Prefer caseSlug; kept for call-site compat during transition. */
+  /** @deprecated Ignored — prefer caseSlug. Kept so call sites compile. */
   caseCode?: string | null;
   caseSlug?: string | null;
   discussions: HudDiscussion[];
   sheet?: boolean;
 }) {
-  const selectKey = caseSlug ?? caseCode ?? null;
+  // Slug only for select URLs — never surface case codes in chrome.
+  const selectKey = caseSlug ?? null;
   return (
     <Panel className={sheet ? "motion-sheet-in min-h-[70svh]" : "min-h-[240px]"}>
       <PanelHeader

@@ -35,24 +35,24 @@ export default async function PricingPage({
 
   return (
     <div className="flex min-h-svh flex-col bg-bg">
-      <SiteHeader />
+      <SiteHeader signedIn={Boolean(session?.user)} />
       <main className="deck-page relative max-w-5xl flex-1">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] opacity-70"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px]"
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(138,153,173,0.18), transparent 70%), linear-gradient(180deg, #0a0c0f 0%, #050607 100%)",
+              "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(94,196,182,0.1), transparent 65%), radial-gradient(ellipse 50% 40% at 85% 20%, rgba(138,153,173,0.12), transparent 60%), linear-gradient(180deg, #090c10 0%, #07090b 55%, transparent 100%)",
           }}
         />
 
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
-          &gt; Fictional cases · DETECTIVE
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim motion-fade-up">
+          &gt; Fictional cases · CASE//NET
         </p>
-        <h1 className="mt-2 font-mono text-3xl font-semibold uppercase tracking-[0.12em] text-text md:text-4xl">
-          DETECTIVE
+        <h1 className="mt-3 font-display text-4xl font-semibold uppercase tracking-[0.1em] text-text motion-fade-up motion-fade-up-delay-1 md:text-5xl">
+          CASE//NET
         </h1>
-        <p className="mt-2 max-w-xl font-mono text-[12px] text-text-muted normal-case tracking-normal">
+        <p className="mt-3 max-w-xl font-mono text-[13px] leading-relaxed text-text-muted normal-case tracking-normal motion-fade-up motion-fade-up-delay-2">
           Real case files stay free. Fictional Investigation Mode uses a{" "}
           {trialDays}-day free trial, then prepaid monthly or yearly access.
         </p>
@@ -77,60 +77,62 @@ export default async function PricingPage({
           </p>
         ) : null}
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {plans.map((plan) => {
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {plans.map((plan, i) => {
             const price = `${formatBillingMoney(plan.amountCents, plan.currency)} / ${
               plan.key === "yearly" ? "year" : "month"
             }`;
             return (
               <section
                 key={plan.key}
-                className="border border-cta/40 bg-surface/40 px-5 py-5"
+                className={[
+                  "hud-panel",
+                  i === 0 ? "motion-fade-up motion-fade-up-delay-2" : "motion-fade-up motion-fade-up-delay-3",
+                ].join(" ")}
               >
-                <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-text-dim">
-                  Prepaid access
-                </p>
-                <h2 className="mt-2 font-mono text-xl uppercase tracking-[0.1em] text-text">
-                  {plan.label}
-                </h2>
-                <p className="mt-3 font-mono text-2xl text-text">{price}</p>
-                <ul className="mt-4 space-y-2">
-                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
-                    <span className="mr-2 text-text-dim">›</span>
-                    Full Fictional cases + Investigation Mode
-                  </li>
-                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
-                    <span className="mr-2 text-text-dim">›</span>
-                    Visa or Whish Money checkout
-                  </li>
-                  <li className="font-mono text-[11px] text-text-muted normal-case tracking-normal">
-                    <span className="mr-2 text-text-dim">›</span>
-                    Early renewals stack — never lose paid time
-                  </li>
-                </ul>
-                <div className="mt-6">
-                  {decision?.allowed ? (
-                    <Link
-                      href="/billing"
-                      className="inline-flex border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
-                    >
-                      Manage subscription
-                    </Link>
-                  ) : session?.user ? (
-                    <Link
-                      href="/billing/paywall?callbackUrl=/fictional"
-                      className="inline-flex border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
-                    >
-                      Start trial or subscribe
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/login?callbackUrl=/billing/paywall"
-                      className="inline-flex border border-cta/50 bg-cta/15 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text"
-                    >
-                      Sign in to continue
-                    </Link>
-                  )}
+                <div className="hud-panel-title">
+                  <span>Prepaid access</span>
+                </div>
+                <div className="hud-panel-body">
+                  <h2 className="font-display text-xl uppercase tracking-[0.1em] text-text">
+                    {plan.label}
+                  </h2>
+                  <p className="mt-3 font-mono text-2xl text-text">{price}</p>
+                  <ul className="mt-5 space-y-2.5">
+                    <li className="font-mono text-[12px] text-text-muted normal-case tracking-normal">
+                      <span className="mr-2 text-text-dim">›</span>
+                      Full Fictional cases + Investigation Mode
+                    </li>
+                    <li className="font-mono text-[12px] text-text-muted normal-case tracking-normal">
+                      <span className="mr-2 text-text-dim">›</span>
+                      Visa or Whish Money checkout
+                    </li>
+                    <li className="font-mono text-[12px] text-text-muted normal-case tracking-normal">
+                      <span className="mr-2 text-text-dim">›</span>
+                      Early renewals stack — never lose paid time
+                    </li>
+                  </ul>
+                  <div className="mt-6">
+                    {decision?.allowed ? (
+                      <Link href="/billing" className="deck-btn-sm deck-btn-sm--solid min-w-[10rem] max-w-none">
+                        Manage subscription
+                      </Link>
+                    ) : session?.user ? (
+                      <Link
+                        href="/billing/paywall?callbackUrl=/fictional"
+                        className="deck-btn-sm deck-btn-sm--solid min-w-[10rem] max-w-none"
+                      >
+                        Start trial or subscribe
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/login?callbackUrl=/billing/paywall"
+                        className="deck-btn-sm deck-btn-sm--solid min-w-[10rem] max-w-none"
+                      >
+                        Sign in to continue
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </section>
             );

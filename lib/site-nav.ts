@@ -1,9 +1,42 @@
+/**
+ * Shared primary IA for desktop top nav and mobile bottom nav.
+ * Hollow Evidence/Search/Discussions focus modes removed — those never
+ * switched UI and Discussions previously leaked a case code in the URL.
+ */
 export const primaryNav = [
   { href: "/cases", label: "Cases" },
-  { href: "/cases?focus=evidence", label: "Evidence" },
-  { href: "/fictional/rankings", label: "Intel" },
   { href: "/fictional", label: "Fictional cases" },
+  { href: "/fictional/rankings", label: "Intel" },
   { href: "/profile", label: "Profile" },
+] as const;
+
+/** Compact mobile strip — same destinations, shorter labels. */
+export const mobileNav = [
+  { href: "/cases", label: "Cases", match: (p: string) => p.startsWith("/cases") },
+  {
+    href: "/fictional",
+    label: "Fictional",
+    match: (p: string) =>
+      p.startsWith("/fictional") && !p.includes("rankings"),
+  },
+  {
+    href: "/fictional/rankings",
+    label: "Intel",
+    match: (p: string) => p.includes("rankings"),
+  },
+  {
+    href: "/billing",
+    label: "Billing",
+    match: (p: string) =>
+      p.startsWith("/billing") ||
+      p.startsWith("/pricing") ||
+      p.startsWith("/checkout"),
+  },
+  {
+    href: "/profile",
+    label: "Profile",
+    match: (p: string) => p.startsWith("/profile"),
+  },
 ] as const;
 
 export const footerNav = [

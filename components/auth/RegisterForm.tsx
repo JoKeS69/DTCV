@@ -25,7 +25,7 @@ export function RegisterForm() {
               aria-label="Username"
               required
               minLength={3}
-              pattern="[a-z0-9_]+"
+              pattern="[a-zA-Z0-9_]+"
               className="auth-input"
             />
           </label>

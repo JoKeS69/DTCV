@@ -16,14 +16,13 @@ export default async function ResetPasswordPage({
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
-        <h1 className="font-mono text-2xl font-semibold tracking-[0.28em] text-text">
-          CASE//NET
-        </h1>
-        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.32em] text-text-muted">
+      <header className="auth-brand motion-fade-up">
+        <h1 className="auth-brand-title font-display">CASE//NET</h1>
+        <p className="auth-brand-sub">Global Investigation Platform</p>
+        <p className="auth-brand-cue">
           {token ? "Set new password" : "Password reset"}
         </p>
-      </div>
+      </header>
       {token ? <ConfirmResetForm token={token} /> : <RequestResetForm />}
     </div>
   );

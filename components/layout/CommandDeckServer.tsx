@@ -29,8 +29,10 @@ export async function CommandDeckServer({
         },
       });
       if (row && !row.suspendedAt) {
+        const label =
+          row.displayName?.trim() || row.username?.trim() || "DETECTIVE";
         user = {
-          displayName: "DETECTIVE",
+          displayName: label,
           publicId: row.publicId,
           rankLabel: row.detectiveRank || "NOVICE",
           status: "ACTIVE",
@@ -44,8 +46,10 @@ export async function CommandDeckServer({
       // DB briefly unavailable: fall back to session role + username (JWT keeps both fresh).
       const role = session.user.role ?? "USER";
       const username = session.user.username ?? "";
+      const label =
+        session.user.displayName?.trim() || username || "DETECTIVE";
       user = {
-        displayName: "DETECTIVE",
+        displayName: label,
         publicId: "DET-LOCALDEV",
         rankLabel: "NOVICE",
         status: "ACTIVE",

@@ -179,7 +179,10 @@ export async function requestPasswordResetAction(
   _prev: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const email = String(formData.get("email") ?? "")
+  // Accept username (primary signup path) or email (legacy / profile-linked).
+  const account = String(
+    formData.get("account") ?? formData.get("email") ?? "",
+  )
     .trim()
     .toLowerCase();
 
@@ -194,19 +197,26 @@ export async function requestPasswordResetAction(
     };
   }
 
-  if (!z.string().email().safeParse(email).success) {
-    return { ok: false, error: "Enter a valid email" };
+  if (account.length < 3) {
+    return { ok: false, error: "Enter your username or email" };
   }
 
   const prisma = getPrisma();
-  const blind = lookupEmailBlindIndex(email);
-  const user =
-    (await prisma.user.findUnique({ where: { emailBlindIndex: blind } })) ??
-    (await prisma.user.findUnique({ where: { email } }));
+  const looksLikeEmail = z.string().email().safeParse(account).success;
+
+  let user = await prisma.user.findUnique({
+    where: { username: account },
+  });
+  if (!user && looksLikeEmail) {
+    const blind = lookupEmailBlindIndex(account);
+    user =
+      (await prisma.user.findUnique({ where: { emailBlindIndex: blind } })) ??
+      (await prisma.user.findUnique({ where: { email: account } }));
+  }
 
   const genericMessage = allowDevAuthLinks()
-    ? "If that email is registered, a reset link was issued. Development email placeholder is on — use the reset link below when shown."
-    : "If that email is registered, a password reset was requested. Check your email when delivery is configured.";
+    ? "If that account is registered, a reset link was issued. Development email placeholder is on — use the reset link below when shown."
+    : "If that account is registered, a password reset was requested. Check your email when delivery is configured, or ask an admin to run db:reset-abed for the owner account.";
 
   if (!user) {
     return { ok: true, message: genericMessage };

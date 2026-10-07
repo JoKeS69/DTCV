@@ -17,27 +17,32 @@ export function RequestResetForm() {
   );
 
   return (
-    <form action={action} className="mx-auto w-full max-w-[360px] space-y-3">
-      <label className="auth-field">
-        <span className="auth-field-icon" aria-hidden>
-          @
-        </span>
-        <input
-          name="email"
-          type="email"
-          required
-          placeholder="Email"
-          className="auth-input"
-        />
-      </label>
+    <form action={action} className="auth-stack">
+      <div className="auth-block">
+        <label className="auth-field">
+          <span className="auth-field-icon" aria-hidden>
+            @
+          </span>
+          <input
+            name="account"
+            type="text"
+            autoComplete="username"
+            required
+            minLength={3}
+            placeholder="Username or email"
+            aria-label="Username or email"
+            className="auth-input"
+          />
+        </label>
+      </div>
 
       {state.error ? (
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-danger">
+        <p className="auth-feedback auth-feedback--error" role="alert">
           {state.error}
         </p>
       ) : null}
       {state.message ? (
-        <p className="border border-border px-3 py-2 font-mono text-[10px] leading-relaxed text-text-muted">
+        <p className="auth-feedback auth-feedback--ok" role="status">
           {state.message}
           {state.resetUrl ? (
             <>
@@ -50,12 +55,16 @@ export function RequestResetForm() {
         </p>
       ) : null}
 
-      <button type="submit" disabled={pending} className="auth-btn-primary">
-        {pending ? "ISSUING…" : "SEND RESET →"}
-      </button>
-      <Link href="/login" className="auth-btn-ghost">
-        BACK TO LOGIN
-      </Link>
+      <div className="auth-block auth-block--cta">
+        <button type="submit" disabled={pending} className="auth-btn-primary">
+          {pending ? "ISSUING…" : "SEND RESET →"}
+        </button>
+      </div>
+      <div className="auth-block auth-block--secondary">
+        <Link href="/login" className="auth-btn-ghost">
+          BACK TO LOGIN
+        </Link>
+      </div>
     </form>
   );
 }
@@ -64,37 +73,43 @@ export function ConfirmResetForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState(resetPasswordAction, initial);
 
   return (
-    <form action={action} className="mx-auto w-full max-w-[360px] space-y-3">
+    <form action={action} className="auth-stack">
       <input type="hidden" name="token" value={token} />
-      <label className="auth-field">
-        <span className="auth-field-icon" aria-hidden>
-          *
-        </span>
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          placeholder="New password"
-          className="auth-input"
-        />
-      </label>
+      <div className="auth-block">
+        <label className="auth-field">
+          <span className="auth-field-icon" aria-hidden>
+            *
+          </span>
+          <input
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            placeholder="New password"
+            aria-label="New password"
+            className="auth-input"
+          />
+        </label>
+      </div>
       {state.error ? (
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-danger">
+        <p className="auth-feedback auth-feedback--error" role="alert">
           {state.error}
         </p>
       ) : null}
       {state.message ? (
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-online">
+        <p className="auth-feedback auth-feedback--ok" role="status">
           {state.message}{" "}
           <Link href="/login" className="underline">
             Login
           </Link>
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className="auth-btn-primary">
-        {pending ? "UPDATING…" : "UPDATE PASSWORD →"}
-      </button>
+      <div className="auth-block auth-block--cta">
+        <button type="submit" disabled={pending} className="auth-btn-primary">
+          {pending ? "UPDATING…" : "UPDATE PASSWORD →"}
+        </button>
+      </div>
     </form>
   );
 }

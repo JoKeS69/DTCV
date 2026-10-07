@@ -31,10 +31,12 @@ export default async function FictionalListPage({
   let investigationCards: Awaited<
     ReturnType<typeof listPublishedInvestigationCards>
   > = [];
+  let investigationLoadError = false;
   try {
     investigationCards = await listPublishedInvestigationCards();
   } catch {
     investigationCards = [];
+    investigationLoadError = true;
   }
 
   const result = await listPublishedFictionalCases({ page });
@@ -65,11 +67,12 @@ export default async function FictionalListPage({
 
   return (
     <main className="deck-page">
-      <div className="border border-border bg-surface/50 px-4 py-3">
+      <div className="hud-panel motion-fade-up">
+        <div className="hud-panel-body">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
           &gt; Fictional cases
         </p>
-        <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.1em] text-text md:text-2xl">
+        <h1 className="mt-1 font-display text-xl font-semibold uppercase tracking-[0.08em] text-text md:text-2xl">
           Fictional case files
         </h1>
         <p className="mt-2 max-w-2xl font-mono text-[13px] text-text-muted normal-case tracking-normal">
@@ -91,17 +94,24 @@ export default async function FictionalListPage({
             ? ` · ${entitlements.label.toUpperCase()}`
             : " · LOCKED"}
         </p>
+        </div>
       </div>
 
       <section className="mt-5">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5ec4b6]">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
           Investigation Mode
         </h2>
         <p className="mt-1 font-mono text-[12px] text-text-muted normal-case tracking-normal">
           Whodunit game — dossiers, scenes, interrogation, evidence board,
           accusation.
         </p>
-        {investigationCards.length === 0 ? (
+        {investigationLoadError ? (
+          <p className="mt-3 border border-danger/40 bg-danger/10 px-3 py-2 font-mono text-[11px] text-danger" role="alert">
+            Investigation Mode database unavailable. Check CASES_DATABASE_URL and
+            run cases migrations (`npm run db:deploy:cases:safe` with BACKUP_OK=1)
+            — this is not an empty catalog.
+          </p>
+        ) : investigationCards.length === 0 ? (
           <p className="mt-3 font-mono text-[11px] text-text-dim">
             No Investigation Mode cases published yet. PB CASE admins can
             generate/seed from /pb-case (right panel).

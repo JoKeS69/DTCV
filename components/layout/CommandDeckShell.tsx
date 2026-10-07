@@ -38,8 +38,8 @@ export function CommandDeckShell({
           <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+16px)] md:pb-0">
             {children}
           </div>
-          <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-border bg-bg/90 px-5 font-mono text-[12px] uppercase tracking-[0.1em] backdrop-blur-sm md:flex xl:px-8">
-            <p className="truncate text-online">
+          <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-border bg-bg/85 px-5 font-mono text-[12px] uppercase tracking-[0.1em] backdrop-blur-md md:flex xl:px-8">
+            <p className="truncate text-accent">
               <span className="text-text-dim">&gt; </span>
               SYSTEM MESSAGE: DATABASE CONNECTION SECURE // {countLabel}
             </p>
@@ -47,7 +47,7 @@ export function CommandDeckShell({
               &gt; <span className="motion-cursor-blink">_</span>
             </p>
           </footer>
-          <div className="border-t border-border bg-bg/90 px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.08em] text-online backdrop-blur-sm md:hidden">
+          <div className="border-t border-border bg-bg/85 px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.08em] text-accent backdrop-blur-md md:hidden">
             <span className="mr-2 inline-block size-2 rounded-full bg-online align-middle motion-pulse-online" />
             DATABASE CONNECTION SECURE // {countLabel}
           </div>

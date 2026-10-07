@@ -41,7 +41,7 @@ export default async function PaywallPage({
 
   return (
     <div className="flex min-h-svh flex-col bg-bg">
-      <SiteHeader />
+      <SiteHeader signedIn />
       <main className="deck-page max-w-2xl flex-1">
         {params.checkout === "canceled" ? (
           <p className="mb-3 font-mono text-[11px] text-amber">

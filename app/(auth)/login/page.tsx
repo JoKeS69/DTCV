@@ -13,8 +13,8 @@ export default async function LoginPage({
 
   return (
     <div className="w-full">
-      <header className="auth-brand">
-        <h1 className="auth-brand-title">CASE//NET</h1>
+      <header className="auth-brand motion-fade-up">
+        <h1 className="auth-brand-title font-display">CASE//NET</h1>
         <p className="auth-brand-sub">Global Investigation Platform</p>
       </header>
       <LoginForm callbackUrl={params.callbackUrl} />

@@ -19,7 +19,12 @@ function formatHudClock(date: Date) {
     .toUpperCase();
 }
 
-export function SiteHeader() {
+export function SiteHeader({
+  signedIn = false,
+}: {
+  /** When true, show Profile instead of Login. */
+  signedIn?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [clock, setClock] = useState("");
 
@@ -37,13 +42,16 @@ export function SiteHeader() {
     };
   }, [open]);
 
+  const accountHref = signedIn ? "/profile" : "/login";
+  const accountLabel = signedIn ? "Profile" : "Login";
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg">
-      <div className="flex h-11 items-center justify-between gap-3 px-3 md:h-12 md:px-4">
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur-md">
+      <div className="flex h-12 items-center justify-between gap-3 px-4 md:h-14 md:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            className="inline-flex size-8 items-center justify-center text-text md:hidden"
+            className="inline-flex size-9 items-center justify-center text-text md:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -56,24 +64,22 @@ export function SiteHeader() {
             </span>
           </button>
 
-          <Link href="/" className="min-w-0">
-            {/* design-refs: | BRAND | TAGLINE */}
-            <span className="block truncate font-mono text-[12px] font-semibold tracking-[0.16em] text-text md:text-[13px]">
-              <span className="text-text-dim">|</span> {designTokens.brand}{" "}
-              <span className="text-text-dim">|</span>{" "}
-              <span className="hidden text-text-muted sm:inline">
-                {designTokens.tagline}
-              </span>
+          <Link href={signedIn ? "/cases" : "/"} className="min-w-0">
+            <span className="block truncate font-display text-[13px] font-semibold tracking-[0.14em] text-text md:text-[15px]">
+              {designTokens.brand}
+            </span>
+            <span className="mt-0.5 hidden font-mono text-[9px] uppercase tracking-[0.2em] text-text-dim sm:block">
+              {designTokens.tagline}
             </span>
           </Link>
         </div>
 
-        <nav aria-label="Primary" className="hidden items-center lg:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
           {primaryNav.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted transition-colors hover:bg-surface-elevated hover:text-text"
+              className="rounded-[6px] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted transition-colors hover:bg-surface-elevated hover:text-text"
             >
               {item.label}
             </Link>
@@ -82,12 +88,12 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
-            href="/login"
-            className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted hover:text-text sm:inline"
+            href={accountHref}
+            className="hidden font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted hover:text-text sm:inline"
           >
-            Login
+            {accountLabel}
           </Link>
-          <span className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-muted sm:text-[10px] sm:tracking-[0.16em]">
+          <span className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-muted sm:text-[10px]">
             SYSTEM ONLINE
             <span className="size-1.5 rounded-full bg-online motion-pulse-online" />
           </span>
@@ -108,17 +114,17 @@ export function SiteHeader() {
                 key={item.label}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-border px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text"
+                className="border-b border-border px-4 py-3 font-mono text-[12px] uppercase tracking-[0.14em] text-text"
               >
                 {item.label}
               </Link>
             ))}
             <Link
-              href="/login"
+              href={accountHref}
               onClick={() => setOpen(false)}
-              className="px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-cta"
+              className="px-4 py-3 font-mono text-[12px] uppercase tracking-[0.14em] text-cta"
             >
-              Login / Sign up
+              {signedIn ? "Profile" : "Login / Sign up"}
             </Link>
           </nav>
         </div>

@@ -1,47 +1,50 @@
 @import "tailwindcss";
 
-/* CASE//NET — spacious high-end command deck */
+/* CASE//NET — elevated command deck (cool steel + teal) */
 @theme inline {
-  --color-bg: #07090b;
-  --color-surface: #0d1114;
-  --color-surface-elevated: #12171b;
-  --color-border: rgb(255 255 255 / 0.08);
-  --color-border-strong: rgb(255 255 255 / 0.14);
-  --color-text: #e6edf3;
-  --color-text-muted: #8b98a5;
-  --color-text-dim: #5c6a76;
-  --color-cta: #8a99ad;
-  --color-cta-text: #08090a;
+  --color-bg: #06080a;
+  --color-surface: #0c1014;
+  --color-surface-elevated: #121820;
+  --color-border: rgb(255 255 255 / 0.09);
+  --color-border-strong: rgb(255 255 255 / 0.16);
+  --color-text: #e8eef4;
+  --color-text-muted: #8b9aab;
+  --color-text-dim: #5a6a78;
+  --color-cta: #8fa0b5;
+  --color-cta-text: #07090b;
   --color-online: #4ade80;
+  --color-accent: #5ec4b6;
   --color-amber: #f5a524;
   --color-unsolved: #7d8fa3;
   --color-closed: #c4c8cc;
   --color-danger: #b33a3a;
-  --color-selected: #1a2228;
+  --color-selected: #1a242c;
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
   --radius-panel: 8px;
   --radius-control: 6px;
   --radius-pill: 999px;
 }
 
 :root {
-  --bg: #07090b;
-  --surface: #0d1114;
-  --surface-elevated: #12171b;
-  --border: rgb(255 255 255 / 0.08);
-  --border-strong: rgb(255 255 255 / 0.14);
-  --text: #e6edf3;
-  --text-muted: #8b98a5;
-  --text-dim: #5c6a76;
-  --cta: #8a99ad;
-  --cta-text: #08090a;
+  --bg: #06080a;
+  --surface: #0c1014;
+  --surface-elevated: #121820;
+  --border: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.16);
+  --text: #e8eef4;
+  --text-muted: #8b9aab;
+  --text-dim: #5a6a78;
+  --cta: #8fa0b5;
+  --cta-text: #07090b;
   --online: #4ade80;
+  --accent: #5ec4b6;
   --amber: #f5a524;
   --unsolved: #7d8fa3;
   --closed: #c4c8cc;
   --danger: #b33a3a;
-  --selected: #1a2228;
+  --selected: #1a242c;
   --panel-pad: 16px;
   --panel-gap: 20px;
   --page-inset: 20px;
@@ -50,7 +53,7 @@
   --sidebar-rail: 72px;
   --system-bar: 36px;
   --bottom-nav: 64px;
-  --duration: 180ms;
+  --duration: 200ms;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -82,13 +85,20 @@ html {
 
 body {
   min-height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -20%, rgb(94 196 182 / 0.06), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgb(143 160 181 / 0.07), transparent 50%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, sans-serif;
 }
 
 a {
@@ -230,8 +240,10 @@ a {
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: #07090b;
-  color: #5c6a76;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 35%, rgb(18 28 34 / 0.9), transparent 70%),
+    linear-gradient(165deg, #050708 0%, #0a1014 45%, #06080a 100%);
+  color: #5a6a78;
 }
 
 /* Atmosphere layers must never intercept top-nav / badge clicks */
@@ -248,8 +260,10 @@ a {
 }
 
 .casenet-atmosphere--auth {
-  background: #050505;
-  color: #6b7280;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgb(20 32 38 / 0.95), transparent 68%),
+    linear-gradient(180deg, #040506 0%, #080c10 50%, #050607 100%);
+  color: #6b7a88;
 }
 
 .casenet-atmosphere__grid {
@@ -295,7 +309,7 @@ a {
 }
 
 .casenet-atmosphere__nodes {
-  color: #4ade80;
+  color: #5ec4b6;
   animation: casenet-node-pulse 5.5s ease-in-out infinite;
 }
 
@@ -308,9 +322,9 @@ a {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgb(138 153 173 / 0.05) 45%,
-    rgb(74 222 128 / 0.04) 50%,
-    rgb(138 153 173 / 0.03) 55%,
+    rgb(143 160 181 / 0.05) 45%,
+    rgb(94 196 182 / 0.05) 50%,
+    rgb(143 160 181 / 0.03) 55%,
     transparent 100%
   );
   animation: casenet-scan-sweep 22s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -321,9 +335,9 @@ a {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgb(138 153 173 / 0.07) 45%,
-    rgb(74 222 128 / 0.05) 50%,
-    rgb(138 153 173 / 0.04) 55%,
+    rgb(143 160 181 / 0.08) 45%,
+    rgb(94 196 182 / 0.06) 50%,
+    rgb(143 160 181 / 0.04) 55%,
     transparent 100%
   );
 }
@@ -501,9 +515,10 @@ a {
 /* Panels */
 .hud-panel {
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
   border-radius: var(--radius-panel);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.25);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset;
   overflow: hidden;
 }
 
@@ -824,12 +839,12 @@ a {
 }
 
 .auth-landing .auth-brand-title {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 1.125rem;
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, sans-serif;
+  font-size: 1.5rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   color: var(--text);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .auth-landing .auth-brand-sub {
@@ -949,8 +964,8 @@ a {
 
 @media (min-width: 640px) {
   .auth-landing .auth-brand-title {
-    font-size: 1.25rem;
-    letter-spacing: 0.24em;
+    font-size: 1.75rem;
+    letter-spacing: 0.2em;
   }
 }
 

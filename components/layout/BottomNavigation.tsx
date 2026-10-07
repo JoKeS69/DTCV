@@ -1,57 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
-  FileText,
-  Home,
-  MessageSquare,
-  Search,
+  BookOpen,
+  CreditCard,
+  GraduationCap,
+  Trophy,
   User,
 } from "lucide-react";
+import { mobileNav } from "@/lib/site-nav";
 
-const items = [
-  {
-    href: "/cases",
-    label: "Cases",
-    icon: Home,
-    match: (p: string, focus: string | null) =>
-      p.startsWith("/cases") &&
-      focus !== "search" &&
-      focus !== "discussions" &&
-      focus !== "evidence",
-  },
-  {
-    href: "/cases?focus=search",
-    label: "Search",
-    icon: Search,
-    match: (_p: string, focus: string | null) => focus === "search",
-  },
-  {
-    href: "/cases?focus=evidence",
-    label: "Evidence",
-    icon: FileText,
-    match: (_p: string, focus: string | null) => focus === "evidence",
-  },
-  {
-    href: "/cases?focus=discussions&select=25-00217",
-    label: "Discussions",
-    icon: MessageSquare,
-    match: (p: string, focus: string | null) =>
-      p.startsWith("/discussions") || focus === "discussions",
-  },
-  {
-    href: "/profile",
-    label: "Profile",
-    icon: User,
-    match: (p: string) => p.startsWith("/profile"),
-  },
-] as const;
+const ICONS = {
+  Cases: BookOpen,
+  Fictional: GraduationCap,
+  Intel: Trophy,
+  Billing: CreditCard,
+  Profile: User,
+} as const;
 
 export function BottomNavigation() {
   const pathname = usePathname() ?? "";
-  const searchParams = useSearchParams();
-  const focus = searchParams?.get("focus") ?? null;
 
   return (
     <nav
@@ -63,9 +32,9 @@ export function BottomNavigation() {
       }}
     >
       <ul className="grid h-[var(--bottom-nav)] grid-cols-5">
-        {items.map((item) => {
-          const active = item.match(pathname, focus);
-          const Icon = item.icon;
+        {mobileNav.map((item) => {
+          const active = item.match(pathname);
+          const Icon = ICONS[item.label as keyof typeof ICONS] ?? BookOpen;
           return (
             <li key={item.label} className="min-w-0">
               <Link
@@ -74,6 +43,7 @@ export function BottomNavigation() {
                   "flex h-full flex-col items-center justify-center gap-1 px-1 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors",
                   active ? "text-text" : "text-text-dim",
                 ].join(" ")}
+                aria-current={active ? "page" : undefined}
               >
                 <Icon
                   className="size-5"

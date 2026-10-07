@@ -10,8 +10,8 @@ export default function AuthLayout({
     <div className="auth-landing relative min-h-svh overflow-hidden bg-[#050505] text-text">
       <CasenetAtmosphere variant="auth" />
       <AuthHudChrome />
-      <div className="relative z-10 flex min-h-svh items-center justify-center px-4 py-20">
-        <div className="flex w-full max-w-[280px] flex-col items-stretch sm:max-w-[300px]">
+      <div className="relative z-10 flex min-h-svh items-center justify-center px-5 py-24">
+        <div className="flex w-full max-w-[340px] flex-col items-stretch sm:max-w-[380px]">
           {children}
         </div>
       </div>
