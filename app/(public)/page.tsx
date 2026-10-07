@@ -20,7 +20,7 @@ export default async function HomePage() {
       <CasenetAtmosphere variant="auth" />
       <AuthHudChrome />
       <main className="relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-24">
-        <div className="mx-auto w-full max-w-xl text-center">
+        <div className="auth-hero mx-auto flex w-full max-w-xl flex-col items-center text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-text-dim motion-fade-up">
             Secure terminal · identity required
           </p>
@@ -34,11 +34,11 @@ export default async function HomePage() {
             Investigate published case files, run original fictional operations,
             and clear Investigation Mode — one detective identity at a time.
           </p>
-          <div className="mx-auto mt-10 flex w-full max-w-xs flex-col gap-3 motion-fade-up motion-fade-up-delay-3">
-            <Link href="/register" className="auth-btn-primary">
+          <div className="auth-hero-actions motion-fade-up motion-fade-up-delay-3">
+            <Link href="/register" className="auth-btn-primary w-full">
               Create identity →
             </Link>
-            <Link href="/login" className="auth-btn-ghost">
+            <Link href="/login" className="auth-btn-ghost w-full">
               Login
             </Link>
           </div>
