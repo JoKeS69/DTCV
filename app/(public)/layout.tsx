@@ -1,10 +1,11 @@
-import { CommandDeckServer } from "@/components/layout/CommandDeckServer";
-
-/** Public routes share command-deck chrome when not redirected. */
+/**
+ * Guest marketing / entry surfaces own their chrome (atmosphere + CTAs).
+ * Authenticated decks use route-group layouts under /cases, /fictional, etc.
+ */
 export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <CommandDeckServer>{children}</CommandDeckServer>;
+  return children;
 }
