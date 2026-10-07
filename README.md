@@ -344,6 +344,8 @@ npm run db:spotcheck     # expects db:seed:dev
 
 Local demo user (`db:seed:dev`): `demo_detective` / `detective-demo-2026`  
 Local admin (`db:seed:dev`): `admin_ops` / `detective-admin-2026`  
+Owner admin (`db:seed:dev` / `db:reset-abed`): `abed` / `ADMIN_BOOTSTRAP_PASSWORD` or `detective-abed-2026`  
+Auth uses main Postgres `DATABASE_URL` only — not `CASES_DATABASE_URL`. Prefer `.env.local` (seeds now load it before `.env`).  
 Production seed never fabricates real crimes. `Solution` is server-only.
 
 ## Auth (Phase 2)

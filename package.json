@@ -21,6 +21,7 @@
     "db:deploy:cases:safe": "bash scripts/deploy-cases-db.sh",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:dev": "tsx prisma/seed.dev.ts",
+    "db:reset-abed": "tsx scripts/reset-abed-password.ts",
     "db:cases:seed": "tsx prisma-cases/seed.ts",
     "db:spotcheck": "tsx prisma/spotcheck.ts",
     "db:prod-check": "tsx scripts/db-prod-check.ts",

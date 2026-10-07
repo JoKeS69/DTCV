@@ -6,16 +6,22 @@
  *
  * Production path: `npm run db:seed` (achievements only; no real-case fabrication).
  */
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { sealEmail } from "../lib/crypto/email";
 import { generatePublicDetectiveId } from "../lib/identity/public-id";
 import { hashPassword } from "../lib/password";
 
+// Prefer .env.local (Next.js laptop convention) then .env — same DB as `npm run dev`.
+loadEnv({ path: ".env.local" });
+loadEnv();
+
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL is required to seed");
+  throw new Error(
+    "DATABASE_URL is required to seed (set in .env.local or .env)",
+  );
 }
 
 const prisma = new PrismaClient({

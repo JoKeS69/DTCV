@@ -7,13 +7,19 @@
  * For local/CI demo users, DEV-* stubs, and FC-001/FC-002 training content:
  *   npm run db:seed:dev
  */
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma/client";
 
+// Prefer .env.local (Next.js laptop convention) then .env — same DB as `npm run dev`.
+loadEnv({ path: ".env.local" });
+loadEnv();
+
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL is required to seed");
+  throw new Error(
+    "DATABASE_URL is required to seed (set in .env.local or .env)",
+  );
 }
 
 const prisma = new PrismaClient({
