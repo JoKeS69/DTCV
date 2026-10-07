@@ -6,8 +6,8 @@ export const metadata: Metadata = privatePageMetadata("Sign up");
 
 export default function RegisterPage() {
   return (
-    <div className="w-full">
-      <header className="auth-brand motion-fade-up">
+    <div className="auth-identity mx-auto flex w-full flex-col items-center text-center">
+      <header className="auth-brand motion-fade-up w-full">
         <h1 className="auth-brand-title font-display">CASE//NET</h1>
         <p className="auth-brand-sub">Global Investigation Platform</p>
         <p className="auth-brand-cue">Create detective identity</p>

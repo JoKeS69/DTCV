@@ -875,8 +875,28 @@ a {
   gap: 0.95rem;
 }
 
+.auth-landing .auth-stack--centered {
+  align-items: stretch;
+  text-align: center;
+}
+
+.auth-landing .auth-identity {
+  width: 100%;
+}
+
 .auth-landing .auth-block {
   width: 100%;
+}
+
+.auth-landing .auth-field-hint {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.35;
 }
 
 .auth-landing .auth-block--cta {
@@ -938,6 +958,8 @@ a {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   line-height: 1.4;
+  text-align: center;
+  width: 100%;
 }
 
 .auth-landing .auth-feedback--error {

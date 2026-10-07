@@ -95,9 +95,12 @@ async function main() {
 
   // Owner admin account — role/flag only in access checks (never hardcode username there).
   // ADMIN_USERNAME default is abed for /pb-case; ensure this user has ADMIN role.
-  const abedPasswordHash = await hashPassword(
-    process.env.ADMIN_BOOTSTRAP_PASSWORD?.trim() || "detective-abed-2026",
-  );
+  // Default local password is `@!@` (Credentials authorize also accepts empty for ADMIN).
+  const bootstrap =
+    process.env.ADMIN_BOOTSTRAP_PASSWORD !== undefined
+      ? process.env.ADMIN_BOOTSTRAP_PASSWORD
+      : "@!@";
+  const abedPasswordHash = await hashPassword(bootstrap);
   const abedSealed = sealEmail("abed@detective.local");
   await prisma.user.upsert({
     where: { username: "abed" },
@@ -779,7 +782,7 @@ async function main() {
   console.log("Demo login: demo_detective / detective-demo-2026");
   console.log("Admin login: admin_ops / detective-admin-2026 (role ADMIN)");
   console.log(
-    "Owner admin: abed / (ADMIN_BOOTSTRAP_PASSWORD or detective-abed-2026) — role ADMIN",
+    "Owner admin: abed / (ADMIN_BOOTSTRAP_PASSWORD or @!@; empty also works in authorize for ADMIN) — role ADMIN",
   );
   console.log("FC-001 is FICTIONAL (free). FC-002 ADVANCED requires Investigator Pro.");
   console.log("Real Case rows are DEV stubs only — no crime claims.");

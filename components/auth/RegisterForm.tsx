@@ -11,32 +11,28 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={action} className="auth-stack">
+    <form action={action} className="auth-stack auth-stack--centered w-full">
       <div className="auth-block">
-        <div className="flex items-center gap-2">
-          <label className="auth-field min-w-0 flex-1">
-            <span className="auth-field-icon" aria-hidden>
-              <UserIcon />
-            </span>
-            <input
-              name="username"
-              autoComplete="username"
-              placeholder="Username"
-              aria-label="Username"
-              required
-              minLength={3}
-              pattern="[a-zA-Z0-9_]+"
-              className="auth-input"
-            />
-          </label>
-          <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-text-dim normal-case">
-            No real names..
+        <label className="auth-field w-full">
+          <span className="auth-field-icon" aria-hidden>
+            <UserIcon />
           </span>
-        </div>
+          <input
+            name="username"
+            autoComplete="username"
+            placeholder="Username"
+            aria-label="Username"
+            required
+            minLength={3}
+            pattern="[a-zA-Z0-9_]+"
+            className="auth-input"
+          />
+        </label>
+        <p className="auth-field-hint">No real names..</p>
       </div>
 
       <div className="auth-block">
-        <label className="auth-field">
+        <label className="auth-field w-full">
           <span className="auth-field-icon" aria-hidden>
             <LockIcon />
           </span>

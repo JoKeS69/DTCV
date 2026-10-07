@@ -47,8 +47,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
             autoComplete="current-password"
             placeholder="Password"
             aria-label="Password"
-            required
-            minLength={8}
+            maxLength={128}
             className="auth-input"
           />
           <button

