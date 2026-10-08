@@ -6,7 +6,7 @@ export function StatCard({
 }: {
   label: string;
   value: string | number;
-  tone?: "online" | "amber" | "unsolved" | "closed" | "default";
+  tone?: "online" | "amber" | "unsolved" | "closed" | "danger" | "accent" | "default";
   compact?: boolean;
 }) {
   const toneClass =
@@ -18,12 +18,16 @@ export function StatCard({
           ? "text-unsolved"
           : tone === "closed"
             ? "text-closed"
-            : "text-text";
+            : tone === "danger"
+              ? "text-danger"
+              : tone === "accent"
+                ? "text-accent"
+                : "text-text";
 
   return (
     <div
       className={[
-        "rounded-[6px] border border-border bg-surface-elevated/60",
+        "rounded-[2px] border border-border bg-surface-elevated/60",
         compact ? "px-2 py-1.5" : "px-3 py-2.5",
       ].join(" ")}
     >

@@ -13,10 +13,10 @@ import "leaflet/dist/leaflet.css";
 import type { HudCaseStatus, HudMapMarker } from "@/lib/cases/hud-types";
 
 const STATUS_COLOR: Record<HudCaseStatus, string> = {
-  OPEN: "#4ade80",
-  COLD: "#f5a524",
+  OPEN: "#e5484d",
+  COLD: "#3ecfcf",
   UNSOLVED: "#7d8fa3",
-  CLOSED: "#c4c8cc",
+  CLOSED: "#34d399",
 };
 
 const DARK_TILES =

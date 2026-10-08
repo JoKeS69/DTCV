@@ -24,13 +24,13 @@ export function GlobalCases({
           />
           <p className="pointer-events-none absolute bottom-2 left-3 z-[500] flex max-w-[90%] flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-text-dim">
             <span>
-              <span className="text-online" aria-hidden>
+              <span className="text-danger" aria-hidden>
                 ●
               </span>{" "}
               Open
             </span>
             <span>
-              <span className="text-amber" aria-hidden>
+              <span className="text-accent" aria-hidden>
                 ●
               </span>{" "}
               Cold
@@ -42,7 +42,7 @@ export function GlobalCases({
               Unsolved
             </span>
             <span>
-              <span className="text-closed" aria-hidden>
+              <span className="text-online" aria-hidden>
                 ●
               </span>{" "}
               Closed
@@ -59,15 +59,15 @@ export function GlobalCases({
             </p>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
-            <StatCard label="Open" value={stats.OPEN} tone="online" compact />
-            <StatCard label="Cold" value={stats.COLD} tone="amber" compact />
+            <StatCard label="Open" value={stats.OPEN} tone="danger" compact />
+            <StatCard label="Cold" value={stats.COLD} tone="accent" compact />
             <StatCard
               label="Unsolved"
               value={stats.UNSOLVED}
               tone="unsolved"
               compact
             />
-            <StatCard label="Closed" value={stats.CLOSED} tone="closed" compact />
+            <StatCard label="Closed" value={stats.CLOSED} tone="online" compact />
           </div>
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-dim">
