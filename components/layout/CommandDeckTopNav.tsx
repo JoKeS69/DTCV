@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import type { DeckUser } from "@/components/layout/deck-user";
-import { designTokens } from "@/lib/design-tokens";
 import { primaryNav } from "@/lib/site-nav";
 
 const ICONS: Record<string, typeof BookOpen> = {
@@ -60,7 +59,7 @@ function AdminBadge({
   username?: string;
 }) {
   const chipClass =
-    "relative z-20 inline-flex min-h-10 min-w-10 cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted pointer-events-auto transition-colors hover:border-border-strong hover:bg-surface-elevated hover:text-text";
+    "relative z-20 inline-flex min-h-10 min-w-10 cursor-pointer items-center gap-1.5 rounded-[2px] border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted pointer-events-auto transition-colors hover:border-accent/50 hover:bg-selected hover:text-accent";
   const icon = <Shield className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />;
 
   if (canAccessPbCase) {
@@ -167,9 +166,9 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
   const navLinkClass = (active: boolean) =>
     [
-      "inline-flex items-center gap-1.5 rounded-[6px] px-2.5 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors xl:gap-2 xl:px-3 xl:text-[12px]",
+      "relative inline-flex items-center gap-1.5 rounded-[2px] px-2.5 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors xl:gap-2 xl:px-3 xl:text-[12px]",
       active
-        ? "bg-selected text-text"
+        ? "bg-selected text-accent shadow-[inset_2px_0_0_0_var(--accent)]"
         : "text-text-muted hover:bg-surface-elevated hover:text-text",
     ].join(" ");
 
@@ -181,9 +180,9 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
           <div className="relative z-20 flex min-w-0 items-center gap-3 justify-self-start">
             <Link
               href="/cases"
-              className="shrink-0 font-display text-[14px] font-semibold tracking-[0.12em] text-text xl:text-[15px]"
+              className="shrink-0 font-display text-[14px] font-semibold tracking-[0.14em] text-text xl:text-[15px]"
             >
-              {designTokens.brand}
+              CASE<span className="text-accent">{"//"}</span>NET
             </Link>
             {isAdmin ? (
               <AdminBadge
@@ -218,7 +217,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                   />
                   <span>{item.label}</span>
                   {active ? (
-                    <span className="text-text-dim" aria-hidden>
+                    <span className="text-accent/70" aria-hidden>
                       &gt;
                     </span>
                   ) : null}
@@ -229,7 +228,8 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
 
           <div className="flex shrink-0 flex-col items-end gap-1 justify-self-end">
             <span className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">
-              ONLINE
+              <span className="text-text-dim">System</span>
+              <span className="text-online">Online</span>
               <span className="size-2 rounded-full bg-online motion-pulse-online" />
             </span>
             <time
@@ -254,7 +254,7 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
           <div className="relative z-20 flex min-w-0 items-center gap-2.5">
             <button
               type="button"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] text-text transition-colors hover:bg-surface"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-[2px] text-text transition-colors hover:bg-surface"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               onClick={() => setMenuOpen((v) => !v)}
@@ -290,10 +290,10 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
             aria-label="Close menu overlay"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="relative z-10 mx-3 mt-3 flex max-h-[85vh] flex-col rounded-[6px] border border-border bg-bg shadow-2xl">
+          <div className="relative z-10 mx-3 mt-3 flex max-h-[85vh] flex-col rounded-[2px] border border-border bg-bg shadow-2xl">
             <div className="border-b border-border px-4 py-4">
               <p className="font-mono text-[13px] font-semibold tracking-[0.12em] text-text">
-                {designTokens.brand}
+                CASE<span className="text-accent">{"//"}</span>NET
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 {isAdmin ? (
@@ -327,9 +327,9 @@ export function CommandDeckTopNav({ user }: { user: DeckUser }) {
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className={[
-                      "flex items-center gap-3 rounded-[6px] px-3 py-3 font-mono text-[14px] uppercase tracking-[0.12em] transition-colors",
+                      "flex items-center gap-3 rounded-[2px] px-3 py-3 font-mono text-[14px] uppercase tracking-[0.12em] transition-colors",
                       active
-                        ? "bg-selected text-text"
+                        ? "bg-selected text-accent shadow-[inset_2px_0_0_0_var(--accent)]"
                         : "text-text-muted hover:bg-surface-elevated hover:text-text",
                     ].join(" ")}
                     aria-current={active ? "page" : undefined}

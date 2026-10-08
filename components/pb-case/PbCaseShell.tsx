@@ -10,7 +10,7 @@ const LINKS = [
 
 export function PbCaseNav({ current }: { current: string }) {
   return (
-    <nav className="flex flex-wrap gap-2 border border-border bg-surface/40 p-2">
+    <nav className="flex flex-wrap gap-2 border border-border bg-surface/50 p-2">
       {LINKS.map((item) => {
         const active =
           item.href === "/pb-case"
@@ -20,10 +20,10 @@ export function PbCaseNav({ current }: { current: string }) {
           <Link
             key={item.href}
             href={item.href}
-            className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-1 ${
+            className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-1 transition-colors ${
               active
-                ? "bg-accent/20 text-text"
-                : "text-text-muted hover:text-text"
+                ? "bg-selected text-accent shadow-[inset_2px_0_0_0_var(--accent)]"
+                : "text-text-muted hover:text-text hover:bg-surface-elevated"
             }`}
           >
             {item.label}
@@ -49,10 +49,10 @@ export function PbCaseShell({
     <main className="mx-auto max-w-6xl px-3 py-6 md:px-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
             &gt; PB-CASE · research desk · noindex
           </p>
-          <h1 className="mt-1 font-mono text-xl font-semibold uppercase tracking-[0.1em] text-text md:text-2xl">
+          <h1 className="mt-1 font-display text-xl font-semibold uppercase tracking-[0.1em] text-text md:text-2xl">
             {title}
           </h1>
           {subtitle ? (
@@ -63,7 +63,7 @@ export function PbCaseShell({
         </div>
         <Link
           href="/"
-          className="shrink-0 border border-border bg-surface/40 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted hover:bg-surface hover:text-text"
+          className="shrink-0 border border-cta bg-cta px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cta-text hover:brightness-95"
         >
           ← Home
         </Link>

@@ -41,7 +41,9 @@ export function BottomNavigation() {
                 href={item.href}
                 className={[
                   "flex h-full flex-col items-center justify-center gap-1 px-1 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors",
-                  active ? "text-text" : "text-text-dim",
+                  active
+                    ? "text-accent shadow-[inset_0_2px_0_0_var(--accent)]"
+                    : "text-text-dim",
                 ].join(" ")}
                 aria-current={active ? "page" : undefined}
               >

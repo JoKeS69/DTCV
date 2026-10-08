@@ -31,9 +31,9 @@ export function AuthHudChrome() {
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-3 md:px-6">
         <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-text md:text-[12px]">
-          CASE//NET
+          CASE<span className="text-accent">{"//"}</span>NET
           <span className="ml-2 font-mono text-[9px] font-normal tracking-[0.22em] text-text-dim md:text-[10px]">
-            GLOBAL INVESTIGATION PLATFORM
+            GLOBAL CASE ARCHIVE
           </span>
         </p>
         <div className="text-right">

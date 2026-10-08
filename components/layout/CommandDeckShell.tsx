@@ -38,10 +38,10 @@ export function CommandDeckShell({
           <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+16px)] md:pb-0">
             {children}
           </div>
-          <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-border bg-bg/85 px-5 font-mono text-[12px] uppercase tracking-[0.1em] backdrop-blur-md md:flex xl:px-8">
+          <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-border bg-bg/90 px-5 font-mono text-[12px] uppercase tracking-[0.1em] backdrop-blur-md md:flex xl:px-8">
             <p className="truncate text-accent">
               <span className="text-text-dim">&gt; </span>
-              SYSTEM MESSAGE: DATABASE CONNECTION SECURE // {countLabel}
+              Archive secure // {countLabel}
             </p>
             <p className="shrink-0 text-text-muted">
               &gt; <span className="motion-cursor-blink">_</span>

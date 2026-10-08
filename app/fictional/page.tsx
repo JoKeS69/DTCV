@@ -69,8 +69,8 @@ export default async function FictionalListPage({
     <main className="deck-page">
       <div className="hud-panel motion-fade-up">
         <div className="hud-panel-body">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim">
-          &gt; Fictional cases
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
+          &gt; Simulation · fictional cases
         </p>
         <h1 className="mt-1 font-display text-xl font-semibold uppercase tracking-[0.08em] text-text md:text-2xl">
           Fictional case files
@@ -124,7 +124,7 @@ export default async function FictionalListPage({
                   href={`/fictional/investigate/${item.slug}`}
                   className="block border border-[#1e4a55]/70 bg-[#0a1622]/80 px-4 py-3 transition-colors hover:border-[#3d9e90]"
                 >
-                  <p className="font-mono text-[10px] tracking-[0.18em] text-[#5ec4b6]">
+                  <p className="font-mono text-[10px] tracking-[0.18em] text-[#3ecfcf]">
                     WHODUNIT · FICTIONAL
                     {item.darkerTheme ? " · DARK TERMINAL" : ""}
                   </p>

@@ -299,7 +299,7 @@ export function InvestigationGame({
   if (!started) {
     return (
       <section className={`border ${theme} p-4 md:p-6`}>
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#5ec4b6]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#3ecfcf]">
           Investigation Mode · fictional game
         </p>
         <h1 className="mt-2 font-mono text-xl uppercase tracking-[0.08em]">
@@ -351,7 +351,7 @@ export function InvestigationGame({
   if (reveal) {
     return (
       <section className={`border ${theme} p-4 md:p-6`}>
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#5ec4b6]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#3ecfcf]">
           Case closed
         </p>
         <h1 className="mt-2 font-mono text-xl uppercase tracking-[0.08em]">
@@ -360,24 +360,24 @@ export function InvestigationGame({
         <p className="mt-2 font-mono text-[12px] text-[#8fd0c4]">{statusLabel}</p>
         <div className="mt-4 space-y-2 border border-[#1e4a55]/50 bg-[#07141c] p-4 font-mono text-[13px] leading-relaxed text-[#cfe8e2] normal-case tracking-normal">
           <p>
-            <span className="text-[#5ec4b6]">Culprit:</span> {reveal.culpritName}
+            <span className="text-[#3ecfcf]">Culprit:</span> {reveal.culpritName}
           </p>
           <p>
-            <span className="text-[#5ec4b6]">Motive:</span> {reveal.motive}
+            <span className="text-[#3ecfcf]">Motive:</span> {reveal.motive}
           </p>
           <p>
-            <span className="text-[#5ec4b6]">How:</span> {reveal.how}
+            <span className="text-[#3ecfcf]">How:</span> {reveal.how}
           </p>
           <p>
-            <span className="text-[#5ec4b6]">Weapon:</span> {reveal.weaponName} (
+            <span className="text-[#3ecfcf]">Weapon:</span> {reveal.weaponName} (
             {reveal.weaponTrait})
           </p>
           <p>
-            <span className="text-[#5ec4b6]">Disproven alibi:</span>{" "}
+            <span className="text-[#3ecfcf]">Disproven alibi:</span>{" "}
             {reveal.disprovenAlibi}
           </p>
           <div>
-            <p className="text-[#5ec4b6]">Supporting evidence</p>
+            <p className="text-[#3ecfcf]">Supporting evidence</p>
             <ul className="mt-1 list-disc space-y-1 pl-5">
               {reveal.supportingEvidence.map((e) => (
                 <li key={e.title}>
@@ -391,7 +391,7 @@ export function InvestigationGame({
           </p>
           {reveal.twistNote ? (
             <p>
-              <span className="text-[#5ec4b6]">Twist:</span> {reveal.twistNote}
+              <span className="text-[#3ecfcf]">Twist:</span> {reveal.twistNote}
             </p>
           ) : null}
         </div>
@@ -419,7 +419,7 @@ export function InvestigationGame({
     <section className={`border ${theme}`}>
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1e4a55]/60 px-4 py-3 md:px-5">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#5ec4b6]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#3ecfcf]">
             Investigation Mode · {displayName || player.displayName}
           </p>
           <h1 className="mt-1 font-mono text-lg uppercase tracking-[0.08em] md:text-xl">
@@ -495,23 +495,23 @@ export function InvestigationGame({
                 <div className="border border-[#1e4a55]/50 bg-[#07141c] p-3 font-mono text-[12px] leading-relaxed text-[#cfe8e2] normal-case tracking-normal">
                   {dossierDetail ? (
                     <>
-                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#5ec4b6]">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#3ecfcf]">
                         {dossierDetail.name} · {dossierDetail.role}
                       </p>
                       <p className="mt-2">
-                        <span className="text-[#5ec4b6]">Personality:</span>{" "}
+                        <span className="text-[#3ecfcf]">Personality:</span>{" "}
                         {dossierDetail.personality}
                       </p>
                       <p className="mt-2">
-                        <span className="text-[#5ec4b6]">Motive (file):</span>{" "}
+                        <span className="text-[#3ecfcf]">Motive (file):</span>{" "}
                         {dossierDetail.motive}
                       </p>
                       <p className="mt-2">
-                        <span className="text-[#5ec4b6]">Claimed alibi:</span>{" "}
+                        <span className="text-[#3ecfcf]">Claimed alibi:</span>{" "}
                         {dossierDetail.alibi}
                       </p>
                       <p className="mt-2">
-                        <span className="text-[#5ec4b6]">Official statement:</span>{" "}
+                        <span className="text-[#3ecfcf]">Official statement:</span>{" "}
                         {dossierDetail.statement}
                       </p>
                     </>
@@ -546,7 +546,7 @@ export function InvestigationGame({
                           Inspect
                         </button>
                       ) : (
-                        <span className="text-[10px] uppercase tracking-[0.12em] text-[#5ec4b6]">
+                        <span className="text-[10px] uppercase tracking-[0.12em] text-[#3ecfcf]">
                           Discovered
                         </span>
                       )}
@@ -579,7 +579,7 @@ export function InvestigationGame({
                     <p
                       key={`${m.at}-${i}`}
                       className={
-                        m.role === "user" ? "mt-2 text-[#5ec4b6]" : "mt-2 text-[#cfe8e2]"
+                        m.role === "user" ? "mt-2 text-[#3ecfcf]" : "mt-2 text-[#cfe8e2]"
                       }
                     >
                       <span className="text-[10px] uppercase tracking-[0.12em] text-[#6fb8ac]">
@@ -622,7 +622,7 @@ export function InvestigationGame({
                   Board wipes all pins (saved to case log).
                 </p>
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#5ec4b6]">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#3ecfcf]">
                     Suspects
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -644,7 +644,7 @@ export function InvestigationGame({
                   </div>
                 </div>
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#5ec4b6]">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#3ecfcf]">
                     Clues
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -661,7 +661,7 @@ export function InvestigationGame({
                   </div>
                 </div>
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#5ec4b6]">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#3ecfcf]">
                     Strings
                   </p>
                   <ul className="mt-2 space-y-1 font-mono text-[12px] text-[#cfe8e2]">
@@ -789,7 +789,7 @@ export function InvestigationGame({
                   <ul className="space-y-2">
                     {caseLog.map((e, i) => (
                       <li key={`${e.at}-${i}`} className="text-[#cfe8e2]">
-                        <span className="text-[10px] uppercase tracking-[0.12em] text-[#5ec4b6]">
+                        <span className="text-[10px] uppercase tracking-[0.12em] text-[#3ecfcf]">
                           {e.kind}
                         </span>{" "}
                         {e.text}
@@ -834,7 +834,7 @@ export function InvestigationGame({
         </div>
 
         <aside className="border-t border-[#1e4a55]/50 bg-[#050d14] lg:border-l lg:border-t-0">
-          <p className="border-b border-[#1e4a55]/40 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#5ec4b6]">
+          <p className="border-b border-[#1e4a55]/40 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#3ecfcf]">
             Live console
           </p>
           <div className="h-64 overflow-y-auto px-3 py-2 font-mono text-[11px] leading-relaxed text-[#9dcea6] md:h-[28rem]">

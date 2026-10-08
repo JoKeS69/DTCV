@@ -16,19 +16,19 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="auth-landing relative min-h-svh overflow-hidden bg-[#050505] text-text">
+    <div className="auth-landing relative min-h-svh overflow-hidden bg-[#080A0C] text-text">
       <CasenetAtmosphere variant="auth" />
       <AuthHudChrome />
       <main className="relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-24">
         <div className="auth-hero mx-auto flex w-full max-w-xl flex-col items-center text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-text-dim motion-fade-up">
-            Secure terminal · identity required
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent motion-fade-up">
+            {designTokens.tagline} · System online
           </p>
           <h1 className="mt-5 font-display text-[clamp(2.25rem,8vw,4.25rem)] font-semibold uppercase leading-[1.05] tracking-[0.12em] text-text motion-fade-up motion-fade-up-delay-1">
-            {designTokens.brand}
+            CASE<span className="text-accent">{"//"}</span>NET
           </h1>
-          <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.28em] text-text-muted motion-fade-up motion-fade-up-delay-1">
-            {designTokens.tagline}
+          <p className="mt-4 font-display text-[clamp(1rem,3.5vw,1.35rem)] font-medium uppercase tracking-[0.18em] text-text motion-fade-up motion-fade-up-delay-1">
+            {designTokens.headline}
           </p>
           <p className="mx-auto mt-6 max-w-md font-mono text-[13px] leading-relaxed text-text-muted normal-case tracking-normal motion-fade-up motion-fade-up-delay-2">
             Investigate published case files, run original fictional operations,

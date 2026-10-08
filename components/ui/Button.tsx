@@ -13,9 +13,9 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    "border border-cta bg-cta text-cta-text hover:bg-[color-mix(in_srgb,var(--cta)_88%,white)]",
+    "border border-cta bg-cta text-cta-text hover:brightness-95",
   ghost:
-    "border border-border-strong bg-transparent text-text hover:border-text-muted hover:bg-surface-elevated",
+    "border border-border-strong bg-transparent text-text hover:border-accent hover:text-accent hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]",
   danger:
     "border border-danger bg-transparent text-danger hover:bg-[color-mix(in_srgb,var(--danger)_12%,transparent)]",
 };
